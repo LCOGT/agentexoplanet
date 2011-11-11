@@ -1,0 +1,143 @@
+{% extends 'agentex/base.html' %}
+
+{% block body-class %}full agentex dossier {%endblock%}
+
+{%block header %}Test {{event.title}}{%endblock%}
+
+{% block script-content %}
+<!--[if lt IE 9]><script language="javascript" type="text/javascript" src="excanvas.js"></script><![endif]-->
+<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.min.js"></script>
+<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.js"></script>
+<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.axislabels.js"></script>
+<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.fillbetween.js"></script>
+<script src="{{ MEDIA_URL }}js/indicator.js" type="text/javascript" charset="utf-8"></script>
+<script src="{{ MEDIA_URL }}js/raphael.js" type="text/javascript" charset="utf-8"></script>
+<script src="{{ MEDIA_URL }}js/raphael.sizer.js" type="text/javascript" charset="utf-8"></script>
+<script src="{{ MEDIA_URL }}js/raphael.rangelimiter.js" type="text/javascript"></script>
+<script src="{{ MEDIA_URL }}js/lightcurve.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){
+	function photoReady(){
+	
+	}
+
+	lcurve = new Lightcurve({
+		id:'#lightcurve',
+		msg:{
+			nodata: "<h3>You have no data points yet<\/h3><p>Why not make some <a href='{% url citsciportal.agentex.views.addvalue event.name %}'>measurements of {{event.title}}<\/a><\/p>",
+			login: "Please <a href='{% url django.contrib.auth.views.login %}'>login<\/a> to edit"
+		},
+		url:{
+			edit: "{% url citsciportal.agentex.views.addvalue event.name %}?dataid=",
+			json: "{% url citsciportal.agentex.views.index %}{{event.name}}/data.json",
+			xhr: "{% url citsciportal.agentex.views.index %}{{event.name}}/data.xhr"
+		},
+		authenticated: {% if user.is_authenticated %}true{% else %}false{% endif %}
+	});
+
+
+	data = getDataFromTable();
+	photo = new Indicator({id:'finderthumb',callback:photoReady,calibrators:data[2],backgrounds:data[1],sources:data[0]});
+	photo.hide()
+	//bubblePopup({id:'helptooltip',el:{x:l,y:t,w:d,h:d},align:"left",w:200,animate:true,html:'Let\'s get started. Move this circle onto the target star. The finder chart on the left can be used as a guide.'})
+	//limit = new RangeLimiter({id:'finderthumb','stroke':'#ffff00','strokewidth':1.5,limits:[{x:0.3,y:0.0,w:0.4,h:1.0,opacity:0.01,hole:true,xonly:true}]})
+
+	var s = new Array();
+	var b = new Array();
+	var c = new Array();
+	for(i = 0; i < data[0].length ; i++) if(data[0][i].used) s.push(data[0][i].v);
+	for(i = 0; i < data[1].length ; i++) if(data[1][i].used) b.push(data[1][i].v);
+	for(i = 0; i < data[2].length ; i++) if(data[2][i].used) c.push(data[2][i].v);
+
+	console.log(s,max(s),min(s),max(b),min(b))
+	var n = 10;
+	var d = new Array(n);
+	bin(s)
+
+/*	var d2 = [[0,0],[1,0],[2,0],[3,0],[4,0],[5,0],[6,0],[7,0],[8,0],[9,0]];
+	n = d2.length;
+
+	for(i = 0; i < data[0].length ; i++){
+	console.log(Math.floor((data[0][i].v/smax)*(n-1)))
+		j = Math.floor((data[0][i].v/smax)*(n-1));
+		v = smin+(data[0][i].v-smin)*(smax/smin);
+		d2[j] = [j,d2[j][1]+1];
+	}
+console.log(d2)
+	//var d2 = [[0, 3], [4, 8], [8, 5], [9, 13]];
+	$.plot($("#histogram"), [{ data: d2, bars: { show: true } }]);
+*/
+})
+function bin(array,n){
+	if(!n) n = 10;
+	var mx = max(array);
+	var mn = min(array);
+	var binned = new Array(n);
+	for(var i = 0; i < array.length ; i++){
+console.log(Math.floor((array[i]/mx)*(n-1)))
+//		j = Math.floor((data[0][i].v/smax)*(n-1));
+console.log(mn+(array[i]-mn)*(mx-mn));
+//		d2[j] = [j,d2[j][1]+1];
+	}
+	return binned;
+}
+function max(array){ return Math.max.apply(Math, array); }
+function min(array){ return Math.min.apply(Math, array); }
+
+function getDataFromTable(){
+	var w = 1024;
+	var h = 1024;
+	var s = [];
+	var b = [];
+	var c = [];
+	$('#datatable tr').each(function(){
+		var self = $(this);
+		var x,y,r,v,m,u;
+		self.children().each(function(i){
+			if(i==1) x = parseInt($(this).text());
+			else if(i==2) y = parseInt($(this).text());
+			else if(i==3) r = parseFloat($(this).text());
+			else if(i==4) v = parseFloat($(this).text());
+			else if(i==5) m = $(this).text();
+			else if(i==6) u = $(this).text();
+		});
+		if($(this).attr('class')=="source") s.push({x:x/w,y:y/h,r:r/w,v:v,mine:m,used:u});
+		if($(this).attr('class')=="sky") b.push({x:x/w,y:y/h,r:r/w,v:v,mine:m,used:u});
+		if($(this).attr('class')=="calibrator") c.push({x:x/w,y:y/h,r:r/w,v:v,mine:m,used:u});
+	});
+	return [s,b,c];
+}
+</script>
+{% endblock %}
+
+{% block main-content %}
+	<div class="page stackedpaper">
+		
+		<h1><a href="{% url citsciportal.agentex.views.infoview event.name  %}" class="objectspecific">{{event.title}}</a>: Advanced Lightcurve</h1>
+		<div id="lightcurve" style="height:300px;width:560px; margin-right: 10px;display:inline-block;"></div>
+		<div id="finderthumb" style="width:300px;height:300px;display:inline-block;">
+				<img src="{{ MEDIA_URL }}{{target.finderchart_tb}}" style="width:100%" />
+		</div>
+		<div style="width:560px;display:inline-block;margin-right: 10px;">
+			<table id="datatable" style="width:100%;text-align:left;">
+				<tr><th>Type</th><th>X</th><th>Y</th><th>R</th><th>Value</th><th>Mine?</th><th>Used?</th></tr>
+				<tr class="source"><td>source</td><td>520</td><td>450</td><td>14</td><td>140345</td><td>true</td><td>true</td></tr>
+				<tr class="source"><td>source</td><td>525</td><td>452</td><td>14</td><td>140893</td><td>false</td><td>true</td></tr>
+				<tr class="source"><td>source</td><td>510</td><td>459</td><td>14</td><td>139917</td><td>false</td><td>true</td></tr>
+				<tr class="sky"><td>sky</td><td>500</td><td>520</td><td>14</td><td>12879</td><td>true</td><td>true</td></tr>
+				<tr class="sky"><td>sky</td><td>500</td><td>420</td><td>14</td><td>12789</td><td>false</td><td>true</td></tr>
+				<tr class="sky"><td>sky</td><td>520</td><td>380</td><td>14</td><td>12914</td><td>false</td><td>true</td></tr>
+				<tr class="calibrator"><td>calibrator</td><td>845</td><td>725</td><td>14</td><td>89419</td><td>true</td><td>true</td></tr>
+				<tr class="calibrator"><td>calibrator</td><td>845</td><td>730</td><td>14</td><td>91034</td><td>false</td><td>true</td></tr>
+				<tr class="calibrator"><td>calibrator</td><td>350</td><td>560</td><td>14</td><td>190735</td><td>false</td><td>true</td></tr>
+			</table>
+		</div>
+		<div id="histogram" style="width:300px;height:300px;display:inline-block;">
+				<img src="{{ MEDIA_URL }}{{target.finderchart_tb}}" style="width:100%" />
+		</div>
+
+	</div>
+
+
+{% endblock %}

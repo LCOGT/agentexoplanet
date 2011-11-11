@@ -1,0 +1,84 @@
+{% extends 'agentex/base.html' %}
+
+{% block body-class %}full agentex dossier {%endblock%}
+
+{%block header %}Transit Lightcurve of {{event.title}}{%endblock%}
+
+{% block script-content %}
+	<!--[if lt IE 9]><script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/excanvas.js"></script><![endif]-->
+	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.min.js"></script>
+	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.js"></script>
+	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.axislabels.js"></script>
+	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.fillbetween.js"></script>
+	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/lightcurve.js"></script>
+
+	<script type="text/javascript">
+	<!--
+	$(document).ready(function(){
+		html = '<p>This graph shows the relative brightness for all your measurements. Your <em class="sky">background<\/em> value is subtracted from both your <span class="source">source<\/span> and <span class="calibrator">calibrators<\/span>. Then the ratio of <span class="source">source<\/span> to <span class="calibrator">calibrator<\/span> is found for each one. On this plot the ratios have been scaled so that you can compare them and look for <span class="calibrator">calibrators<\/span> which are variable.<\/p>'
+		{% if user.is_authenticated and sources %}html += '<div id="clickdata">Click a point to edit your measurement<\/div>';{% endif %}
+		html += '<div id="mainplot" style="padding-left:40px;height:450px;width:850px;margin-bottom:10px;"><\/div>';
+		$('h1').after(html);
+		$('#mainplot').after('<div id="tabletoggle" style="float:right;"><img src="{{MEDIA_URL}}images/table_icon&24.png" alt="toggle table" title="Show or hide the data table" style="width:16px;margin-right:10px;" \/><\/div>')
+		$('#tabletoggle').bind('click',function(){
+			$('table.accessible').toggle();
+		})
+		lcurve = new Lightcurve({
+			id:'#mainplot',
+			msg:{
+				nodata: "<h3>You have no data points yet<\/h3><p>Why not make some <a href='{% url citsciportal.agentex.views.addvalue event.name %}'>measurements of {{event.title}}<\/a><\/p>",
+				login: "Please <a href='{% url django.contrib.auth.views.login %}'>login<\/a> to edit"
+			},
+			url:{
+				edit: "{% url citsciportal.agentex.views.addvalue event.name %}?dataid=",
+				json: "{% url citsciportal.agentex.views.index %}{{event.name}}/data.json",
+				xhr: "{% url citsciportal.agentex.views.index %}{{event.name}}/data.xhr",
+				superc: "{% url citsciportal.agentex.views.index %}{{event.name}}/data.xhr?mode=super"
+			},
+			data:{{data|safe}},
+			authenticated: {% if user.is_authenticated %}true{% else %}false{% endif %}
+		});
+		
+		function check (){
+			vals = [];
+			nodata = true;
+			$('#calibrator_list input[type=checkbox]').each(function(i){
+				lcurve.used[i] = ($(this).filter(":checked").length > 0) ? true : false;
+				if(lcurve.used[i]) nodata = false;
+			});
+			lcurve.update()
+			if(nodata) bubblePopup({id:'message',el:$('#mainplot'),style:'warning',fade:2000,dismiss:true,align:"center",w:200,animate:true,html:'You have no calibrators selected. It will be impossible to calibrate your data! Please select some from the list below.'});
+		}
+		$('#calibrator_list input[type=checkbox]').bind('change',function(){
+			check();
+		});
+		{% if messages %} bubblePopup({id:'message',el:$('#mainplot'),fade:2000,dismiss:true,align:"center",w:200,animate:true});{% endif %}
+	})
+	// -->
+	</script>
+{% endblock %}
+
+{% block main-content %}
+	<div class="page stackedpaper">
+		{%if messages%}<div id="message">{% if messages %}					
+						<ul class="messages">
+{% for message in messages %}{%ifchanged%}		<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message|safe }}</li>{%endifchanged%}{% endfor %}
+						</ul>
+{% endif %}
+</div>{%endif%}
+		<h1>Transit Lightcurve: <a href="{% url citsciportal.agentex.views.infoview event.name %}" class="objectspecific">{{event.title}}</a></span></h1>
+		
+		<p class="accessible">Without Javascript enabled we can't show you a lightcurve but you could create your own lightcurve using the data in the table below. You can also provide us with information about which calibrators are not variable by checking the boxes below.</p>
+		<table class="accessible">
+			<tr><th>Date</th><th class="source">Source</th><th class="sky">Blank sky</th>{% for cal in data.0.data.calibrator %}<th class="calibrator">Cal {{forloop.counter}}</th>{% endfor %}</tr>
+{% for line in data %}			<tr><td><a href="{% url citsciportal.agentex.views.addvalue event.name %}?dataid={{line.id}}">{{line.date}}</a></td><td>{{line.data.source|floatformat:0}}</td><td>{{line.data.background|floatformat:0}}</td>{% for cal in line.data.calibrator %}<td>{{cal|floatformat:0}}</td>{% endfor %}</tr>{% endfor %}
+		</table>
+		{% if sources %}
+		<form id="calibrator_list" method="POST" action='{%  url citsciportal.agentex.views.updatedataset event.name %}'>{% csrf_token %}
+			<input type=hidden name="planet" value="{{event.name}}">
+{% for d in sources %}		<input type="checkbox" name="cal-{{d.order}}" value="{{d.order}}" {%if d.valid %}CHECKED{%endif%} />Show calibrator {{forloop.counter}} {%if d.name%}(<a href="http://www.strudel.org.uk/lookUP/?name=USNOA2+{{d.name}}">{{d.catalogue}}USNOA2 {{d.name}}</a>){%endif%} on the graph<br />{% endfor %}
+			<input type="submit" name="submit" value="Save my choices" />
+		</form>
+		{% endif %}
+	</div>
+{% endblock %}

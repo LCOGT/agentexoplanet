@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block body-class %}full {%endblock%}
+
+{% block header %}
+Portal Login
+{% endblock %}
+
+{% block script-content %}
+	<script type="text/javascript">
+	<!--
+	$(document).ready(function(){
+		$('#username').focus().select();
+	});
+	// -->
+	</script>
+{% endblock %}
+
+{% block main-content %}
+
+						<div class="row rowfirst">
+							<h1>Log into your account</h1>
+							<p>If you have registered with any of the following you can log straight in:</p>
+							    <ul>
+							        <li><a href="http://lcogt.net">LCOGT website</a>,</li>
+							        <li><a href="http://www.ifa.hawaii.edu/ifa2/outreach.shtml">University of Hawai'i Astronomy Outreach program</a>,</li>
+							        <li><a href="http://faulkes-telescope.com">Faulkes Telescope Project</a>.</li>
+							    </ul>
+							<p>If you do not already have an account please <a href="{% url register %}?next={{next}}">register</a> for one.</p>
+{% if form.errors %}
+							<div class="row error">The username or password was not recognized. Please try again.</div>
+{% endif %}
+            
+							<form action="" method="post"  id="customForm" >
+								{% csrf_token %}
+								<label for="username">User name:</label>
+								<input type="text" name="username" value="" id="username">
+								<label for="password">Password:</label>
+								<input type="password" name="password" value="" id="password">
+								<input type="hidden" name="next" value="{{ next }}">
+								<div id="end">
+									<input type="submit" value="login" />
+								</div>
+							</form>
+						</div>
+{% endblock %}

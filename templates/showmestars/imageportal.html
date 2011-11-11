@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block header %}
+Show Me Stars!
+{% endblock %}
+
+{% block navbar %}{%endblock%}
+
+{% block body-class %}full {%endblock%}
+
+{% block css-content%}
+	<style>
+	#page-wrapper { background: url('/images/new-agentex-bg.png') repeat-x transparent; }
+	#page { background: url('/images/new-header-showmestars-bg.png') transparent no-repeat; background-position: center top; }
+
+	
+	#virtualskyinfobox{
+		font-size: 12px;
+		display:none;
+		background-color:rgba(200,200,200,1);
+		color:black;
+		padding:5px;
+		max-width:150px;
+		border-radius:0.5em;
+		-moz-border-radius: 0.5em;
+		-webkit-border-radius: 0.5em;
+		box-shadow:0px 0px 20px rgba(255,255,255,0.5);
+		-moz-box-shadow:0px 0px 20px rgba(255,255,255,0.5);
+		-webkit-box-shadow:0px 0px 20px rgba(255,255,255,0.5);
+	}
+	#virtualskyinfobox img {
+		max-width:150px;	
+	}
+	.virtualskyinfocredit{ 
+		font-size:0.8em;
+		float:left;
+		position:absolute;
+		padding:5px;
+		color: white;
+	}
+	.tweet_list {
+		list-style:none;
+		list-style-position: outside;
+		padding:0;
+		margin: 0px;
+	}
+	.tweet_list li {
+		clear: both;
+		min-height: 40px;
+	}
+	.tweet_avatar {
+		margin-right: 4px;
+		margin-bottom: 0px;
+		float: left;
+	}
+	.tweet_avatar img { 
+		width: 42px;
+		height: 42px;
+	}
+	.tweet_list li {
+		margin-bottom: 16px;
+	}
+	.tweet_time a {
+		color: #999;
+	}
+	</style>
+{% endblock %}
+
+{% block script-content %}
+	<script language="javascript" src="http://s3.amazonaws.com/chromoscope/virtualsky-0.3.7.js" type="text/javascript"></script>
+	<script language="javascript" src="http://s3.amazonaws.com/chromoscope/jquery.tweet.js" type="text/javascript"></script>
+	<script language="javascript" src="{{MEDIA_URL}}js/showmestars.js" type="text/javascript"></script>
+{% endblock %}
+
+{% block main-content %}
+    <div class="row rowfirst">
+        <h1>Show Me Stars! </h1>
+    </div>
+    <div class="row">
+		<div class="threecol">
+			<div id="starmap" style="width:100%;height:350px;margin-bottom:4px;"></div>
+			<p><a href="http://lcogt.net/virtualsky/embed/custom.html">Customise our Virtual Sky</a> for your own website</p>
+        </div>
+		<div class="threecol lastcol">
+		    {% ifequal event.0.site 'ogg' %}
+			<img height="350" src="http://lcogt.net/camera/data/ogg/sbigbw/lastsnap.jpg" class="livestatic">
+			<span>Live Sky over <a href="http://lcogt.net/en/network/2m/faulkes-telescope-north">Faulkes Telescope North</a> - <a href="http://lcogt.net/en/site/haleakala">Haleakala, Maui</a></span>
+			{% else %}
+			<img height="350" src="http://150.203.153.20/axis-cgi/jpg/image.cgi?/camera=1" class="livestatic">
+			<span>Live Sky over <a href="http://lcogt.net/en/network/2m/faulkes-telescope-south">Faulkes Telescope South</a> - <a href="http://lcogt.net/en/site/siding-spring">Siding Spring, Australia</a></span>
+			{%endifequal%}
+		</div>
+    </div>
+    <div class="row">
+		<div class="twocol">
+			<!-- h3>Tweets from the hosts</h3>
+			<div class="hosttweet" ></div -->
+			<h3>Tweets from everyone on #showmestars</h3> 
+			<div class="tweet"></div>
+			<p style="font-size:0.8em;color: #999;">Tweets do not necessarily reflect or represent the views of Las Cumbres Observatory Global Telescope. All observations are monitored by Patrick Moore for quality and training purposes*.</p>
+			<p style="font-size:0.6em;color: #999;">* They aren't, but you never know.</p>
+		</div>
+        <div class="fourcol lastcol">
+        <p>See what happened during the first <a href="http://lcogt.net/en/blog/slowe/show-me-stars">Show Me Stars and find out what its all about</a>.</p>
+        <h3>Observations</h3>
+        <p>Below are thumbnails from each guest host's observations</p>
+            {% for e in event %}
+                {% if forloop.first %}
+                <h3>Next guest host {{e.name}} - {{ e.start|date:"jS F Y H:i" }} UT</h3>
+                {% else %}
+                <h3>{{e.name}}, guest host from {{ e.start|date:"jS F Y H:i" }} UT</h3>
+                {% endif %}
+                <div class="recent-observation">
+                    <ul class="{% if forloop.first %}observations-front{% endif %} observations block">
+                    {% for o in e.obs %}
+                    <li {% if forloop.counter|divisibleby:"4"%}class="endofline"{% endif %}  class="itemexist">
+                    	<div class='bigthumb' about='{{o.obsurl}}'>
+                    		<span><a href='{{o.obsurl}}' title='{{o.name}}'><img src='{{o.imageurl}}' alt='{{o.name}}' /></a></span>
+                    		<div class='more-info' style="display:none;">
+                    			<time datetime='{{o.date}}' stamp='{{o.stamp}}' class="updatetime">Date: {{o.date}}</time>
+                    		</div>
+                    	</div>
+                    </li>
+                    {% empty %}
+                    <li style="display:none;" class="blankitem">
+                    	<time datetime='{{o.date}}' class="updatetime" stamp="{{stamp|date:"YmdHis"}}"></time>    
+                    </li>
+                    {% endfor %}   
+                    </ul>
+                </div>
+                {% if forloop.first %}
+                <span time="{{stamp|date:"YmdHis"}}" class="updatetime" >
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

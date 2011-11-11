@@ -1,0 +1,127 @@
+{% extends 'agentex/base.html' %}
+
+{% block body-class %}full agentex dossierfront {%endblock%}
+
+{%block header %}Agent Exoplanet{%endblock%}
+
+{% block script-content %}
+	<script type="text/javascript">
+	<!--
+/*
+	$(document).ready(function(){
+		$('#videointro').hide();
+		$('#videoplaceholder').show().bind('click',function(){
+			$(this).hide();
+			$('#videointro').show();
+			playVideo();
+		});
+	});
+	function playVideo(from){
+		if(supports_video()){
+			var video = document.getElementsByTagName('video')[0];
+			video.currentTime = from;
+			video.play()
+		}else{
+			var player = document.getElementById('videointro');
+			player.sendEvent("SEEK",from-1)
+			player.sendEvent("PLAY","true")
+		}
+	}
+	function supports_video() {
+		return !!document.createElement('video').canPlayType;
+	}
+	function supports_audio() {
+		return !!document.createElement('audio').canPlayType;
+	}
+
+
+	var clockID = 0;
+	var launch = new Date ( "Sep 26, 2011 13:00:00 UTC" );
+	
+	function UpdateClock() {
+		if(clockID) {
+			clearTimeout(clockID);
+			clockID  = 0;
+		}
+	
+		var nowDate = new Date();
+	
+		diffmission = (nowDate-launch)/1000;
+		diff2 = Math.abs(diffmission)
+		jd = (2440587.5 + nowDate.getTime()/86400000)
+		jdlaunch = (2440587.5 + launch.getTime()/86400000)
+	
+		d = Math.floor(diff2/86400);
+		h = Math.floor((diff2 - d*86400)/3600);
+		m = Math.floor((diff2 - d*86400 - h*3600)/60)
+		s = Math.floor((diff2 - d*86400 - h*3600 - m*60));
+		if(h < 10){ h = "0"+h; }
+		if(m < 10){ m = "0"+m; }
+		if(s < 10){ s = "0"+s; }
+		var extra = "";
+	
+		document.getElementById("clock").innerHTML = d + 'd '+h+'h '+m+'m '+s+'s';
+	
+		clockID = setTimeout("UpdateClock()", 1000);
+	}
+	
+	function InitialiseClock() { clockID = setTimeout("UpdateClock()", 500); }
+	
+	InitialiseClock()
+*/
+	// -->
+	</script>
+{% endblock %}
+
+{% block main-content %}
+
+<!--
+
+<h1>Investigate Exoplanets!</h1>
+<p>Join the Agent Exoplanet training corps to analyse astronomical data and investigate exoplanets. Your measurements, along with those collected by the other citizen scientists, are auto-magically combined to tell you more about exoplanets.</p>
+-->
+	<div style="margin:32px;">
+		<div style="height:160px;background-color:black;background-image:url('{{MEDIA_URL}}images/banner.png');border:3px solid white;" class="paper"><a href="{% url citsciportal.agentex.views.target %}" style="margin-top:90px;margin-right:20px;float:right;" class="fancybtn btn fancybtnglow">Start the mission <span class="arrow">&nbsp;</span></a></div>
+	
+		<div class="lower" style="margin-bottom:16px;"></div>
+	
+		<div style="clear:both;float:left;width:100%;margin-bottom:32px;">
+			<div class="paper missionbrief">
+				<div style="margin:24px 24px 0px 24px;">
+					<h1 class="objectspecific" style="margin-bottom:8px;">Mission Brief</h1>
+
+{% if user.is_authenticated %}					<p style="color:black;">Welcome{% if user.first_name %} <a href="{% url citsciportal.agentex.views.profile %}">{{ user.first_name}}</a>{% endif %}.</p>{% endif %}
+					
+					<p style="color:black;">Astronomers at Las Cumbres Observatory are investigating exoplanets - planets which orbit stars other than our Sun - and you can too.</p>
+				
+					<p style="color:black;">Joining Agent Exoplanet you will study known exoplanets using images taken by LCOGT’s telescopes. You'll measure the brightness of a star while a planet moves between it and our viewpoint.</p>
+				
+					<p style="color:black;">You can examine as many images, from as many exoplanet transit events, as you like and contribute to understanding the properties of each exoplanet.</p>
+				
+					<p><a href="{% url citsciportal.agentex.views.briefing %}">Find out more...</a></p>
+	
+				</div>
+			</div>
+	
+			<div class="paper missionvideo">
+				<div style="margin:24px 24px 0px 24px;">
+	
+					<h2 class="objectspecific">Briefing Video</h2>
+					<!--
+					<div id="countdown" style="text-align: center;font-size:2em;margin-top:144px;line-height:30px;">
+						Launch: 
+						<div id="clock" class="objectspecific"></div>
+					</div>-->
+					<iframe width="400" height="233"
+src="http://www.youtube.com/embed/qY1N-v4TwOg?rel=0"><a href="http://www.youtube.com/watch?v=qY1N-v4TwOg" title="Video on YouTube">Watch this video on YouTube</a></iframe>
+
+
+				</div>
+			</div>	
+		</div>
+	</div>
+
+{% endblock %}
+
+{% block section-nav%}
+{% endblock %}
