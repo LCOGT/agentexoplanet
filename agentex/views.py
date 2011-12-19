@@ -11,6 +11,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.admin.models import LogEntry, ADDITION
 from django.db.models import Count,Avg,Min,Max,Variance, Q, Sum
 from django.contrib import messages
+from django.db import connection
 import urllib2
 from xml.dom.minidom import parse
 from math import sin,acos,fabs,sqrt
@@ -22,6 +23,7 @@ from time import mktime
 from math import floor,pi,pow
 from itertools import chain
 from numpy import array
+import operator
 
 from django.contrib.auth.models import User
 from citsciportal.agentex.models import Target, Event, Datapoint, DataSource, DataCollection,CatSource, Decision, Achievement, Badge, Observer
@@ -1261,6 +1263,89 @@ def myaverages(code,person):
     return cals,normcals,mycals,[],[],dates,stamps,[],cats
 
 def averagecals(code,person):
+    # Uses and SQL statement to try to speed up the query for averaging data points
+    now = datetime.now()
+    cals = []
+    mycals = []
+    dates = []
+    stamps = []
+    timestamps = []
+    normcals = []
+    maxvals = []
+    callist = []
+    cats = []
+    # Find which Cat Sources I have observed and there is a complete set of (including other people's data)
+    # Unlike CalibrateMyData it only includes set where there are full sets
+    e = Event.objects.filter(name=code)[0]
+    dc = DataCollection.objects.filter(~Q(source=None),person=person,planet__name=code).order_by('calid')
+    cs = CatSource.objects.filter(id__in=[c.source.id for c in dc]).annotate(count=Count('datacollection__datapoint')).filter(count__gte=e.numobs).values_list('id',flat=True)
+    dcall = DataCollection.objects.filter(planet=e,source__in=cs).values_list('id',flat=True)
+    # print "** Collections %s" % dcall.count()
+    if cs.count() > 0:
+        # Only use ones where we have more than numobs
+        for c in dc:
+            # make sure these are in the CatSource list (can't use cs because the order isn't right)
+            if c.source.id in cs:
+                v = Datapoint.objects.filter(coorder__source=c.source.id,pointtype='C').order_by('data__timestamp').values_list('data__id').annotate(Avg('value'))
+                # Double check we have same number of obs and cals
+                if v.count() == e.numobs:
+                    ids,b = zip(*v)
+                    cals.append(list(b))
+                    try:
+                        decvalue = Decision.objects.filter(source=c.source,person=person,planet__name=code,current=True)[0].value
+                    except:
+                        decvalue ='X'
+                    cats.append({'order':'%s' % c.calid,'sourcename':c.source.name,'catalogue':c.source.catalogue,'decision':decvalue})
+                    callist.append(c.source.id)
+        if callist:
+            # Only proceed if we have calibrators in the list (i.e. arrays of numobs)
+            ds = DataSource.objects.filter(event__name=code).order_by('timestamp')
+            users = DataCollection.objects.filter(id__in=dcall).values_list('person',flat=True).distinct()
+            maxnum = ds.count()
+            dsmax1 = ds.aggregate(Max('id'))
+            dsmax = dsmax1['id__max']
+            dsmin = dsmax - maxnum
+            ds = ds.values_list('id',flat=True)
+            sc_my = ds.filter(datapoint__pointtype='S',datapoint__user=person).annotate(value=Sum('datapoint__value')).values_list('id','value')
+            bg_my = ds.filter(datapoint__pointtype='B',datapoint__user=person).annotate(value=Sum('datapoint__value')).values_list('id','value')
+            if sc_my.count() < maxnum:
+                sc_ave = fetch_averages_sql(dsmin,dsmax,'S',users)
+                bg_ave = fetch_averages_sql(dsmin,dsmax,'B',users)
+                # Combine 'my' values with the average
+                # ***** Order is not preserved by dictionary ***********
+                sources =  dict(sc_ave + list(sc_my))
+                backgs =  dict(bg_ave +  list(bg_my))
+                ordering = list(ds)
+                sc = [sources[i] for i in ordering]
+                bg = [backgs[i] for i in ordering]
+                #tmp,sc=zip(*sc_sort)
+                #tmp,bg=zip(*bg_sort)
+                print sources
+            else:
+                tmp,sc=zip(*sc_my)
+                tmp,bg=zip(*bg_my)
+                # Convert to numpy arrays to allow simple calibrations
+            sc = array(sc)
+            bg = array(bg)     
+            for cal in cals:
+                val = (sc - bg)/(array(cal)-bg)
+                maxval = mean(r_[val[:3],val[-3:]])
+                maxvals.append(maxval)
+                norm = val/maxval
+                normcals.append(list(norm))
+            # Find my data and create unix timestamps
+            unixt = lambda x: timegm(x.timetuple())+1e-6*x.microsecond
+            iso = lambda x: x.isoformat(" ")
+            times = ds.values_list('timestamp',flat=True)
+            stamps = map(unixt,times)
+            dates = map(iso,times)
+            #print cals,normcals,list(sc),list(bg)
+            return cals,normcals,list(sc),list(bg),dates,stamps,[int(i) for i in ids],cats
+    return cals,normcals,[],[],dates,stamps,[],cats
+
+
+def averagecals_orm(code,person):
+    # Averaging using the Django ORM -- this method is currently INACTIVE
     now = datetime.now()
     cals = []
     mycals = []
@@ -1341,7 +1426,7 @@ def averagecals(code,person):
             times = ds.values_list('timestamp',flat=True)
             stamps = map(unixt,times)
             dates = map(iso,times)
-
+            print cals,normcals,list(sc),list(bg)
             return cals,normcals,list(sc),list(bg),dates,stamps,[int(i) for i in ids],cats
     return cals,normcals,[],[],dates,stamps,[],cats
 
@@ -1559,7 +1644,16 @@ def checkprogress(person,code):
                 'done'      : n_analysed,
                 'total'     : n_sources,}
     return progress    
-    
+
+def fetch_averages_sql(dsmin,dsmax,pointtype,users):
+    cursor = connection.cursor()
+    users_str = [int(i) for i in users]
+    params = [pointtype,dsmin,dsmax,users_str]
+    cursor.execute('SELECT dp.data_id, avg(dp.value) FROM dataexplorer_datapoint as dp RIGHT JOIN dataexplorer_datasource AS ds on dp.data_id = ds.id WHERE dp.pointtype = %s AND (dp.data_id BETWEEN %s AND %s) AND dp.user_id IN %s GROUP BY dp.data_id order by ds.timestamp', params)
+    result = list(cursor.fetchall())
+    #ave_values = dict(result)
+    return result
+  
 def addcomment(request):
 # Log user comments in the Django log
     if request.POST:
