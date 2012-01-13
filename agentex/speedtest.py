@@ -1,6 +1,7 @@
 from datetime import datetime,timedelta
 import MySQLdb
 from citsciportal.settings import DATABASES as dbc
+from django.db import connection
 
 from django.db.models import Count,Avg,Min,Max,Variance, Q, Sum
 from citsciportal.agentex.models import Target, Event, Datapoint, DataSource, CatSource, Decision, DataCollection
@@ -151,6 +152,15 @@ def fetch_averages_sql(code,pointtype):
     ave_values = dict(sources.fetchall())
     # print datetime.now() - now
     db.close()
+    return ave_values
+    
+def fetch_averages_raw(code,pointtype):
+    cursor = connection.cursor()
+    ds = DataSource.objects.filter(event__name=code)
+    maxnum = ds.count()
+    params = [pointtype,ds[0].id,ds[maxnum-1].id]
+    cursor.execute('SELECT dp.data_id, avg(dp.value) FROM dataexplorer_datapoint AS dp, dataexplorer_datasource AS ds WHERE dp.data_id = ds.id and dp.pointtype = %s AND dp.data_id BETWEEN %s AND %s GROUP BY dp.data_id, coorder_id order by ds.timestamp', params)
+    ave_values = dict(cursor.fetchall())
     return ave_values
             
 # select dp.data_id, dp.coorder_id, avg(dp.value), count(dp.value) from dataexplorer_datapoint as dp, dataexplorer_datasource as ds where dp.data_id = ds.id and dp.pointtype = 'C' and dp.data_id >= 976 and dp.data_id <= 1105 and user_id = 11 group by dp.data_id, coorder_id
