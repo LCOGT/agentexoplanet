@@ -5,63 +5,62 @@ import MySQLdb
 from citsciportal.settings import DATABASES as dbc
 from datetime import datetime
 
-from datetime import datetime
 import time
 
-events = [
-    {
-        'guestid'   : '4661',
-        'name'      : 'Mark Thompson',
-        'current'   : True,
-        'slots'     : [79386,79387],
-        'start'     :datetime(2011,8,19,13,0),
-        'end'       :datetime(2011,8,19,14,0),
-        'site'      : 'ogg',
-    },
-    {
-        'guestid'   : '56',
-        'name'      : 'Dara O Briain',
-        'current'   : False,
-        'slots'     : [79286,79287],
-        'start'     : datetime(2011,8,9,12,0),
-        'end'       : datetime(2011,8,9,13,0),
-        'site'      : 'ogg',
-    },
-    # {
-    #     'guestid'   : '',
-    #     'name'      : 'Mark Thompson',
-    #     'current'   : True,
-    #     'slots'     : [6,7],
-    #     'start'     : datetime(2011,8,19,13,0),
-    #     'end'       : datetime(2011,8,19,14,0),
-    #     'site'      : 'coj',
-    # },
-]
+from citsciportal.showmestars.models import Event
+
+# events = [
+#     {
+#         'guestid'   : '4661',
+#         'name'      : 'Mark Thompson',
+#         'current'   : True,
+#         'slots'     : [79386,79387],
+#         'start'     :datetime(2011,8,19,13,0),
+#         'end'       :datetime(2011,8,19,14,0),
+#         'site'      : 'ogg',
+#     },
+#     {
+#         'guestid'   : '56',
+#         'name'      : 'Dara O Briain',
+#         'current'   : False,
+#         'slots'     : [79286,79287],
+#         'start'     : datetime(2011,8,9,12,0),
+#         'end'       : datetime(2011,8,9,13,0),
+#         'site'      : 'ogg',
+#     },
+#     # {
+#     #     'guestid'   : '',
+#     #     'name'      : 'Mark Thompson',
+#     #     'current'   : True,
+#     #     'slots'     : [6,7],
+#     #     'start'     : datetime(2011,8,19,13,0),
+#     #     'end'       : datetime(2011,8,19,14,0),
+#     #     'site'      : 'coj',
+#     # },
+# ]
     
 def latestimages(request,eventid):
     try:
         eid = int(eventid)
     except ValueError:
         raise Http404
-    try:
-        event = events[eid]
-    except:
-        raise Http404
+    if eid == 0:
+        event = Event.objects.all().order_by('-start')
+    else:
+        event = Event.objects.filter(id=eid).order_by('-start')
           
-    userid = event['guestid']
     newevents = []
 # Start connection
     db = MySQLdb.connect(user=dbc['faulkes']['USER'], passwd=dbc['faulkes']['PASSWORD'], db=dbc['faulkes']['NAME'], host=dbc['faulkes']['HOST'])
-    for e in events:
+    for e in event:
         # Find new observations
-        sql_images = "SELECT ImageID, WhenTaken,Filename,TelescopeId,SkyObjectName,filter FROM imagearchive WHERE  SchoolID ='%s' AND WhenTaken > '%s' AND WhenTaken < '%s' order by WhenTaken desc;" % (e['guestid'], e['start'].strftime("%Y%m%d%H%M%S"), e['end'].strftime("%Y%m%d%H%M%S"))
+        sql_images = "SELECT ImageID, WhenTaken,Filename,TelescopeId,SkyObjectName,filter FROM imagearchive WHERE  SchoolID ='%s' AND WhenTaken > '%s' AND WhenTaken < '%s' order by WhenTaken desc;" % (e.hostid, e.start.strftime("%Y%m%d%H%M%S"), e.end.strftime("%Y%m%d%H%M%S"))
         images = db.cursor()
         images.execute(sql_images)
         obs = []
         for i in images:
             obs.append(makeimagebox(i))
-        e['obs'] = obs
-        newevents.append(e)
+        newevents.append({'details':e,'obs':obs})
     stamp = datetime.utcnow()
     db.close()
     return render_to_response('imageportal.html',{'stamp':stamp,'event':newevents}, context_instance=RequestContext(request))
