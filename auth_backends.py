@@ -5,8 +5,8 @@ from django.contrib.auth.models import User, check_password
 from django.contrib.auth.backends import ModelBackend
 import MySQLdb
 import hashlib
-from odin.settings import DATABASES as dbc
-from odin.obsapp.models import Observer
+from citsciportal.settings import DATABASES as dbc
+from citsciportal.agentex.models import Observer
 
 def matchDrupalPass(username,password):
     # Retreive the database user information from the settings
