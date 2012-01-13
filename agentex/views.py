@@ -1515,13 +1515,13 @@ def supercaldata(planet):
         # mean(r_[superc[:3],superc[-3:]])
         fz = list(norm_alt)
         # Commenting out model for limb darkening 
-        if numsuper > 1:
-            p = modelfit(fz,vals[0].data.target)
-        else:
-            p = 0.
-        #p = 0.
-        print "%s - %s" % (ti, datetime.now()-now)
-        ti += 1
+        # if numsuper > 1:
+        #     p = modelfit(fz,vals[0].data.target)
+        # else:
+        #     p = 0.
+        p = 0.
+        # print "%s - %s" % (ti, datetime.now()-now)
+        # ti += 1
         return numsuper,fz,list(std),p
     else:
         return None,[],[],None
