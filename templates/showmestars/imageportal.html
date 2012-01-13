@@ -82,7 +82,7 @@ Show Me Stars!
 			<p><a href="http://lcogt.net/virtualsky/embed/custom.html">Customise our Virtual Sky</a> for your own website</p>
         </div>
 		<div class="threecol lastcol">
-		    {% ifequal event.0.site 'ogg' %}
+		    {% ifequal event.0.details.site 'ogg' %}
 			<img height="350" src="http://lcogt.net/camera/data/ogg/sbigbw/lastsnap.jpg" class="livestatic">
 			<span>Live Sky over <a href="http://lcogt.net/en/network/2m/faulkes-telescope-north">Faulkes Telescope North</a> - <a href="http://lcogt.net/en/site/haleakala">Haleakala, Maui</a></span>
 			{% else %}
@@ -106,9 +106,9 @@ Show Me Stars!
         <p>Below are thumbnails from each guest host's observations</p>
             {% for e in event %}
                 {% if forloop.first %}
-                <h3>Next guest host {{e.name}} - {{ e.start|date:"jS F Y H:i" }} UT</h3>
+                <h3>{% if e.details.start > stamp%}Next guest host {%endif%}{{e.details.name}} - {{ e.details.start|date:"jS F Y H:i" }} UT</h3>
                 {% else %}
-                <h3>{{e.name}}, guest host from {{ e.start|date:"jS F Y H:i" }} UT</h3>
+                <h3>{{e.details.name}}, guest host from {{ e.details.start|date:"jS F Y H:i" }} UT</h3>
                 {% endif %}
                 <div class="recent-observation">
                     <ul class="{% if forloop.first %}observations-front{% endif %} observations block">
