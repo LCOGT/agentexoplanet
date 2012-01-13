@@ -853,20 +853,20 @@ def graphsuper(request,code):
     now = datetime.now()
     ti = 0
     planet = Event.objects.filter(name=code)[0]
-    ti += 1
-    messages.error(request,"%s - %s" % (ti, datetime.now()-now))
+#    ti += 1
+#    messages.error(request,"%s - %s" % (ti, datetime.now()-now))
     numsuper, normvals, std,radiusratio = supercaldata(planet)
-    messages.error(request,"%s - %s" % (ti, datetime.now()-now))
-    ti += 1
+#    messages.error(request,"%s - %s" % (ti, datetime.now()-now))
+#    ti += 1
     sources = DataSource.objects.filter(event=planet).order_by('timestamp')
-    messages.error(request,"%s - %s" % (ti, datetime.now()-now))
-    ti += 1
+#    messages.error(request,"%s - %s" % (ti, datetime.now()-now))
+#    ti += 1
     n = 0
     #classif = classified(o,code)
     data = []
     if len(normvals) == planet.numobs :
-        messages.error(request,"%s - %s" % (ti, datetime.now()-now))
-        ti += 1
+#        messages.error(request,"%s - %s" % (ti, datetime.now()-now))
+#        ti += 1
         for i,s in enumerate(sources):
             line = {
                     'id'        : "%i" % s.id,
@@ -878,8 +878,8 @@ def graphsuper(request,code):
                         },
                     }
             data.append(line)
-        messages.error(request,"%s - %s" % (ti, datetime.now()-now))
-        ti += 1
+#        messages.error(request,"%s - %s" % (ti, datetime.now()-now))
+#       ti += 1
     else:
         data = None
     return render_to_response('agentex/graph_super.html', {'event':planet,
@@ -1449,8 +1449,6 @@ def supercaldata(planet):
     # People and their sources who have Dips in the select planet
     now = datetime.now()
     decs = Decision.objects.values_list('person','source').filter(value='D',current=True,planet__name=planet).annotate(Count('source'))
-    print "%s - %s" % (ti, datetime.now()-now)
-    ti += 1
     numsuper = decs.count()
     # Create a lists of sources  and people
     if decs:
@@ -1466,19 +1464,13 @@ def supercaldata(planet):
             bgave = vals.filter(pointtype='B').annotate(mean=Avg('value')).values_list('mean',flat=True)
             # make into Numpy arrays for easier manipulation
             sc = array(sourceave)
-            print "%s %s - %s" % (ti, p, datetime.now()-now)
-            ti += 1
             bg = array(bgave)
-            print "%s %s - %s" % (ti, p, datetime.now()-now)
-            ti += 1
             calvals = Datapoint.objects.values('data','coorder__source').filter(user= p,coorder__source__in=sources,pointtype='C')
             for c in sources:
                 calaves = calvals.filter(coorder__source=c)
                 calpoints = calaves.order_by('data__timestamp').annotate(mean=Avg('value')).values_list('mean',flat=True)
                 if calpoints.count() == planet.numobs:
                     calslist.append(list(calpoints))
-            print "%s %s - %s" % (ti, p, datetime.now()-now)
-            ti += 1
             if calslist:
                 calstack = vstack(calslist)
                 # This throws a wobbly sometimes
@@ -1489,27 +1481,15 @@ def supercaldata(planet):
         #superc = mean(cc,axis=0)
         try:
             cala = vstack(calibs)
-            print "%s - %s" % (ti, datetime.now()-now)
-            ti += 1
             norm_a = lambda a: mean(r_[a[:3],a[-3:]])
-            print "%s - %s" % (ti, datetime.now()-now)
-            ti += 1
             norms = apply_along_axis(norm_a, 1, cala)
-            print "%s - %s" % (ti, datetime.now()-now)
-            ti += 1
             dim = len(cala)
             norm1 = cala/norms.reshape(dim,1)
-            print "%s - %s" % (ti, datetime.now()-now)
-            ti += 1
         except:
             print "\033[1;35mHave you started again but not removed all the data?\033[1;m"
             return None,[],[],None
         norm_alt = mean(norm1,axis=0)
-        print "%s - %s" % (ti, datetime.now()-now)
-        ti += 1
         variance = var(norm1,axis=0)
-        print "%s - %s" % (ti, datetime.now()-now)
-        ti += 1
         std = sqrt(variance)
         print "%s - %s" % (ti, datetime.now()-now)
         ti += 1
@@ -1521,8 +1501,6 @@ def supercaldata(planet):
         # else:
         #     p = 0.
         p = 0.
-        # print "%s - %s" % (ti, datetime.now()-now)
-        # ti += 1
         return numsuper,fz,list(std),p
     else:
         return None,[],[],None
