@@ -850,13 +850,23 @@ def graphview(request,code,mode,calid):
 
 def graphsuper(request,code):
     # Construct the supercalibrator lightcurve
+    now = datetime.now()
+    ti = 0
     planet = Event.objects.filter(name=code)[0]
+    ti += 1
+    messages.error(request,"%s - %s" % (ti, datetime.now()-now))
     numsuper, normvals, std,radiusratio = supercaldata(planet)
+    messages.error(request,"%s - %s" % (ti, datetime.now()-now))
+    ti += 1
     sources = DataSource.objects.filter(event=planet).order_by('timestamp')
+    messages.error(request,"%s - %s" % (ti, datetime.now()-now))
+    ti += 1
     n = 0
     #classif = classified(o,code)
     data = []
     if len(normvals) == planet.numobs :
+        messages.error(request,"%s - %s" % (ti, datetime.now()-now))
+        ti += 1
         for i,s in enumerate(sources):
             line = {
                     'id'        : "%i" % s.id,
@@ -868,6 +878,8 @@ def graphsuper(request,code):
                         },
                     }
             data.append(line)
+        messages.error(request,"%s - %s" % (ti, datetime.now()-now))
+        ti += 1
     else:
         data = None
     return render_to_response('agentex/graph_super.html', {'event':planet,
