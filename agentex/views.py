@@ -1432,13 +1432,19 @@ def averagecals_orm(code,person):
 
 def supercaldata(planet):
     calibs = []
+    ti = 0.
     # assume data which has Decisions forms part of a complete set
     # People and their sources who have Dips in the select planet
+    now = datetime.now()
     decs = Decision.objects.values_list('person','source').filter(value='D',current=True,planet__name=planet).annotate(Count('source'))
+    print "%s - %s" % (ti, datetime.now()-now)
+    ti += 1
     numsuper = decs.count()
     # Create a lists of sources  and people
     if decs:
         people,sourcelst,tmp = zip(*decs)
+        print "%s - %s" % (ti, datetime.now()-now)
+        ti += 1
         sources = set(sourcelst)
         for p in people:
             calslist = []
@@ -1447,37 +1453,61 @@ def supercaldata(planet):
             bgave = vals.filter(pointtype='B').annotate(mean=Avg('value')).values_list('mean',flat=True)
             # make into Numpy arrays for easier manipulation
             sc = array(sourceave)
+            print "%s - %s" % (ti, datetime.now()-now)
+            ti += 1
             bg = array(bgave)
+            print "%s - %s" % (ti, datetime.now()-now)
+            ti += 1
             calvals = Datapoint.objects.values('data','coorder__source').filter(user= p,coorder__source__in=sources,pointtype='C')
             for c in sources:
                 calaves = calvals.filter(coorder__source=c)
                 calpoints = calaves.order_by('data__timestamp').annotate(mean=Avg('value')).values_list('mean',flat=True)
                 if calpoints.count() == planet.numobs:
                     calslist.append(list(calpoints))
+            print "%s - %s" % (ti, datetime.now()-now)
+            ti += 1
             if calslist:
                 calstack = vstack(calslist)
                 # This throws a wobbly sometimes
                 cc = (sc-bg)/(calstack-bg)
                 calibs.append(cc.tolist())
+            print "%s - %s" % (ti, datetime.now()-now)
+            ti += 1
         #superc = mean(cc,axis=0)
         try:
             cala = vstack(calibs)
+            print "%s - %s" % (ti, datetime.now()-now)
+            ti += 1
             norm_a = lambda a: mean(r_[a[:3],a[-3:]])
+            print "%s - %s" % (ti, datetime.now()-now)
+            ti += 1
             norms = apply_along_axis(norm_a, 1, cala)
+            print "%s - %s" % (ti, datetime.now()-now)
+            ti += 1
             dim = len(cala)
             norm1 = cala/norms.reshape(dim,1)
+            print "%s - %s" % (ti, datetime.now()-now)
+            ti += 1
         except:
             print "\033[1;35mHave you started again but not removed all the data?\033[1;m"
             return None,[],[],None
         norm_alt = mean(norm1,axis=0)
+        print "%s - %s" % (ti, datetime.now()-now)
+        ti += 1
         variance = var(norm1,axis=0)
+        print "%s - %s" % (ti, datetime.now()-now)
+        ti += 1
         std = sqrt(variance)
+        print "%s - %s" % (ti, datetime.now()-now)
+        ti += 1
         # mean(r_[superc[:3],superc[-3:]])
         fz = list(norm_alt)
-        if numsuper > 1:
-            p = modelfit(fz,vals[0].data.target)
-        else:
-            p = 0.
+        # Commenting out model for limb darkening 
+        # if numsuper > 1:
+        #     p = modelfit(fz,vals[0].data.target)
+        # else:
+        #     p = 0.
+        p = 0.
         return numsuper,fz,list(std),p
     else:
         return None,[],[],None
