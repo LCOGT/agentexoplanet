@@ -68,13 +68,16 @@ def latestimages(request,eventid):
 def newimage(request,eventid):
     try:
         eid = int(eventid)
+        if eventid ==0:
+            event = Event.objects.filter(current=True)[0]
+        else:
+            event = Event.objects.get(id=eid)
     except ValueError:
         raise Http404
-    userid = events[eid]['guestid']
     obs = []
     stamp = request.POST.get('stamp','0')
     db = MySQLdb.connect(user=dbc['faulkes']['USER'], passwd=dbc['faulkes']['PASSWORD'], db=dbc['faulkes']['NAME'], host=dbc['faulkes']['HOST'])
-    sql_images = "SELECT ImageID, WhenTaken,Filename,TelescopeId,SkyObjectName,filter FROM imagearchive  WHERE  SchoolID ='%s' AND WhenTaken > '%s' order by WhenTaken desc limit 20" % (userid,stamp)
+    sql_images = "SELECT ImageID, WhenTaken,Filename,TelescopeId,SkyObjectName,filter FROM imagearchive  WHERE  SchoolID ='%s' AND WhenTaken > '%s' order by WhenTaken desc limit 20" % (event.hostid,stamp)
     images = db.cursor()
     images.execute(sql_images)
     stamp = datetime.utcnow()
