@@ -416,7 +416,7 @@
 				bubblePopup({id:'helptooltip',el:$('#photometric'),align:"center",w:200,animate:true,dismiss:false,color:'white',html:'<div style="margin:1em;"><img src="{{ MEDIA_URL}}images/ajax-loader.gif" alt="Loading" style="width:31px;height:31px;" /><br />Calculating the total amount of light in each of your circles...<\/div>',bg:'rgba(0,0,0,0.8)'});
 
 				// Build comma separated list of x, y and r with bg as first element
-				$.post("{% url citsciportal.agentex.views.fitsanalyse %}", {x:photo.getXs(),y:photo.getYs(),r:photo.getRs(),dataid:dataid,entrymode:entry},
+				$.post("{% url citsciportal.agentex.views.fitsanalyse %}", {x:photo.getXs(),y:photo.getYs(),r:photo.getRs(),dataid:dataid,entrymode:entry,csrfmiddlewaretoken: '{{ csrf_token }}'},
 					function(data){
 						$('#helptooltip').hide();
 
