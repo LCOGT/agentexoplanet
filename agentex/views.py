@@ -1454,9 +1454,10 @@ def supercaldata(planet):
     numsuper = decs.count()
     # Create a lists of sources  and people
     if decs:
-        people,sourcelst,tmp = zip(*decs)
+        peoplelst,sourcelst,tmp = zip(*decs)
         print "%s - %s" % (ti, datetime.now()-now)
         ti += 1
+        people = set(peoplelst)
         sources = set(sourcelst)
         for p in people:
             calslist = []
@@ -1465,10 +1466,10 @@ def supercaldata(planet):
             bgave = vals.filter(pointtype='B').annotate(mean=Avg('value')).values_list('mean',flat=True)
             # make into Numpy arrays for easier manipulation
             sc = array(sourceave)
-            print "%s - %s" % (ti, datetime.now()-now)
+            print "%s %s - %s" % (ti, p, datetime.now()-now)
             ti += 1
             bg = array(bgave)
-            print "%s - %s" % (ti, datetime.now()-now)
+            print "%s %s - %s" % (ti, p, datetime.now()-now)
             ti += 1
             calvals = Datapoint.objects.values('data','coorder__source').filter(user= p,coorder__source__in=sources,pointtype='C')
             for c in sources:
@@ -1476,14 +1477,14 @@ def supercaldata(planet):
                 calpoints = calaves.order_by('data__timestamp').annotate(mean=Avg('value')).values_list('mean',flat=True)
                 if calpoints.count() == planet.numobs:
                     calslist.append(list(calpoints))
-            print "%s - %s" % (ti, datetime.now()-now)
+            print "%s %s - %s" % (ti, p, datetime.now()-now)
             ti += 1
             if calslist:
                 calstack = vstack(calslist)
                 # This throws a wobbly sometimes
                 cc = (sc-bg)/(calstack-bg)
                 calibs.append(cc.tolist())
-            print "%s - %s" % (ti, datetime.now()-now)
+            print "%s %s - %s" % (ti, p, datetime.now()-now)
             ti += 1
         #superc = mean(cc,axis=0)
         try:
