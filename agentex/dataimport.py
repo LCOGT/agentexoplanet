@@ -11,9 +11,9 @@ import subprocess
 from citsciportal.agentex.models import DataSource, Event, Target, CatSource
 from citsciportal.settings import DATA_LOCATION
 
-path = '/Users/eg/Sites/agentexdata/'
+path = '/Users/eg/Sites/data/'
 
-url1 = "complete/OGLETR132b/"
+#url1 = "complete/extra/GJ1214/"
 urlj = 'jpgs/' 
 urlf = 'fits/'
 #urlj =  "http://localhost/data/M51-R/"
@@ -39,12 +39,17 @@ def importfits(ev,tg,url):
         head = pyfits.getheader(datapath)
         imagej = lf.replace('.fits','.jpg')
         fitsurl = "/%s%s%s" % (url,urlf,lf)
-        if len(head['DATE-OBS']) >19: 
+        try:
+            print head['TELESCOP']
+        except:
+            print "Not FTN or FTS"
+        if head['TELESCOP'] == 'Faulkes Telescope North' or head['TELESCOP'] == 'Faulkes Telescope South': 
             # FTN/S data
             timestamp = datetime.strptime(head['DATE-OBS'], "%Y-%m-%dT%H:%M:%S.%f")
             maxx = int(head['CCDXIMSI'])
-            maxy = maxx
-        elif len(head['DATE-OBS']) == 19:
+            maxy = int(head['CCDYIMSI'])
+            print maxx,maxy
+        else:
             # Sedgwick data
             timestamp = datetime.strptime(head['DATE-OBS'], "%Y-%m-%dT%H:%M:%S")
             maxx= int(head['NAXIS1'])
@@ -83,8 +88,8 @@ def correctimages(event):
         
 def findsources(dataid,url):
     d = DataSource.objects.filter(id=dataid)
-    # dfile = '%s%s' % (path,d[0].fits)
-    dfile = '%s%s/astrometry-solution.fits' % (path,url)
+    dfile = '%s%s' % (path,d[0].fits)
+    #dfile = '%s%s/astrometry-solution.fits' % (path,url)
     dc = pyfits.open(dfile)
     #### Map WCS coords to pixel values for the first file in the dataset
     f = aplpy.FITSFigure(dc[0])
