@@ -2,7 +2,7 @@
 #page { background: url('/images/new-header-bg.png') transparent no-repeat; background-position: center top; }
 .discrete {font-size:0.85em;}
 
-#header {
+.dashboard #header {
     background: #7c7c7c; /* Old browsers */
     background: -moz-linear-gradient(top,  #7c7c7c 0%, #383838 100%); /* FF3.6+ */
     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#7c7c7c), color-stop(100%,#383838)); /* Chrome,Safari4+ */

@@ -1,7 +1,7 @@
 from django.template import Library
 from math import fabs,floor
-from citsciportal.settings import MEDIA_URL
-from citsciportal.agentex.agentex_settings import decision_images
+from settings import MEDIA_URL
+from agentex.agentex_settings import decision_images
 
 register = Library()
 

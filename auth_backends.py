@@ -5,25 +5,9 @@ from django.contrib.auth.models import User, check_password
 from django.contrib.auth.backends import ModelBackend
 import MySQLdb
 import hashlib
-from citsciportal.settings import DATABASES as dbc
-from citsciportal.agentex.models import Observer
+from settings import DATABASES as dbc
+from agentex.models import Observer
 
-def matchDrupalPass(username,password):
-    # Retreive the database user information from the settings
-    db = MySQLdb.connect(user=dbc['website']['USER'], passwd=dbc['website']['PASSWORD'], db=dbc['website']['NAME'], host=dbc['website']['HOST'])
-
-    # Match supplied user name to one in Drupal database
-    sql_users = "SELECT name, pass, mail FROM users WHERE name='%s'" % username
-    drupal = db.cursor()
-    drupal.execute(sql_users)
-    user = drupal.fetchone()
-    drupal.close()
-    db.close()
-    if user:
-        if (hashlib.md5(password).hexdigest() == user[1]):
-            return user[2], None, None
-    else:
-        return False
         
 def matchRTIPass(username,password):
     # Retreive the database user information from the settings
@@ -78,7 +62,7 @@ def checkUserObject(params,username,password):
          
 class LCOAuthBackend(ModelBackend):         
     def authenticate(self, username=None, password=None):
-        fns =  (matchDrupalPass(username, password), matchRTIPass(username, password))
+        fns =  matchRTIPass(username, password)
         for response in fns:
             if (response):
                 return checkUserObject(response,username,password)

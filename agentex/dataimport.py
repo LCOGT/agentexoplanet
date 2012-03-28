@@ -8,8 +8,8 @@ import subprocess
 # Preamble so we can use Django's DB API
 #os.environ['DJANGO_SETTINGS_MODULE'] = 'timeallocation.settings'
 
-from citsciportal.agentex.models import DataSource, Event, Target, CatSource
-from citsciportal.settings import DATA_LOCATION
+from agentex.models import DataSource, Event, Target, CatSource
+from settings import DATA_LOCATION
 
 path = '/Users/eg/Sites/data/'
 

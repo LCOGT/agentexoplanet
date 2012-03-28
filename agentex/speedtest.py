@@ -1,10 +1,10 @@
 from datetime import datetime,timedelta
 import MySQLdb
-from citsciportal.settings import DATABASES as dbc
+from settings import DATABASES as dbc
 from django.db import connection
 
 from django.db.models import Count,Avg,Min,Max,Variance, Q, Sum
-from citsciportal.agentex.models import Target, Event, Datapoint, DataSource, CatSource, Decision, DataCollection
+from agentex.models import Target, Event, Datapoint, DataSource, CatSource, Decision, DataCollection
 
 def averages(code,person):
     now = datetime.now()
