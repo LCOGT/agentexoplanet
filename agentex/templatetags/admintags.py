@@ -25,7 +25,6 @@ def agentex_info():
                'total_users' :  volunteers.count(),
                'readmanual': readmanual,
                }
-    print params
     return params
 
 @register.inclusion_tag('admin/commentslist.html')
