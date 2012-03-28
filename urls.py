@@ -22,6 +22,7 @@ urlpatterns = patterns('',
     (r'^showmestars/newimage/$','citsciportal.showmestars.views.newimage',{'eventid':0}),
     (r'^showmestars/(?P<eventid>\w+)/$','citsciportal.showmestars.views.latestimages'),
     (r'^showmestars/$','citsciportal.showmestars.views.latestimages',{'eventid':0}),
+    (r'^comments/', include('django.contrib.comments.urls')),
     (r'^admin/', include(admin.site.urls)),
 )
 
