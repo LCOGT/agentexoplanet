@@ -1,7 +1,7 @@
 from django.conf.urls.defaults import *
 
 
-urlpatterns = patterns('citsciportal.agentex.views',
+urlpatterns = patterns('agentex.views',
     (r'^$','index'),
     (r'^planets/$','target'),
     (r'^fitsanalyse','fitsanalyse'),
