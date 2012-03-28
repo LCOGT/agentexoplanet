@@ -10,8 +10,8 @@ Show Me Stars!
 
 {% block css-content%}
 	<style>
-	#page-wrapper { background: url('/images/new-agentex-bg.png') repeat-x transparent; }
-	#page { background: url('/images/new-header-showmestars-bg.png') transparent no-repeat; background-position: center top; }
+	#page-wrapper { background: url('http://s3-eu-west-1.amazonaws.com/showmestars/new-agentex-bg.png') repeat-x transparent; }
+	#page { background: url('http://s3-eu-west-1.amazonaws.com/showmestars/new-header-showmestars-bg.jpg') transparent no-repeat; background-position: center top; }
 
 	
 	#virtualskyinfobox{
@@ -67,8 +67,10 @@ Show Me Stars!
 {% endblock %}
 
 {% block script-content %}
-	<script language="javascript" src="http://s3.amazonaws.com/chromoscope/virtualsky-0.3.7.js" type="text/javascript"></script>
-	<script language="javascript" src="http://s3.amazonaws.com/chromoscope/jquery.tweet.js" type="text/javascript"></script>
+<!--[if lt IE 9]><script src="http://s3-eu-west-1.amazonaws.com/showmestars/excanvas.min.js"></script><![endif]-->
+<script src="http://s3-eu-west-1.amazonaws.com/showmestars/jquery-1.7.1.min.js" type="text/javascript"></script>
+<script src="http://s3-eu-west-1.amazonaws.com/showmestars/virtualsky-0.3.8.min.js" type="text/javascript"></script>
+	<script language="javascript" src="http://s3-eu-west-1.amazonaws.com/showmestars/jquery.tweet.js" type="text/javascript"></script>
 	<script language="javascript" src="{{MEDIA_URL}}js/showmestars.js" type="text/javascript"></script>
 {% endblock %}
 
@@ -86,7 +88,7 @@ Show Me Stars!
 			<img height="350" src="http://lcogt.net/camera/data/ogg/sbigbw/lastsnap.jpg" class="livestatic">
 			<span>Live Sky over <a href="http://lcogt.net/en/network/2m/faulkes-telescope-north">Faulkes Telescope North</a> - <a href="http://lcogt.net/en/site/haleakala">Haleakala, Maui</a></span>
 			{% else %}
-			<img height="350" src="http://150.203.153.20/axis-cgi/jpg/image.cgi?/camera=1" class="livestatic">
+			<img height="350" src="http://lcogt.net/camera/data/coj/viewtel/lastsnap.jpg" class="livestatic">
 			<span>Live Sky over <a href="http://lcogt.net/en/network/2m/faulkes-telescope-south">Faulkes Telescope South</a> - <a href="http://lcogt.net/en/site/siding-spring">Siding Spring, Australia</a></span>
 			{%endifequal%}
 		</div>
@@ -134,4 +136,5 @@ Show Me Stars!
             {% endfor %}
         </div>
     </div>
+    <form action="" method=POST>{% csrf_token %}<input type="submit"></form>
 {% endblock %}

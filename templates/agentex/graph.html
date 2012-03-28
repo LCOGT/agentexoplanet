@@ -73,7 +73,7 @@ $(document).ready(function(){
 	    if (neighbor) {
 		    //console.log(d1[neighbor.pointIndex][2])
 	        //alert('Point ID' + neighbor.pointIndex);
-			url = "{% url citsciportal.agentex.views.addvalue event.name %}?dataid="+d2[neighbor.pointIndex][2];
+			url = "{% url agentex.views.addvalue event.name %}?dataid="+d2[neighbor.pointIndex][2];
 			//console.log(url);
 			window.location = url;
 	    }
@@ -91,7 +91,7 @@ $(document).ready(function(){
 	
 	$('a#restrictdata').addClass('fancybtndisable').hide();
 	
-    $.getJSON("{% url citsciportal.agentex.views.index %}{{event.name}}/data.json",function(data){
+    $.getJSON("{% url agentex.views.index %}{{event.name}}/data.json",function(data){
 		$.each(data, function(key,val){
 			d1.push([val.date, Number(val.values.aggregate.mean)]);
 			if (val.values.mine != "null") {
@@ -99,7 +99,7 @@ $(document).ready(function(){
 			}
 		});
 		if (d2.length == 0){
-			$("#chart1").html("<h3>You have no data points yet</h3><p><a href='{% url citsciportal.agentex.views.addvalue event.name %}'>Why not make some measurements of this transit event</a></p>");
+			$("#chart1").html("<h3>You have no data points yet</h3><p><a href='{% url agentex.views.addvalue event.name %}'>Why not make some measurements of this transit event</a></p>");
 		}else{
 			$.jqplot('chart1',[d2],myplotoptions);
 		}
@@ -144,7 +144,7 @@ function calibrate_data(options,d2){
 	dcal = [];
 	xs = $("input[name='xrestrict']").val();
 	ys = $("input[name='yrestrict']").val();
-	$.getJSON("{% url citsciportal.agentex.views.index %}{{event.name}}/data.xhr?"+querystr,function(data){
+	$.getJSON("{% url agentex.views.index %}{{event.name}}/data.xhr?"+querystr,function(data){
 		for (i=0;i<data.dates.length;i++){
 			if (typeof data.calibration[i] !='undefined'){
 				//console.log("s "+data.source[i]+" "+data.background[i]+" "+data.calibration[i]);
@@ -172,7 +172,7 @@ function calibrate_data(options,d2){
 
 {% block main-content %}
 	<div class="page stackedpaper">
-		<h1>Transit lightcurve of <a href="{% url citsciportal.agentex.views.infoview event.name %}">{{event.title}}</a></h1>
+		<h1>Transit lightcurve of <a href="{% url agentex.views.infoview event.name %}">{{event.title}}</a></h1>
 		<div class="jqplot" id="chart1" style="margin-left:10px;height:300px;width:680px;"></div>
 		<div class="jqplot" id="calibrators" style="margin-left:10px;height:300px;width:680px;"></div>
 		<p>This is a graph from all the analysis measurements made by you and other citizen scientists. The more people analyse each image the better the quality of the lightcurve.</p>
@@ -194,7 +194,7 @@ function calibrate_data(options,d2){
 								<li><a href="#" class="togglelist magnifier">edit data points?</a></li>
 								<ul class="edit-list" style="display: none">
 									<li>Data timestamp</li>
-	{% for p in line.points %}								<li><a href="{% url citsciportal.agentex.views.addvalue line.event.name %}?dataid={{p.data.id}}">{{ p.data.timestamp }}</a></li>
+	{% for p in line.points %}								<li><a href="{% url agentex.views.addvalue line.event.name %}?dataid={{p.data.id}}">{{ p.data.timestamp }}</a></li>
 	{% endfor %}							</ul>{% endif %}
 </div>
 {%endblock%}

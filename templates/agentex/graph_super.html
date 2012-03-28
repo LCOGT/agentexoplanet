@@ -21,8 +21,8 @@
 	$(document).ready(function(){
 		$('#nextstep').addClass('fancybtndisable');
 		
-		addHelpHint($('#mainplot'),'This graph shows how the relative brightness of the host star changes as exoplanet <a href="{% url citsciportal.agentex.views.infoview event.name %}" class="objectspecific">{{event.title}}<\/a> passes in front of it.<br/><br/> This graph combines the measurements and classifications from all citizen scientists on this project, into one supercalibrator result.');
-		addHelpHint($('#mylink'),'View your measurements as <a href="{% url citsciportal.agentex.views.briefing %}#lightcurve">lightcurves<\/a>','left');
+		addHelpHint($('#mainplot'),'This graph shows how the relative brightness of the host star changes as exoplanet <a href="{% url agentex.views.infoview event.name %}" class="objectspecific">{{event.title}}<\/a> passes in front of it.<br/><br/> This graph combines the measurements and classifications from all citizen scientists on this project, into one supercalibrator result.');
+		addHelpHint($('#mylink'),'View your measurements as <a href="{% url agentex.views.briefing %}#lightcurve">lightcurves<\/a>','left');
 		addHelpHint($('#avlink'),'Classify your measurements','left');
 		addHelpHint($('#sulink'),'This is the page you are looking at.','left');
 	
@@ -48,7 +48,7 @@
 		lcurve = new Lightcurve({
 			id:'#mainplot',
 			msg:{
-				nodata: "<h3>You have no data points yet<\/h3><p>Why not make some <a href='{% url citsciportal.agentex.views.addvalue event.name %}'>measurements of {{event.title}}<\/a><\/p>",
+				nodata: "<h3>You have no data points yet<\/h3><p>Why not make some <a href='{% url agentex.views.addvalue event.name %}'>measurements of {{event.title}}<\/a><\/p>",
 				login: "Please <a href='{% url django.contrib.auth.views.login %}'>login<\/a> to edit"
 			},
 			data:{{data|safe}},
@@ -225,9 +225,9 @@
 					</div>{% endif %}
 
 {% if numsuper %}
-		<h1>Step 3: Final Lightcurve for <a href="{% url citsciportal.agentex.views.infoview event.name %}" class="objectspecific">{{event.title}}</a></h1>
+		<h1>Step 3: Final Lightcurve for <a href="{% url agentex.views.infoview event.name %}" class="objectspecific">{{event.title}}</a></h1>
 {% else %}
-		<h1>No combined result for <a href="{% url citsciportal.agentex.views.infoview event.name %}" class="objectspecific">{{event.title}}</a> yet</h1>
+		<h1>No combined result for <a href="{% url agentex.views.infoview event.name %}" class="objectspecific">{{event.title}}</a> yet</h1>
 {%endif%}
 {% if user.is_authenticated %}
 <!--
@@ -283,14 +283,14 @@
 		<p class="accessible">Without Javascript enabled we can't show you a lightcurve but you could create your own lightcurve using the data in the table below. You can also provide us with information about which calibrators are not variable by checking the boxes below.</p>
 
 		<div style="text-align:right;">
-			<a href="{% url citsciportal.agentex.views.target %}" class="fancybtn" id="nextstep">Next planet<span class="arrow">&nbsp;</span></a> 
+			<a href="{% url agentex.views.target %}" class="fancybtn" id="nextstep">Next planet<span class="arrow">&nbsp;</span></a> 
 		</div>
 
 		<div style="max-width:900px;overflow:auto;">
 		<table class="accessible" id="datatable" summary="The data used to make the final lightcurve">
 			<tr><th>Observation date</th><th>Relative brightness</th><th>Estimated uncertainty</th></tr>
 	{% for line in data %}
-			<tr><td><a href="{% url citsciportal.agentex.views.addvalue event.name %}?dataid={{line.id}}">{{line.date}}</a></td><td>{{line.data.mean|floatformat:3}}</td><td>{{line.data.std|floatformat:3}}</td></tr>
+			<tr><td><a href="{% url agentex.views.addvalue event.name %}?dataid={{line.id}}">{{line.date}}</a></td><td>{{line.data.mean|floatformat:3}}</td><td>{{line.data.std|floatformat:3}}</td></tr>
 	{% endfor %}
 		</table>
 		</div>
@@ -299,7 +299,7 @@
 
 {% else%}
 		<p>Bad news! Not enough measurements have been made yet.</p>
-		<p>Go and <a href="{% url citsciportal.agentex.views.addvalue event.name %}">make more measurements</a>, then <a href="{%url average-graph event.name%}">classify your results</a>.
+		<p>Go and <a href="{% url agentex.views.addvalue event.name %}">make more measurements</a>, then <a href="{%url average-graph event.name%}">classify your results</a>.
 		<p>It will make this page much more exciting!</p>
 {%endif%}
 	</div>

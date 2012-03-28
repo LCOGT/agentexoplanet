@@ -56,7 +56,7 @@
 					<div class="spacer"></div>
 					<h2 id="planet">Getting started - choose your planet</h2>
 
-					<p>From the front page of Agent Exoplanet, click on the &quot;<a href="{% url citsciportal.agentex.views.target  %}">Start the mission</a>&quot; button. Now you can choose one of the exoplanet polaroids to start your brightness measurements. Each polaroid shows you the planet's name and how many images are in the set. You will then be taken one by one to images of a patch of sky containing the star and exoplanet (although only the star is visible because the exoplanet is very faint in comparison). Each image will look very similar because they are of the same patch of sky but at different times. You will analyze each image to capture the dip in the brightness of the star as the exoplanet passes in front of it.</p>
+					<p>From the front page of Agent Exoplanet, click on the &quot;<a href="{% url agentex.views.target  %}">Start the mission</a>&quot; button. Now you can choose one of the exoplanet polaroids to start your brightness measurements. Each polaroid shows you the planet's name and how many images are in the set. You will then be taken one by one to images of a patch of sky containing the star and exoplanet (although only the star is visible because the exoplanet is very faint in comparison). Each image will look very similar because they are of the same patch of sky but at different times. You will analyze each image to capture the dip in the brightness of the star as the exoplanet passes in front of it.</p>
 
 					<div class="spacer"></div>
 					<h2 id="analysis">Analyzing images with the Light Monitor</h2>
@@ -113,7 +113,7 @@
 					<p>Whether you choose lots of calibrators and analyze all the images in the time-series, or if you choose 3 calibrators and a couple of images, all of your measurements are valuable and make the final lightcurve more accurate.</p>
 					<p>You are now ready to begin.</p>
 	
-					<form action="{% url citsciportal.agentex.views.read_manual_check %}" method="POST">
+					<form action="{% url agentex.views.read_manual_check %}" method="POST">
 					{% csrf_token %}
 					<input type="hidden" name="read_manual" value="true" />
 					<p style="text-align:center;"><input type="submit" class="fancybtn btn" value="Start the mission" /></p>

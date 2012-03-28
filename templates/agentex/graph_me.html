@@ -26,14 +26,14 @@
 		lcurve = new Lightcurve({
 			id:'#mainplot',
 			msg:{
-				nodata: "<h3>You have no data points yet<\/h3><p>Why not make some <a href='{% url citsciportal.agentex.views.addvalue event.name %}'>measurements of {{event.title}}<\/a><\/p>",
+				nodata: "<h3>You have no data points yet<\/h3><p>Why not make some <a href='{% url agentex.views.addvalue event.name %}'>measurements of {{event.title}}<\/a><\/p>",
 				login: "Please <a href='{% url django.contrib.auth.views.login %}'>login<\/a> to edit"
 			},
 			url:{
-				edit: "{% url citsciportal.agentex.views.addvalue event.name %}?dataid=",
-				json: "{% url citsciportal.agentex.views.index %}{{event.name}}/data.json",
-				xhr: "{% url citsciportal.agentex.views.index %}{{event.name}}/data.xhr",
-				superc: "{% url citsciportal.agentex.views.index %}{{event.name}}/data.xhr?mode=super"
+				edit: "{% url agentex.views.addvalue event.name %}?dataid=",
+				json: "{% url agentex.views.index %}{{event.name}}/data.json",
+				xhr: "{% url agentex.views.index %}{{event.name}}/data.xhr",
+				superc: "{% url agentex.views.index %}{{event.name}}/data.xhr?mode=super"
 			},
 			data:{{data|safe}},
 			authenticated: {% if user.is_authenticated %}true{% else %}false{% endif %}
@@ -66,15 +66,15 @@
 						</ul>
 {% endif %}
 </div>{%endif%}
-		<h1>Transit Lightcurve: <a href="{% url citsciportal.agentex.views.infoview event.name %}" class="objectspecific">{{event.title}}</a></span></h1>
+		<h1>Transit Lightcurve: <a href="{% url agentex.views.infoview event.name %}" class="objectspecific">{{event.title}}</a></span></h1>
 		
 		<p class="accessible">Without Javascript enabled we can't show you a lightcurve but you could create your own lightcurve using the data in the table below. You can also provide us with information about which calibrators are not variable by checking the boxes below.</p>
 		<table class="accessible">
 			<tr><th>Date</th><th class="source">Source</th><th class="sky">Blank sky</th>{% for cal in data.0.data.calibrator %}<th class="calibrator">Cal {{forloop.counter}}</th>{% endfor %}</tr>
-{% for line in data %}			<tr><td><a href="{% url citsciportal.agentex.views.addvalue event.name %}?dataid={{line.id}}">{{line.date}}</a></td><td>{{line.data.source|floatformat:0}}</td><td>{{line.data.background|floatformat:0}}</td>{% for cal in line.data.calibrator %}<td>{{cal|floatformat:0}}</td>{% endfor %}</tr>{% endfor %}
+{% for line in data %}			<tr><td><a href="{% url agentex.views.addvalue event.name %}?dataid={{line.id}}">{{line.date}}</a></td><td>{{line.data.source|floatformat:0}}</td><td>{{line.data.background|floatformat:0}}</td>{% for cal in line.data.calibrator %}<td>{{cal|floatformat:0}}</td>{% endfor %}</tr>{% endfor %}
 		</table>
 		{% if sources %}
-		<form id="calibrator_list" method="POST" action='{%  url citsciportal.agentex.views.updatedataset event.name %}'>{% csrf_token %}
+		<form id="calibrator_list" method="POST" action='{%  url agentex.views.updatedataset event.name %}'>{% csrf_token %}
 			<input type=hidden name="planet" value="{{event.name}}">
 {% for d in sources %}		<input type="checkbox" name="cal-{{d.order}}" value="{{d.order}}" {%if d.valid %}CHECKED{%endif%} />Show calibrator {{forloop.counter}} {%if d.name%}(<a href="http://www.strudel.org.uk/lookUP/?name=USNOA2+{{d.name}}">{{d.catalogue}}USNOA2 {{d.name}}</a>){%endif%} on the graph<br />{% endfor %}
 			<input type="submit" name="submit" value="Save my choices" />

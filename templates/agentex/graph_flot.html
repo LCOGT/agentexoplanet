@@ -17,18 +17,18 @@
 	var helper = true;
 	$(document).ready(function(){
 		//html = 'Next steps: <ul><li><a href="{% url average-graph event.name %}">Classify your lightcurve shapes<\/a> to combine your data with other citizen scientists\' data,</li> <li>View the <a href="{% url average-graph event.name %}">final curve<\/a> from everyone\'s results</li></ul>';
-		$('#progress').before('<span id="morecalbtn" style="float:right"><a href="{% url citsciportal.agentex.views.addvalue event.name %}?dataid={{event.finder}}&next=cal">Add more calibrators</a><\/span>').after('<div class="clear-block"><\/div><div id="mainplot" style="padding-left:40px;height:450px;width:880px;"><\/div>');
+		$('#progress').before('<span id="morecalbtn" style="float:right"><a href="{% url agentex.views.addvalue event.name %}?dataid={{event.finder}}&next=cal">Add more calibrators</a><\/span>').after('<div class="clear-block"><\/div><div id="mainplot" style="padding-left:40px;height:450px;width:880px;"><\/div>');
 	
 		// Define help
 		addHelpHint($('#mainplot'),$('#whatsthis').html());
 		addHelpHint($('#morecalbtn'),'If you\'d like to add more <strong class="calibrator">calibrators<\/strong> you can use this button to go back to the observations.');
 		addHelpHint($('#mylink'),'This is the page you are looking at.','left');
 		addHelpHint($('#avlink'),'Classify your measurements','left');
-		addHelpHint($('#sulink'),'View the combined <a href="{% url citsciportal.agentex.views.briefing %}#lightcurve">lightcurves<\/a> created using everybody\'s classifications.','left');
+		addHelpHint($('#sulink'),'View the combined <a href="{% url agentex.views.briefing %}#lightcurve">lightcurves<\/a> created using everybody\'s classifications.','left');
 	
 	
 		{% if sources %}
-		html = "<form style='width:500px;float:left;margin-top:10px;' id='calibrator_list' method='POST' action='{%  url citsciportal.agentex.views.updatedataset event.name %}?mode=display'>{% csrf_token %}"
+		html = "<form style='width:500px;float:left;margin-top:10px;' id='calibrator_list' method='POST' action='{%  url agentex.views.updatedataset event.name %}?mode=display'>{% csrf_token %}"
 		html += "	<input type=hidden name='planet' value='{{event.name}}'>";
 		var onlyselection = false;
 		{% for d in sources %}{%if d.valid %}onlyselection = true{%endif%}{% endfor %}
@@ -47,14 +47,14 @@
 			id:'#mainplot',
 			data: {{ data|safe }},
 			msg:{
-				nodata: "<h3>You have no data points yet<\/h3><p>Why not make some <a href='{% url citsciportal.agentex.views.addvalue event.name %}'>measurements of {{event.title}}<\/a><\/p>",
+				nodata: "<h3>You have no data points yet<\/h3><p>Why not make some <a href='{% url agentex.views.addvalue event.name %}'>measurements of {{event.title}}<\/a><\/p>",
 				login: "Please <a href='{% url django.contrib.auth.views.login %}'>login<\/a> to edit"
 			},
 			url:{
-				edit: "{% url citsciportal.agentex.views.addvalue event.name %}?dataid=",
-				json: "{% url citsciportal.agentex.views.index %}{{event.name}}/data.json",
-				xhr: "{% url citsciportal.agentex.views.index %}{{event.name}}/data.xhr",
-				superc: "{% url citsciportal.agentex.views.index %}{{event.name}}/data.xhr?mode=super"
+				edit: "{% url agentex.views.addvalue event.name %}?dataid=",
+				json: "{% url agentex.views.index %}{{event.name}}/data.json",
+				xhr: "{% url agentex.views.index %}{{event.name}}/data.xhr",
+				superc: "{% url agentex.views.index %}{{event.name}}/data.xhr?mode=super"
 			},
 			authenticated: {% if user.is_authenticated %}true{% else %}false{% endif %}
 		});
@@ -103,7 +103,7 @@
 		{% for message in messages %}{%ifchanged%}		<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message|safe }}</li>{%endifchanged%}{% endfor %}
 								</ul>
 							</div>{% endif %}
-		<h1>Step 1: My Measurements of <a href="{% url citsciportal.agentex.views.infoview event.name %}" class="objectspecific">{{event.title}}</a></h1>
+		<h1>Step 1: My Measurements of <a href="{% url agentex.views.infoview event.name %}" class="objectspecific">{{event.title}}</a></h1>
 <!--
 		<ol class="breadcrumb">
 			<li class="active"><a href="{%url my-graph event.name%}"><img src="{{ MEDIA_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" />Step 1: My measurements</a></li>
@@ -115,7 +115,7 @@
 		<div id="avlink" style="display:none;"><a href="{%url average-graph event.name%}"><img src="{{ MEDIA_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" /></a></div>
 		<div id="sulink" style="display:none;"><a href="{%url super-graph event.name%}"><img src="{{ MEDIA_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" /></a></div>
 
-		<p id="progress">You have analysed {{progress.percent}}% of the images for <span class="objectspecific">{{event.title}}</span>. {% if progress.done < progress.total %}You might not be able to see a complete transit event yet. <a href="{% url citsciportal.agentex.views.addvalue event.name %}">Continue analysing?</a> {% else %}Congratulations!{%endif%}</p>
+		<p id="progress">You have analysed {{progress.percent}}% of the images for <span class="objectspecific">{{event.title}}</span>. {% if progress.done < progress.total %}You might not be able to see a complete transit event yet. <a href="{% url agentex.views.addvalue event.name %}">Continue analysing?</a> {% else %}Congratulations!{%endif%}</p>
 
 		<p class="accessible">Without Javascript enabled we can't show you any graphs but you could create your own using the data in the table below. You can also provide us with information about which calibrators are not variable by checking the boxes below.</p>
 		<p class="accessible" id="whatsthis">In this graph our <span class="sky">background</span> value is subtracted from both your <span class="source">target</span> and <span class="calibrator">calibrators</span>. Then the ratio of <span class="source">target</span> to <span class="calibrator">calibrator</span> is found for each one. On this plot the ratios have been scaled so that you can compare them and look for <span class="calibrator">calibrators</span> which are variable.</p>
@@ -130,7 +130,7 @@
 			<tr><th>Date</th><th class="source">Target</th><th class="sky">Sky</th>{% for cal in data.0.data.calibrator %}<th class="calibrator">Cal {{forloop.counter}}</th>{% endfor %}</tr>
 			{% for line in data %}
 			{% if line.data.calibrator %}
-			<tr><td><a href="{% url citsciportal.agentex.views.addvalue event.name %}?dataid={{line.id}}">{{line.date}}</a></td><td>{{line.data.source.0|floatformat:0}}</td><td>{{line.data.background.0|floatformat:0}}</td>{% for cal in line.data.calibrator %}<td>{{cal|floatformat:0}}</td>{% endfor %}</tr>
+			<tr><td><a href="{% url agentex.views.addvalue event.name %}?dataid={{line.id}}">{{line.date}}</a></td><td>{{line.data.source.0|floatformat:0}}</td><td>{{line.data.background.0|floatformat:0}}</td>{% for cal in line.data.calibrator %}<td>{{cal|floatformat:0}}</td>{% endfor %}</tr>
 			{% endif %}
 			{% endfor %}
 		</table>

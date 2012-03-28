@@ -382,7 +382,7 @@
 		addHelpHint($('h1 a'),'This is the name of the exoplanet you are investigating.');
 		addHelpHint($('.progress'),'This shows how far you have got in in analyzing the images for this object. {% if user.is_authenticated %}{% ifequal complete 1 %}It looks as though you\'ve already completed measurements for this planet.{% else %}It looks as though you\'ve completed {{progress.percent}}% of the measurements{% endifequal %}{% else %}{% endif %}');
 		addHelpHint($('#obsdate'),'The date that this observation was taken.');
-		addHelpHint($('#photometric'),'This is the image from the telescope. Move the <strong class="source">target<\/strong> circle to the target star, the <strong class="sky">sky<\/strong> circle to a star-free area near the target, the <strong class="calibrator">calibrator<\/strong> circles to comparison stars, then click <strong>Analyze image<\/strong> on the left to save your results. For more information see the <a href="{% url citsciportal.agentex.views.briefing %}#analysis">briefing<\/a>.');
+		addHelpHint($('#photometric'),'This is the image from the telescope. Move the <strong class="source">target<\/strong> circle to the target star, the <strong class="sky">sky<\/strong> circle to a star-free area near the target, the <strong class="calibrator">calibrator<\/strong> circles to comparison stars, then click <strong>Analyze image<\/strong> on the left to save your results. For more information see the <a href="{% url agentex.views.briefing %}#analysis">briefing<\/a>.');
 		addHelpHint($('#finderthumb'),'This is a finder chart. It shows you a similar patch of sky to the main image. When you click on it, it displays the finder chart image on top of the main image. The cross-hairs indicate where the target star is.',"right");
 		addHelpHint($('#getdata'),"When you click this button your <strong class=\"source\">target<\/strong>, <strong class=\"sky\">sky<\/strong> and <strong class=\"calibrator\">calibrator<\/strong> circles are analyzed. Our computer will calculate the total amount of light detected in each of the circles you selected and small graphs will appear.","right");
 		addHelpHint($('.manualdata'),"If you prefer to use SalsaJ rather than our website interface, click here to switch to a form that will let you add your measurements by hand.");
@@ -399,9 +399,9 @@
 		addHelpHint($('#id_sourcexpos'),"The horizontal pixel position for the target star.","left");
 		addHelpHint($('#id_sourceypos'),"The vertical pixel position for the target star.","left");
 		addHelpHint($('#id_sourcecounts'),"The total counts for the star you've identified as the target.","left");
-		addHelpHint($('#mylink'),'View your measurements as <a href="{% url citsciportal.agentex.views.briefing %}#lightcurve">lightcurves<\/a>','left');
+		addHelpHint($('#mylink'),'View your measurements as <a href="{% url agentex.views.briefing %}#lightcurve">lightcurves<\/a>','left');
 		addHelpHint($('#avlink'),'Classify your measurements','left');
-		addHelpHint($('#sulink'),'View the combined <a href="{% url citsciportal.agentex.views.briefing %}#lightcurve">lightcurves<\/a> created using everybody\'s classifications.','left');
+		addHelpHint($('#sulink'),'View the combined <a href="{% url agentex.views.briefing %}#lightcurve">lightcurves<\/a> created using everybody\'s classifications.','left');
 
 		$('a#getdata').bind('click', function(e){
 			dataid = $(this).attr('dataid');
@@ -416,7 +416,7 @@
 				bubblePopup({id:'helptooltip',el:$('#photometric'),align:"center",w:200,animate:true,dismiss:false,color:'white',html:'<div style="margin:1em;"><img src="{{ MEDIA_URL}}images/ajax-loader.gif" alt="Loading" style="width:31px;height:31px;" /><br />Calculating the total amount of light in each of your circles...<\/div>',bg:'rgba(0,0,0,0.8)'});
 
 				// Build comma separated list of x, y and r with bg as first element
-				$.post("{% url citsciportal.agentex.views.fitsanalyse %}", {x:photo.getXs(),y:photo.getYs(),r:photo.getRs(),dataid:dataid,entrymode:entry,csrfmiddlewaretoken: '{{ csrf_token }}'},
+				$.post("{% url agentex.views.fitsanalyse %}", {x:photo.getXs(),y:photo.getYs(),r:photo.getRs(),dataid:dataid,entrymode:entry,csrfmiddlewaretoken: '{{ csrf_token }}'},
 					function(data){
 						$('#helptooltip').hide();
 
@@ -517,14 +517,14 @@
 						</ul>
 					</div>{% endif %}
 					<div id="help">
-						This is a view of the images from the telescope. Move the <strong class="source">target</strong> circle to the target star, the <strong class="sky">sky</strong> circle to a star-free area near the target, the <strong class="calibrator">calibrator</strong> circles to comparison stars, then click <strong>Analyze image</strong> to save your results. For more information see the <a href="{% url citsciportal.agentex.views.briefing %}#analysis">briefing</a> or move your mouse over parts of the screen to find out more about them.
+						This is a view of the images from the telescope. Move the <strong class="source">target</strong> circle to the target star, the <strong class="sky">sky</strong> circle to a star-free area near the target, the <strong class="calibrator">calibrator</strong> circles to comparison stars, then click <strong>Analyze image</strong> to save your results. For more information see the <a href="{% url agentex.views.briefing %}#analysis">briefing</a> or move your mouse over parts of the screen to find out more about them.
 					</div>
 {% ifequal complete 1 %}
 										<div id="mylink"><a href="{%url my-graph event.name%}"><img src="/images/graph_my.png" alt="My" title="View my measurements as a lightcurve" style="width:1em;" /></a></div>
 										<div id="avlink"><a href="{%url average-graph event.name%}"><img src="/images/graph_ave.png" alt="Classify" title="Classify your lightcurves" style="width:1em;" /></a></div>
 										<div id="sulink"><a href="{%url super-graph event.name%}"><img src="/images/graph_super.png" alt="Final" title="Final lightcurve" style="width:1em;" /></a></div>
 										<span class="dymotape datestamp">Completed</span>
-										<h1>Analysis Complete: <a href="{% url citsciportal.agentex.views.infoview event.name  %}" class="objectspecific">{{event.title}}</a></h1>
+										<h1>Analysis Complete: <a href="{% url agentex.views.infoview event.name  %}" class="objectspecific">{{event.title}}</a></h1>
 										<p>Congratulations! You've analysed all the data for {{event.title}}.<p>
 										<p>Now, have a look at the lightcurves we made from your measurements...</p>
 										<ol class="breadcrumb">
@@ -535,14 +535,14 @@
 										Would you like to edit any of your measurements?
 										<ul class="edit-list">
 											 {% for p in points %}
-												<li><a href="{% url citsciportal.agentex.views.addvalue event.name %}?dataid={{p.data.id}}">{{ p.data.timestamp }}</a></li>
+												<li><a href="{% url agentex.views.addvalue event.name %}?dataid={{p.data.id}}">{{ p.data.timestamp }}</a></li>
 										     {% endfor %}
 										</ul>
 										</p>
 									</div>
 {% else %}
 					<span class="dymotape datestamp" id="obsdate" title="Timestamp of this observation"><span class="accessible">Data timestamp: </span>{{data.timestamp}}</span>
-					<h1>Light Monitor: <a href="{% url citsciportal.agentex.views.infoview data.event.name  %}" class="objectspecific">{{data.event.title}}</a></h1>
+					<h1>Light Monitor: <a href="{% url agentex.views.infoview data.event.name  %}" class="objectspecific">{{data.event.title}}</a></h1>
 					{% if user.is_authenticated %}<div class="progress" style="width:704px;height:1.5em;background-color:#b3b3b3;margin-bottom:8px;"><div class="progressbar"></div><div class="label" style="padding:0.25em;text-align:center;width:704px;">You've completed {{progress.done}} of {{progress.total}} frames ({{progress.percent}}%)</div></div>{% endif %}
 					<div id="middle">
 						<div id="photometric">
@@ -550,7 +550,7 @@
 						</div>
 					</div>
 					<div id="lower" style="text-align:right;">
-						{% if user.is_authenticated %}{% else %}<p>Please <a href="{% url django.contrib.auth.views.login %}?next={% url citsciportal.agentex.views.addvalue data.event.name %}">login</a> to see your measurements in the lightcurve for this exoplanet</a>{% endif %}
+						{% if user.is_authenticated %}{% else %}<p>Please <a href="{% url django.contrib.auth.views.login %}?next={% url agentex.views.addvalue data.event.name %}">login</a> to see your measurements in the lightcurve for this exoplanet</a>{% endif %}
 						<div id="inputtype" style="text-align:left;"></div>
 						<div>
 							<div class="clear-block"></div>
