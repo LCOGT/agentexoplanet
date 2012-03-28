@@ -47,6 +47,7 @@ class Target(models.Model):
     finderchart =  models.FileField('Finder chart',upload_to="finderchart", help_text='Image with a clearly marked up target position',blank=True)
     finderchart_tb =  models.FileField('Finder chart thumbnail',upload_to="finderchart/thumb", help_text='Image with a clearly marked up target position',blank=True)
     class Meta:
+        verbose_name = u'transiting exoplanet target'
         db_table = u'dataexplorer_target'
     def __unicode__(self):
         return self.name
@@ -65,6 +66,7 @@ class Event(models.Model):
     illustration = models.FileField('illustration',upload_to="illustration", help_text='illustration for this event',blank=True)
     radius = models.IntegerField('aperture radius', blank=False, default=10)
     class Meta:
+        verbose_name = u'transit event'
         db_table = u'dataexplorer_event'
     def __unicode__(self):
         return self.name
@@ -79,6 +81,7 @@ class DataSource(models.Model):
     max_x = models.IntegerField('max pixels (x)',blank=False)
     max_y = models.IntegerField('max pixels (y)',blank=False)
     class Meta:
+        verbose_name = u'data source image'
         db_table = u'dataexplorer_datasource'
     def __unicode__(self):
         return self.timestamp.isoformat()
@@ -107,6 +110,7 @@ class DataCollection(models.Model):
     calid = models.IntegerField('calibrator order',blank=False,null=False)
     source = models.ForeignKey(CatSource,blank=True, null=True)
     class Meta:
+        verbose_name = u'data collection'
         db_table = u'dataexplorer_datacollection'
     def __unicode__(self):
         val = "%s" % self.planet.title
@@ -125,6 +129,7 @@ class Datapoint(models.Model):
     entrymode = models.CharField(blank=False,max_length=1,choices=ENTRYCHOICE,default='W')
     offset = models.FloatField('distance from source',blank=True)
     class Meta:
+        verbose_name = u'data point'
         db_table = u'dataexplorer_datapoint'
     class Admin:
         list_display = ('event',)
@@ -140,6 +145,7 @@ class Decision(models.Model):
     taken = models.DateTimeField(default=datetime.now,blank=False)
     current = models.BooleanField(default=False)
     class Meta:
+        verbose_name = u'lightcurve decision'
         db_table = u'dataexplorer_decision'
     def __unicode__(self):
         return self.source.name
@@ -149,6 +155,7 @@ class Badge(models.Model):
     description = models.CharField(blank=False, max_length=200, help_text='brief, publicly readable')
     image = models.FileField(upload_to="badge",blank=False)
     class Meta:
+        verbose_name = u'badge'
         db_table = u'dataexplorer_badge'
     def __unicode__(self):
         return self.name
@@ -159,6 +166,8 @@ class Achievement(models.Model):
     badge = models.ForeignKey(Badge)
     planet = models.ForeignKey(Event,blank=True, null=True,help_text='planet')
     class Meta:
+        verbose_name = u'achievement unlocked'
+        verbose_name_plural = u'achievements unlocked'
         db_table = u'dataexplorer_achievement'
     def __unicode__(self):
         if self.planet:
