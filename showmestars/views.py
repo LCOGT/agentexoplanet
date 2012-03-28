@@ -2,42 +2,12 @@ from django.template import RequestContext, loader
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 import MySQLdb
-from citsciportal.settings import DATABASES as dbc
+from settings import DATABASES as dbc
 from datetime import datetime
 
 import time
 
-from citsciportal.showmestars.models import Event
-
-# events = [
-#     {
-#         'guestid'   : '4661',
-#         'name'      : 'Mark Thompson',
-#         'current'   : True,
-#         'slots'     : [79386,79387],
-#         'start'     :datetime(2011,8,19,13,0),
-#         'end'       :datetime(2011,8,19,14,0),
-#         'site'      : 'ogg',
-#     },
-#     {
-#         'guestid'   : '56',
-#         'name'      : 'Dara O Briain',
-#         'current'   : False,
-#         'slots'     : [79286,79287],
-#         'start'     : datetime(2011,8,9,12,0),
-#         'end'       : datetime(2011,8,9,13,0),
-#         'site'      : 'ogg',
-#     },
-#     # {
-#     #     'guestid'   : '',
-#     #     'name'      : 'Mark Thompson',
-#     #     'current'   : True,
-#     #     'slots'     : [6,7],
-#     #     'start'     : datetime(2011,8,19,13,0),
-#     #     'end'       : datetime(2011,8,19,14,0),
-#     #     'site'      : 'coj',
-#     # },
-# ]
+from showmestars.models import Event
     
 def latestimages(request,eventid):
     try:
@@ -63,7 +33,7 @@ def latestimages(request,eventid):
         newevents.append({'details':e,'obs':obs})
     stamp = datetime.utcnow()
     db.close()
-    return render_to_response('imageportal.html',{'stamp':stamp,'event':newevents}, context_instance=RequestContext(request))
+    return render_to_response('showmestars/imageportal.html',{'stamp':stamp,'event':newevents}, context_instance=RequestContext(request))
     
 def newimage(request,eventid):
     try:
@@ -75,7 +45,7 @@ def newimage(request,eventid):
     except ValueError:
         raise Http404
     obs = []
-    stamp = request.POST.get('stamp','0')
+    stamp = request.GET.get('stamp','0')
     db = MySQLdb.connect(user=dbc['faulkes']['USER'], passwd=dbc['faulkes']['PASSWORD'], db=dbc['faulkes']['NAME'], host=dbc['faulkes']['HOST'])
     sql_images = "SELECT ImageID, WhenTaken,Filename,TelescopeId,SkyObjectName,filter FROM imagearchive  WHERE  SchoolID ='%s' AND WhenTaken > '%s' order by WhenTaken desc limit 20" % (event.hostid,stamp)
     images = db.cursor()
@@ -83,7 +53,7 @@ def newimage(request,eventid):
     stamp = datetime.utcnow()
     for i in images:
         obs.append(makeimagebox(i))
-    return render_to_response('imagebox.html',{'obs':obs,'stamp':stamp}, context_instance=RequestContext(request))
+    return render_to_response('showmestars/imagebox.html',{'obs':obs,'stamp':stamp}, context_instance=RequestContext(request))
 
 
 def makeimagebox(image):

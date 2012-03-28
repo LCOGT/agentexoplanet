@@ -1,5 +1,5 @@
 from django.contrib import admin
-from citsciportal.showmestars.models import Event
+from showmestars.models import Event
 
 class EventAd(admin.ModelAdmin):
     list_display = ['name','start','end','site']

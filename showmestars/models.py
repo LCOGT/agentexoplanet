@@ -1,6 +1,4 @@
 from django.db import models
-from datetime import datetime
-from django.contrib.auth.models import User
 
 class Event(models.Model):
     hostid = models.CharField(max_length=75)
@@ -10,6 +8,8 @@ class Event(models.Model):
     start = models.DateTimeField()
     end = models.DateTimeField()
     site = models.CharField(max_length=75,blank=True,null=True)
+    class Meta:
+        verbose_name = u'show me stars event'
     def __unicode__(self):
         return "%s %s %s" % (self.name,self.start.isoformat(),self.site)
         
