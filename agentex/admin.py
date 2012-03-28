@@ -1,4 +1,4 @@
-from citsciportal.agentex.models import Target, Event, Datapoint, DataSource, Badge, Achievement, DataCollection,Decision,CatSource, Observer
+from agentex.models import Target, Event, Datapoint, DataSource, Badge, Achievement, DataCollection,Decision,CatSource, Observer
 from django.contrib import admin
 
 class DatapointAd(admin.ModelAdmin):
