@@ -23,15 +23,15 @@ from time import mktime
 from math import floor,pi,pow
 from itertools import chain
 from numpy import array
-import operator
 
 from django.contrib.auth.models import User
-from citsciportal.agentex.models import Target, Event, Datapoint, DataSource, DataCollection,CatSource, Decision, Achievement, Badge, Observer
-from citsciportal.agentex.models import decisions
-from citsciportal.agentex.forms import DataEntryForm, RegisterForm, CommentForm,RegistrationEditForm
+from agentex.models import Target, Event, Datapoint, DataSource, DataCollection,CatSource, Decision, Achievement, Badge, Observer
+from agentex.models import decisions
+from agentex.forms import DataEntryForm, RegisterForm, CommentForm,RegistrationEditForm
 
-from citsciportal.settings import DATA_LOCATION,DATA_URL,MEDIA_URL
-from citsciportal.agentex.agentex_settings import planet_level
+from django.conf import settings
+from settings import DATA_LOCATION,DATA_URL,MEDIA_URL
+from agentex.agentex_settings import planet_level
 
 guestuser = 2
 
@@ -193,7 +193,7 @@ def addvalue(request,code):
             pointsum = {'bg' :  '%.2f' % counts[0], 'sc' : '%.2f' % counts[1], 'cal' : counts[2:]}
             if (len(x) < 3 or len(y) < 3):
                 messages.warning(request,'Please submit calibration, blank sky and source apertures.')
-                url = reverse('citsciportal.agentex.views.addvalue',args= [DataSource.objects.get(id=id).event.name])
+                url = reverse('agentex.views.addvalue',args= [DataSource.objects.get(id=id).event.name])
                 return HttpResponseRedirect(url)
             x = map(float,x)
             y = map(float,y)
@@ -202,9 +202,9 @@ def addvalue(request,code):
             resp = savemeasurement(person,pointsum,coords,dataid,entrymode)
             messages.add_message(request, resp['code'], resp['msg'])
             if webin == False:
-                url = "%s?%s" % (reverse('citsciportal.agentex.views.addvalue',args= [DataSource.objects.get(id=id).event.name]),"input=manual")
+                url = "%s?%s" % (reverse('agentex.views.addvalue',args= [DataSource.objects.get(id=id).event.name]),"input=manual")
             else:
-                url = reverse('citsciportal.agentex.views.addvalue',args= [DataSource.objects.get(id=id).event.name])
+                url = reverse('agentex.views.addvalue',args= [DataSource.objects.get(id=id).event.name])
              #messages.success(request, "Measurement successfully added")
             return HttpResponseRedirect(url)
         else:
@@ -226,7 +226,7 @@ def addvalue(request,code):
             if person == guestuser:
                 messages.warning(request,'You cannot edit points unless you are logged in')
                 try:
-                    url = reverse('citsciportal.agentex.views.addvalue',args= [DataSource.objects.get(id=id).event.name])
+                    url = reverse('agentex.views.addvalue',args= [DataSource.objects.get(id=id).event.name])
                     return HttpResponseRedirect(url)
                 except:
                     raise Http404
@@ -250,7 +250,7 @@ def addvalue(request,code):
             bg = points.filter(pointtype='B')[:1]
             #### If there are no results, the person is hacking the query string. Return a fresh frame
             if (source.count() == 0 or bg.count() == 0):
-                url = reverse('citsciportal.agentex.views.addvalue',args= [code])
+                url = reverse('agentex.views.addvalue',args= [code])
                 return HttpResponseRedirect(url)
             cal = points.filter(pointtype='C').order_by('coorder__calid')
             for c in cal:
@@ -524,7 +524,7 @@ def read_manual_check(request):
 		if messages.SUCCESS == resp['code'] :
 			messages.add_message(request, messages.SUCCESS, "Achievement unlocked<br /><img src=\""+MEDIA_URL+resp['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />")
 		
-	return HttpResponseRedirect(reverse('citsciportal.agentex.views.target'))
+	return HttpResponseRedirect(reverse('agentex.views.target'))
 		
 
 
@@ -953,11 +953,11 @@ def fitsanalyse(request):
     
     # Find all the pixels a radial distance r from x0,y0
     for co in coords:
+        x0 = int(floor(co[0]))
+        y0 = int(floor(co[1]))
         # Sum for this aperture
         sum = 0
         numpix = 0
-        x0 = int(floor(co[0]))
-        y0 = int(floor(co[1]))
         ys = y = y0 -r
         ye = y0 +r
         vline = list()
