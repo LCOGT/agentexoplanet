@@ -9,9 +9,11 @@
 	<script type="text/javascript" src="{{ MEDIA_URL }}js/raphael.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}js/g.raphael.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}js/g.line.js"></script>
-	<script type="text/javascript" src="{{ MEDIA_URL }}js/raphael.sizer.js?reload"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}js/raphael.sizer.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}js/raphael.rangelimiter.js"></script>
-	<script type="text/javascript" src="{{ MEDIA_URL }}js/photometry.js?reload"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}js/photometry.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}js/sylvester-min.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}js/optimize.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}js/jquery-ui.min.js"></script>
 	<script type="text/javascript" charset="utf-8">
 	<!--
@@ -101,7 +103,7 @@
 		if(e && typeof e.preventDefault=="function") e.preventDefault();
 		if($('#finderchart').length == 0){
 			$('#photometric').append('<img id="finderchart" src="{{ MEDIA_URL }}{{data.target.finderchart}}" />')
-			$('#finderchart').css({position:'absolute','z-index':3,left:0,top:0,width:$('#photometric').outerWidth(),height:$('#photometric').outerHeight(),opacity:0}).animate({opacity:1},1000);
+			$('#finderchart').css({position:'absolute','z-index':3,left:0,top:0,width:$('#photometric').outerWidth(),height:$('#photometric').outerHeight(),opacity:1});//.animate({opacity:1},1000);
 			$('#finderchart').bind('click',{e:e}, function(e){
 				$('#finderchart').remove();
 				if(e.data.e && typeof e.data.e.callback=="function") e.data.e.callback.call();
@@ -162,7 +164,7 @@
 		var dataid;
 
 		// Add the interactive buttons that only make sense if there is CSS and Javascript
-		$('#toolbar').append('<a class="fancybtngrey btns" id="btn-add"><img src="/images/round_plus_icon&16.png" style="width:16px;height:16px;" alt="Add" title="Add a calibration ring" /> Add calibrator<\/a><a class="fancybtngrey btns" id="btn-remove" style="display:none;"><img src="/images/round_minus_icon&16.png" style="width:16px;height:16px;" alt="Remove" title="Remove a calibration ring" /> Zap calibrator<\/a>');
+		$('#toolbar').append('<a class="fancybtngrey btns" id="btn-add"><img src="/images/round_plus_icon&16.png" style="width:16px;height:16px;" alt="Add" title="Add a calibration ring" /> Add calibrator<\/a><a class="fancybtngrey btns" id="btn-remove" style="display:none;"><img src="/images/round_minus_icon&16.png" style="width:16px;height:16px;" alt="Remove" title="Remove a calibration ring" /> Zap calibrator<\/a><a class="fancybtngrey btns" id="btn-finetune"><img src="/images/round_plus_icon&16.png" style="width:16px;height:16px;" alt="Add" title="Fine tune positions" /> Fine Tune<\/a>');
 		$('#btn-add').bind('click',function(e){
 			photo.addCalibrator();
 			dataQualityFlag();
@@ -173,6 +175,9 @@
 			dataQualityFlag();
 			if(photo.sizer.length==5) $(this).hide();
 		});
+		$('#btn-finetune').bind('click',function(e){
+			photo.fineTune();
+		});
 		
 		function enableAnalyze(){
 			if(photo.sizer[4].visible){
@@ -182,22 +187,10 @@
 				limit.resize(photo.getView())
 
 				// If the calibrator suggestion button doesn't exist, we create it.
-/*
-				if($('#btn-suggest').length == 0){
-					$('#btn-remove').after('<a class="fancybtngrey btns" id="btn-suggest" title="Suggestions for calibrators requiring more measurements to complete the lightcurve"><img src="/images/target_icon&24.png" style="width:16px;height:16px;" alt="Suggestions" title="Suggested calibrators" /> Suggested Cals<\/a>');
-					$('#helptooltip').bind('click',function(){ bubblePopup({id:'helptooltip',el:$('#btn-suggest'),align:"right",dismiss:true,animate:true,html:'This button will show suggestions for <strong class="calibrator">calibrators<\/strong> that other people have used but that still need more measurements to complete the lightcurve.'}) });
-					$('#btn-suggest').bind('click',function(e){
-						if($(this).hasClass("fancybtngrey-active")){
-							$(this).removeClass("fancybtngrey-active");
-							photo.toggleSuggestions();
-						}else{
-							$(this).addClass("fancybtngrey-active");
-							photo.toggleSuggestions();
-						}
-					});
+				if(tutorial){
+					helpstep++;
+					bubblePopup({id:'helptooltip',el:$('#getdata'),align:"bottom",animate:true,html:'Once you\'re happy with where you\'ve placed the circles you can calculate the amount of light in each and save your measurements.<br /><br />If you want to make even better measurements you could add a few more <strong class="calibrator">calibration<\/strong> stars first.'});
 				}
-*/
-				if(tutorial) bubblePopup({id:'helptooltip',el:$('#getdata'),align:"bottom",animate:true,html:'Once you\'re happy with where you\'ve placed the circles you can calculate the amount of light in each and save your measurements.<br /><br />If you want to make even better measurements you could add a few more <strong class="calibrator">calibration<\/strong> stars first.'});
 
 				tutorial = false;
 				changed = true;
@@ -211,8 +204,6 @@
 
 		limit = new RangeLimiter({id:'finderthumb','stroke':'#ffffff','strokewidth':1.5,limits:[{x:0.0,y:0.0,w:1.0,h:1.0,opacity:0.0}],imageclick:toggleFinderChart})
 
-		//limit.hide();
-		
 		function photoReady(){
 			// Now add the extra calibrators
 			if(c_x.length > 3) for(var i = 3 ; i < c_x.length ; i++){
@@ -230,6 +221,7 @@
 			photo.bind("sky","ondrop", function() {
 				// If the calibrator wasn't visible, make it.
 				if(!photo.sizer[2].visible){
+					helpstep++;
 					photo.sizer[2].show();
 					var txt = 'We are looking for tiny changes in the brightness of the <strong class="source">target<\/strong> star due to a planet blocking the light. However, the brightness will also fluctuate due to changes in our camera. We can account for this by comparing the <strong class="source">target<\/strong> to <strong class="calibrator">calibration<\/strong> stars.<br /><br />Move this circle onto a star that you would like to use as a <strong class="calibrator">calibration<\/strong> star. Try not to use very faint or very bright stars. It also helps to avoid stars that have another star very close by.';
 					var w = 240;
@@ -243,7 +235,13 @@
 			}).bind("sky","onclick",changeSource);
 			
 			photo.bind("source","ondrop", function() {
+
+				var r = Math.pow(photo.getX("source")-{{data.event.xpos}},2)+Math.pow(photo.getY("source")-{{data.event.ypos}},2)
+				if(Math.sqrt(r) > 10) return;
+
 				if(!photo.sizer[0].visible){
+
+					helpstep++;
 					// If the sky background wasn't visible, we make it so now
 					photo.sizer[0].show();
 					var txt = 'The sky is never totally black. That extra light, although faint, is all over the image and will be included in our measurement of the <strong class="source">target<\/strong> star. We need to remove it.<br /><br />Move this circle onto a star-less patch of sky near to the <strong class="source">target<\/strong> circle that you\'ve just placed. Try to make sure it is just a blank patch of sky with no stars in it.';
@@ -258,13 +256,15 @@
 				limit.resize(photo.getView())
 			}).bind("source","onclick",changeSource).bind("source","onzoom",function(){
 				changeZoom();
-				if(!photo.sizer[0].visible){
+				if(!photo.sizer[0].visible && helpstep == 0){
+					helpstep++;
 					bubblePopup({id:'helptooltip',el:$('#finderthumb'),html:'You can re-display the large finder chart at any time by clicking on this small finder chart.',align:"bottom",animate:true})
 				}
 			}).bind("source","onmove",moveSizer);
 			
 			photo.bind("calibrator","ondrop",function () {
 				if(photo.sizer[2].visible && !photo.sizer[3].visible){
+					helpstep++;
 					var txt = 'It could be that the <strong class="calibrator">calibration<\/strong> star you chose isn\'t constant in brightness. It could be a variable star and that would make it useless to use as a comparison. To be safe, we\'ll add a couple more <strong class="calibrator">calibration<\/strong> stars so that we are more likely to find a stable star.<br /><br />Remember to pick stars that are not very faint or very bright. It also helps to avoid stars that have another star very close by.';
 					var w = 250;
 					var l = $('#photometric').offset().left + photo.getX('calibrator2')/photo.scale;
@@ -273,6 +273,7 @@
 					bubblePopup({id:'helptooltip',el:{x:l,y:t,w:(r*2),h:(r*2)},html:txt,animate:true,align:"top",w:w})
 				}
 				if(photo.sizer[3].visible && !photo.sizer[4].visible){
+					helpstep++;
 					var txt = 'OK, third calibrator. You should know the drill.';
 					var w = 250;
 					var l = $('#photometric').offset().left + photo.getX('calibrator3')/photo.scale;
@@ -294,7 +295,7 @@
 			var l = $('#photometric').offset().left + {{data.event.xpos}}/photo.scale;
 			var t = $('#photometric').offset().top + (photo.im.height-{{data.event.ypos}})/photo.scale;
 			var d = 2*photo.getR('source')/photo.scale;
-			bubblePopup({id:'helptooltip',el:{x:l,y:t,w:d,h:d},align:"top",w:240,dismiss:true,animate:true,html:'Welcome to the Light Monitor!<br /><br />The cross-hairs show the <strong class="source">target<\/strong> star for this set of observations. To identify the planet we need to monitor how the brightness of this star varies over time.<br /><br />Click anywhere on the large image to hide these cross-hairs and start analysing the observations.'})
+			bubblePopup({id:'helptooltip',el:{x:l,y:t,w:d,h:d},align:"top",w:240,animate:true,html:'Welcome to the Light Monitor!<br /><br />The cross-hairs show the <strong class="source">target<\/strong> star for this set of observations. To identify the planet we need to monitor how the brightness of this star varies over time.<br /><br />Click anywhere on the large image to hide these cross-hairs and start analysing the observations.'})
 
 			// The calibrator isn't visible yet so we'll disable it
 			if(!photo.sizer[2].visible) $('a#getdata').addClass('fancybtndisable');
@@ -303,7 +304,7 @@
 			html_msg = $('#message').html();
 			{% if progress.done = 1 %}
 			$('#message ul.messages').prepend('<li>This second image will probably be a little offset from the first one you saw. You will need to re-position the markers for the <strong class="source">target<\/strong> and <strong class="calibrator">calibration<\/strong> stars. Check that the <strong class="sky">sky<\/strong> circle is still empty of stars too.<\/li>');
-			bubblePopup({id:'message',el:$('#photometric'),align:"center",w:300,animate:true,dismiss:true,onpop: function(){ bubblePopup({id:'message',el:$('#groupmove'),align:"top",w:200,animate:true,dismiss:true,html:"<strong>Tip:<\/strong> If all your markers seem to be offset in the same way, you can choose to move them all together rather than one-by-one."}); } });
+			bubblePopup({id:'message',el:$('#photometric'),align:"center",w:300,animate:true,dismiss:true,onpop: function(){ bubblePopup({id:'message',el:$('#groupmove'),align:"top",w:200,animate:true,dismiss:true,html:"<strong>Tip:<\/strong> If all your markers seem to be offset in the same way, you can choose to move them all together rather than one-by-one. You can also do this by keeping the shift key pressed."}); } });
 			{% else %}{% if progress.done = 2 %}
 			$('#message ul.messages').prepend('<li>This is your third image. Remember to make sure all your markers are lined up properly. Hopefully you are getting the hang of this now.<\/li>');
 			bubblePopup({id:'message',el:$('#photometric'),align:"center",w:200,animate:true,dismiss:true})
@@ -318,6 +319,7 @@
 			enableAnalyze();
 		}
 
+		helpstep = 0;
 		photo = new Photometry({id:'photometric',src:"{{data_url}}{{data.image}}",form:'entryform',width:width,source:{x:s_x,y:s_y,r:start_r},sky:{x:b_x,y:b_y,r:start_r,label:'Sky'},calibrator:{x:[c_x[0],c_x[1],c_x[2]],y:[c_y[0],c_y[1],c_y[2]],r:start_r},zoom:2,callback:photoReady,calibrators:calibrators,suggested:suggested});
 		$('input.fancybtn').addClass('fancybtndisable');
 		$('input.fancybtn').attr("disabled", "true");
@@ -472,6 +474,11 @@
 		});
 		$("#groupmove input").bind("click",function(e,nosubmit){
 			photo.groupmove = !photo.groupmove;
+		});
+		$(document).bind('keydown',function(e){
+			if(e.shiftKey) photo.shiftkey = true;
+		}).bind('keyup',function(e){
+			photo.shiftkey = false;
 		});
 
 	};

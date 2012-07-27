@@ -29,6 +29,7 @@ function Photometry(inp){
 	this.l = 0;
 	this.t = 0;
 	this.groupmove = false;
+	this.shiftkey = false;
 
 	// Overwrite defaults with variables passed to the function
 	if(typeof inp=="object"){
@@ -98,6 +99,7 @@ Photometry.prototype.loaded = function(){
 	$('#'+this.holder.zoomed).css({'position':'absolute','left':'0px','top':'0px','z-index':1,display:'none'});
 	$('#'+this.holder.zoomed+' img').css({width:this.width*this.zoom,'height':this.height*this.zoom});
 	$('#'+this.holder.svg).css({'position':'absolute','left':'0px','top':'0px','width':this.width,'height':this.height,'z-index':2});
+
 
 	this.svg = Raphael(this.holder.svg, this.width, this.height);
 	this.scale = this.im.width/this.width;
@@ -214,6 +216,206 @@ Photometry.prototype.getRs = function(key){
 		o += (this.sizer[i].r*this.scale);
 	}
 	return o;
+}
+
+Photometry.prototype.gaussian = function(inp,x,y){
+	// Scale = inp[0]
+	// Sigma = inp[1]
+	// x = p[2]
+	// y = p[3]
+	// bg = p[4:]
+	var sig2 = inp[1]*inp[1];
+	var dx = (x+inp[2]);
+	var dy = (y+inp[3]);
+	var diff = Math.sqrt(dx*dx + dy*dy);
+	var r = inp[0] * Math.exp(-0.5 * diff * diff / sig2);
+	//if(diff*diff < sig2) r = 255;
+	for (j = 4; j < inp.length; j++) r += inp[j] * Math.pow(dx, j-4);
+
+	if(r > 255) r = 255;
+	return r;
+}
+
+Photometry.prototype.flatgaussian = function(inp,x,y){
+	// Scale = inp[0]
+	// Sigma = inp[1]
+	// x = inp[2]
+	// y = inp[3]
+	// xflat = inp[4];
+	// bg = inp[5:]
+	var sig2 = inp[1]*inp[1];
+	var dx = (x+inp[2]);
+	var dy = (y+inp[3]);
+	var diff = Math.sqrt(dx*dx + dy*dy);
+	var r = inp[5] + inp[0] * Math.exp(-0.5 * diff * diff / sig2);
+	if(diff < inp[4] && r > 255) r = 255.0; 
+	return r;
+}
+
+Photometry.prototype.makeThumbnail = function(width,height,id){
+
+	id = (!id) ? 'thumbnail' : id;
+	if(this.ctx && this.ctx[id]) return;
+
+	$('#toolbar').append('<div id="'+id+'"></div>');
+
+	// Now we want to build the <canvas> element that will hold our image
+	var el = document.getElementById(id);
+	if(el!=null){
+		// Look for a <canvas> with the specified ID or fall back on a <div>
+		if(typeof el=="object" && el.tagName != "CANVAS"){
+			// Looks like the element is a container for our <canvas>
+			el.setAttribute('id',id+'holder');
+			var canvas = document.createElement('canvas');
+			canvas.style.display='block';
+			canvas.setAttribute('width',width);
+			canvas.setAttribute('height',height);
+			canvas.setAttribute('id',id);
+			el.appendChild(canvas);
+			// For excanvas we need to initialise the newly created <canvas>
+			if(/*@cc_on!@*/false) el = G_vmlCanvasManager.initElement(this.canvas);
+		}else{
+			// Define the size of the canvas
+			// Excanvas doesn't seem to attach itself to the existing
+			// <canvas> so we make a new one and replace it.
+			if(/*@cc_on!@*/false){
+				var canvas = document.createElement('canvas');
+				canvas.style.display='block';
+				canvas.setAttribute('width',width);
+				canvas.setAttribute('height',height);
+				canvas.setAttribute('id',id);
+				el.parentNode.replaceChild(canvas,el);
+				if(/*@cc_on!@*/false) el = G_vmlCanvasManager.initElement(elcanvas);
+			}else{
+				el.setAttribute('width',width);
+				el.setAttribute('height',height);
+			}   
+		}
+		this.canvas = document.getElementById(id);
+	}else this.canvas = el;
+	if(!this.ctx) this.ctx = {};
+	this.ctx[id] = (this.canvas) ? this.canvas.getContext("2d") : null;
+
+}
+Photometry.prototype.peakShift = function(ox,oy,counter,iter){
+
+	var showThumb = false;
+	var w = 23;
+	var h = 23;
+	var i = j = x = n = y = s = p = v = dx = dy = offx = offy = 0;
+	var id = 'thumbnail'+counter
+	var diff;
+	var threshold = 235;
+	var cutout = [];
+	for(i = 0; i < w ; i++){
+		cutout.push([]);
+		for(j = 0; j < h ; j++){
+			cutout[i].push(0);
+		}
+	}
+
+	if(showThumb){
+		this.makeThumbnail(w,h,id);
+		var thumbData = this.ctx[id].createImageData(w,h);
+	}
+	
+	var tx,ty;
+	if(!iter || iter > 8) iter = 8;
+
+	for(var loop = 0 ; loop < iter ; loop++){
+	
+		for(y = -h/2, j = 0; y < h/2; y++, j++){
+			for(x = -w/2, i = 0; x < w/2; x++, i++){
+				tx = x+dx;
+				ty = y+dy;
+				if((ox+tx) < 0 || (ox+tx > this.imageData.width) || (oy+ty) < 0 || (oy+ty > this.imageData.height)) continue;
+				p = ((this.imageData.height-Math.round(oy-ty))*this.imageData.width+Math.round(ox+tx))*4;
+				v = (this.imageData.data[p]+this.imageData.data[p+1]+this.imageData.data[p+2])/3;
+				
+				diff = (tx*tx + ty*ty);
+				if(diff < 1) diff = 1;
+				v = (v > threshold) ? 255 : 0;
+				if(Math.sqrt(diff) > w/2) v /= 3;	// Only OK within circle
+				cutout[x+w/2][y+h/2] = v;
+	
+			}
+		}
+	
+		// Fill in holes
+		for(i = 0; i < w ; i++){
+			for(j = 0; j < h ; j++){
+				if(cutout[i][j]==0){
+	
+					if(i>w/3 && i < w*2/3 && cutout[i-1][j] == 255 && cutout[i+1][j] == 255) cutout[i][j] = 255;
+					if(j>w/3 && j < h*2/3 && cutout[i][j-1] == 255 && cutout[i][j+1] == 255) cutout[i][j] = 255;
+				}
+			}
+		}
+	
+		if(showThumb){
+			// Make the thumbnail
+			for(i = 0; i < w ; i++){
+				for(j = 0; j < h ; j++){
+					p = (w*(j) + (i))*4;		
+					thumbData.data[p] = cutout[i][j];
+					thumbData.data[p+1] = cutout[i][j];
+					thumbData.data[p+2] = cutout[i][j];
+					thumbData.data[p+3] = 255;
+				}
+			}
+			this.ctx[id].putImageData(thumbData, 0, 0);
+		}
+	
+		// Work out the centre of mass in the x and y directions
+		n = 0;
+		x = 0;
+		y = 0;
+		for(i = 0; i < w ; i++){
+			for(j = 0; j < h ; j++){
+				if(cutout[i][j] > 0){
+					s = (cutout[i][j]/255);
+					x += (1+i)*s;
+					y += (1+j)*s;
+					n += 1*s;
+				}
+			}
+		}
+		offx = (n > 10 && n < (w*h)/3) ? (x/n)-w/2 : 0;
+		offy = (n > 10 && n < (w*h)/3) ? (y/n)-h/2 : 0;
+		if(Math.abs(offx) < 0.3 && Math.abs(offy) < 0.3) iter = loop;
+		dx += offx;
+		dy += offy;
+	
+	}
+
+	return [0,0,dx,dy];
+
+}
+Photometry.prototype.fineTune = function(){
+
+	var canvas = document.createElement("canvas");
+	canvas.width = this.im.width;
+	canvas.height = this.im.height;
+	var ctx = canvas.getContext("2d");
+	ctx.drawImage(this.im,0,0,this.im.width,this.im.height);
+	if(!this.imageData) this.imageData = ctx.getImageData(0,0,this.im.width,this.im.height);
+	
+	var ox,oy,z,dx,dy,d;
+
+	z = this.sizer[0].zoomLevel();
+
+	ox = this.getX("source");
+	oy = this.getY("source");
+	d = this.peakShift(ox,oy,'a');
+	this.sizer[1].moveNoZoom(d[2],d[3]);
+
+	for(var c = 2; c < this.sizer.length; c++){
+		ox = this.getX("calibrator"+(c-1));
+		oy = this.getY("calibrator"+(c-1));
+		d = this.peakShift(ox,oy,c-1);
+		this.sizer[c].moveNoZoom(d[2],d[3]);
+	}
+
 }
 Photometry.prototype.addCalibrator = function(x,y,fromfits){
 	var i = this.sizer.length;

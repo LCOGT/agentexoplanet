@@ -170,6 +170,7 @@ Sizer.prototype.zoomLevel = function(){
 	return this.zoom.width()/this.me.width;
 }
 Sizer.prototype.start = function(){
+	if(!this.visible) return;
 	this.moving = true;
 	this.label.attr([{cursor:'grabbing',cursor:'-moz-grabbing'},{cursor:'grabbing',cursor:'-moz-grabbing'}]);
 	this.reticle.attr({opacity: 1});
@@ -182,7 +183,7 @@ Sizer.prototype.start = function(){
 	}
 	if(typeof this.zoom=="object") this.updateZoom(this.zoomLevel());
 	this.redraw();
-	if(this.canvas.groupmove){
+	if(this.canvas.groupmove || this.canvas.shiftkey){
 		if(typeof this.twins == "object"){
 			for(var i=0; i<this.twins.length ;i++){
 				this.twins[i].l = this.l;
@@ -196,6 +197,7 @@ Sizer.prototype.start = function(){
 	this.triggerEvent("onmove",{x:((this.x-this.l)/this.z)/this.me.width,y:((this.y-this.t)/this.z)/this.me.height})
 }
 Sizer.prototype.move = function(dx,dy){
+	if(!this.visible) return;
 	// Calculate new position
 	this.x = this.pos.x + dx;
 	this.y = this.pos.y + dy;
@@ -207,7 +209,7 @@ Sizer.prototype.move = function(dx,dy){
 	this.redraw();
 
 
-	if(this.canvas.groupmove){
+	if(this.canvas.groupmove || this.canvas.shiftkey){
 		if(typeof this.twins == "object"){
 			for(var i=0; i<this.twins.length ;i++){
 				this.twins[i].l = this.l;
@@ -220,8 +222,15 @@ Sizer.prototype.move = function(dx,dy){
 
 	this.triggerEvent("onmove",{x:((this.x-this.l)/this.z)/this.me.width,y:((this.y-this.t)/this.z)/this.me.height});
 }
+Sizer.prototype.moveNoZoom = function(dx,dy){
+	var z = this.zoomLevel();
+	this.move(dx/z,dy/z);
+	this.pos.x = this.x;
+	this.pos.y = this.y;
+	this.redraw();
+}
 Sizer.prototype.up = function() {
-
+	if(!this.visible) return;
 	this.pos.x = (this.x-this.l)/this.z;
 	this.pos.y = (this.y-this.t)/this.z;
 	this.moving = false;
@@ -230,7 +239,7 @@ Sizer.prototype.up = function() {
 	this.x = this.pos.x;
 	this.y = this.pos.y;
 
-	if(this.canvas.groupmove){
+	if(this.canvas.groupmove || this.canvas.shiftkey){
 		if(typeof this.twins == "object"){
 			for(var i=0; i<this.twins.length ;i++){
 				this.twins[i].x += dx;
