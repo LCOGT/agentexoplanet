@@ -93,7 +93,10 @@ Photometry.prototype.loaded = function(){
 	if(!this.width) this.width = this.im.width;	// No width defined so get it from the image
 	if(!this.height) this.height = this.im.height;	// No height defined so get it from the image
 
-	$('#'+this.holder.id).css({'position':'relative','z-index':0,overflow:'hidden',width:this.width,'height':this.height});
+	// Set the zoom level
+	this.zoom = Math.ceil(this.im.width/this.width);
+
+	$('#'+this.holder.id).css({'position':'relative','z-index':0,overflow:'hidden','width':this.width,'height':this.height});
 	$('#'+this.holder.img).css({'position':'absolute','left':0,'top':0,'z-index':0});
 	$('#'+this.holder.img+' img').css({width:this.width,'height':this.height});
 	$('#'+this.holder.zoomed).css({'position':'absolute','left':'0px','top':'0px','z-index':1,display:'none'});

@@ -20,7 +20,6 @@
 	var gotcss = (typeof document.styleSheets[0]=="undefined") ? false : true;
 	var source = {x:{{data.event.xpos}},y:{{data.event.ypos}}}
 	var cur = {x:0,y:0};
-	var width = 704;
 	var changed = true;
 	var calibrators = [];//{{calibrators|safe}};
 	var suggested = {{least_data|safe}}
@@ -113,9 +112,25 @@
 		}
 	}
 	
+	// Bind resize event
+	$(window).resize(function(){
+		// Size progress bar
+		sizeProgressBar();
+	
+		// Resize finder
+		
+		// Resize main image
+		//$('#photometric').css()
+	});
+
+	function sizeProgressBar(){
+		var w = $('.progress').outerWidth();
+		$('.progressbar').css({width:Math.round({{ progress.percent }}*w/100)+"px",'height':'1.5em','background-color':'#009d00','z-index':0,'position':'absolute'});
+	}
+
 	function makeProgressBar(){
-		$('.progressbar').css({width:Math.round({{ progress.percent }}*704/100)+"px",'height':'1.5em','background-color':'#009d00','z-index':0,'position':'absolute'})
-		$('.progress .label').css({'z-index':10,'position':'absolute','color':'white'})
+		sizeProgressBar();
+		$('.progress .label').css({'z-index':10,'position':'absolute','color':'white'});
 	}
 
 	function dataQualityFlag(){
@@ -164,7 +179,7 @@
 		var dataid;
 
 		// Add the interactive buttons that only make sense if there is CSS and Javascript
-		$('#toolbar').append('<a class="fancybtngrey btns" id="btn-add"><img src="/images/round_plus_icon&16.png" style="width:16px;height:16px;" alt="Add" title="Add a calibration ring" /> Add calibrator<\/a><a class="fancybtngrey btns" id="btn-remove" style="display:none;"><img src="/images/round_minus_icon&16.png" style="width:16px;height:16px;" alt="Remove" title="Remove a calibration ring" /> Zap calibrator<\/a><a class="fancybtngrey btns" id="btn-finetune"><img src="/images/round_plus_icon&16.png" style="width:16px;height:16px;" alt="Add" title="Fine tune positions" /> Fine Tune<\/a>');
+		$('#toolbar').append('<div class="fbtn"><a class="fancybtngrey btns" id="btn-add"><img src="/images/round_plus_icon&16.png" style="width:16px;height:16px;" alt="Add" title="Add a calibration ring" /> Add calibrator<\/a><\/div><div class="fbtn"><a class="fancybtngrey btns" id="btn-remove" style="display:none;"><img src="/images/round_minus_icon&16.png" style="width:16px;height:16px;" alt="Remove" title="Remove a calibration ring" /> Zap calibrator<\/a><\/div><div class="fbtn"><a class="fancybtngrey btns" id="btn-finetune"><img src="/images/round_plus_icon&16.png" style="width:16px;height:16px;" alt="Add" title="Fine tune positions" /> Fine Tune<\/a><\/div>');
 		$('#btn-add').bind('click',function(e){
 			photo.addCalibrator();
 			dataQualityFlag();
@@ -197,7 +212,7 @@
 			}
 		}
 
-		$('#toolbar').append('<a class="fancybtn fancybtndisable btns" href="#photometric" id="getdata" dataid="{{data.id}}" style="display:none;font-size:1.3em;">Analyze image<\/a><a class="fancybtn fancybtndisable btns" href="{% if next %}?dataid={{next.id}}&next=cal{%else%}?next{% endif %}" id="nextimg">Next image <span class="arrow">&nbsp;<\/span><\/a>');
+		$('#toolbar').append('<div class="fbtn"><a class="fancybtn fancybtndisable btns" href="#photometric" id="getdata" dataid="{{data.id}}" style="display:none;font-size:1.3em;">Analyze image<\/a><\/div><div class="fbtn"><a class="fancybtn fancybtndisable btns" href="{% if next %}?dataid={{next.id}}&next=cal{%else%}?next{% endif %}" id="nextimg">Next image <span class="arrow">&nbsp;<\/span><\/a><\/div>');
 		$('#inputtype').html('<div id="groupmove" style="float:right;"><form><input type="checkbox" name="group" value="groupmove">Move all tags<\/form><\/div><span id="manualdata" style="display:none;margin-top:5px;"><span class="manualdata"><a href="?input=manual">Add data manually<\/a><\/span> (e.g. <a href="http://lcogt.net/book/photometry-exoplanet-transit-salsaj">using SalsaJ<\/a>)<\/span><span id="dataexplorer" style="display:none;margin-top:5px;"><a href="?input=dataexplorer">Add data using the web interface<\/a><\/span>');
 		// For links we need to disable them but allow for them to be re-enabled later
 		$('.fancybtndisable').bind('click',function(e){ if($(this).is('.fancybtndisable')) e.preventDefault(); });
@@ -320,7 +335,7 @@
 		}
 
 		helpstep = 0;
-		photo = new Photometry({id:'photometric',src:"{{data_url}}{{data.image}}",form:'entryform',width:width,source:{x:s_x,y:s_y,r:start_r},sky:{x:b_x,y:b_y,r:start_r,label:'Sky'},calibrator:{x:[c_x[0],c_x[1],c_x[2]],y:[c_y[0],c_y[1],c_y[2]],r:start_r},zoom:2,callback:photoReady,calibrators:calibrators,suggested:suggested});
+		photo = new Photometry({id:'photometric',src:"{{data_url}}{{data.image}}",form:'entryform',width:$('#middle').outerWidth(),source:{x:s_x,y:s_y,r:start_r},sky:{x:b_x,y:b_y,r:start_r,label:'Sky'},calibrator:{x:[c_x[0],c_x[1],c_x[2]],y:[c_y[0],c_y[1],c_y[2]],r:start_r},zoom:2,callback:photoReady,calibrators:calibrators,suggested:suggested});
 		$('input.fancybtn').addClass('fancybtndisable');
 		$('input.fancybtn').attr("disabled", "true");
 		$('#entryform').css('display', 'none');
@@ -511,7 +526,7 @@
 {% block lower-menu%}{% ifnotequal complete 1 %}
 				<div class="polaroid"><div id="finderthumb"><a href="{{ MEDIA_URL }}{{data.target.finderchart}}"><img src="{{ MEDIA_URL }}{{data.target.finderchart_tb}}" class="snap" alt="Finder chart for {{data.event.title}}" title="Finder chart" /></a><p>Finder chart</p></div></div>
 				<div id="toolbar">
-					<a href="{{data_url}}{{data.fits}}" class="fancybtngrey btns" id="btn-download" title="Download data file (FITS format)"><img src="{{MEDIA_URL}}images/download_icon&16.png" style="width:16px;height:16px;" alt="." /> Download data</a>
+					<div class="fbtn"><a href="{{data_url}}{{data.fits}}" class="fancybtngrey btns" id="btn-download" title="Download data file (FITS format)"><img src="{{MEDIA_URL}}images/download_icon&16.png" style="width:16px;height:16px;" alt="." /> Download data</a></div>
 				</div>{% endifnotequal %}
 {%endblock%}
     
@@ -550,7 +565,7 @@
 {% else %}
 					<span class="dymotape datestamp" id="obsdate" title="Timestamp of this observation"><span class="accessible">Data timestamp: </span>{{data.timestamp}}</span>
 					<h1>Light Monitor: <a href="{% url agentex.views.infoview data.event.name  %}" class="objectspecific">{{data.event.title}}</a></h1>
-					{% if user.is_authenticated %}<div class="progress" style="width:704px;height:1.5em;background-color:#b3b3b3;margin-bottom:8px;"><div class="progressbar"></div><div class="label" style="padding:0.25em;text-align:center;width:704px;">You've completed {{progress.done}} of {{progress.total}} frames ({{progress.percent}}%)</div></div>{% endif %}
+					{% if user.is_authenticated %}<div class="progress" style="width:100%;height:1.5em;background-color:#b3b3b3;margin-bottom:8px;"><div class="progressbar"></div><div class="label" style="padding:0.25em;text-align:center;width:100%;">You've completed {{progress.done}} of {{progress.total}} frames ({{progress.percent}}%)</div></div>{% endif %}
 					<div id="middle">
 						<div id="photometric">
 							<div id="photometric_imageholder_small"><img src="{{data_url}}{{data.image}}" style="width:100%" alt="Image from telescope" /></div>

@@ -241,9 +241,9 @@ body.education #main ul.menu li.education a, #main ul.menu li.education:hover a 
 	background-position: center top;
 }
 #lcogt-bar {
-	padding:0px 8px;
+	padding: 3px 8px;
 	margin: 0;
-	height: 26px;
+	height: 24px;
 	clear:both;
 	line-height: 24px;
 	color: #ccc;

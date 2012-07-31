@@ -239,14 +239,31 @@ function toggleHelp(el){
 }
 
 
+function positionHelperLinks(){
+	var tp = 70;
+	var p = $('.page').position();
+	var top = p.top + tp;
+	var tall = $('#mylink').outerHeight();
+	$('.tablink').css({position:'absolute',left:(p.left+$('.page').outerWidth()+16)})
+	$('#mylink').css({top:top});
+	$('#avlink').css({top:top+tall+5});
+	$('#sulink').css({top:top+tall+tall+10});
+}
+
+
+// Bind resize event
+$(window).resize(function(){
+	
+	// Re-position helper links mylink
+	positionHelperLinks();
+});
+
 $(document).ready(function(){
 	var tp = 70;
 	//$('.accessible').hide();	// These elements are intended for people who don't have Javascript enabled.
 
 	// Set up alternatve graph tabs
 	if($('#mylink').length > 0){
-		var h = '';
-		var p = $('.page').position();
 		var h = '<div id="mylink" class="tablink'+(($('#mylink').hasClass('tabactive')) ? ' tabactive':'')+'">'+$('#mylink').html()+'<\/div>';
 		if($('#avlink').length > 0) h += '<div id="avlink" class="tablink'+(($('#avlink').hasClass('tabactive')) ? ' tabactive':'')+'">'+$('#avlink').html()+'<\/div>';
 		if($('#sulink').length > 0) h += '<div id="sulink" class="tablink'+(($('#sulink').hasClass('tabactive')) ? ' tabactive':'')+'">'+$('#sulink').html()+'<\/div>';
@@ -254,12 +271,7 @@ $(document).ready(function(){
 		$('#avlink').remove();
 		$('#sulink').remove();
 		$('body #main').append(h);
-		var top = p.top + tp;
-		var tall = $('#mylink').outerHeight();
-		$('.tablink').css({position:'absolute',left:(p.left+$('.page').outerWidth()+16)})
-		$('#mylink').css({top:top});
-		$('#avlink').css({top:top+tall+5});
-		$('#sulink').css({top:top+tall+tall+10});
+		positionHelperLinks();
 	}
 
 	if(typeof helper=="boolean" && helper){

@@ -23,8 +23,7 @@ body.agentex #logo { margin-top: 8px; margin-bottom: 0px; }
 body.agentex #logo img { width: 247px; height: 104px;}
 #navbar {
 	margin: -21px;
-	padding: 0px 0px 0px 512px;
-	position:absolute;
+	padding: 0px 96px 0px 0px;
 }
 #navbar.primary a {
 	color: white;
@@ -101,6 +100,11 @@ body.full #section-nav {
 	*/
 }
 
+#section-nav .polaroid {
+	-webkit-box-shadow: 0 3px 6px rgba(0,0,0,.25);
+	-moz-box-shadow: 0 3px 6px rgba(0,0,0,.25);
+	box-shadow: 0 3px 6px rgba(0,0,0,.25);
+}
 #section-nav ul,
 #sidebar-right ul {
   margin: 0;
@@ -1058,4 +1062,35 @@ ul.polaroids li:nth-child(4n) { margin-right: 0px; }
 }
 .fullimg img {
 	width: 100%;
+}
+
+@media only screen and (max-width: 1050px), only screen and (max-height: 900px) {
+	#screen { width: 90%; max-width: 976px; }
+	#container {
+		position: relative;
+		width: 100%;
+	}
+	#section-nav { width: 20%; }
+	#toolbar { position: relative; }
+	.polaroid { padding: 8px; }
+	#toolbar .fbtn { width: 100%; display: block; }
+	#finderthumb, img.snap { width: 100%; padding: 0px; height: auto; }
+	#toolbar .fancybtn, #toolbar .fancybtngrey { padding: 8px; display: block; width: auto; max-width: 100%; }
+	#finderthumb, #finderthumb img.snap, #toolbar .fancybtn, #toolbar .fancybtngrey, #finderthumb_holder svg { max-width: 100%; height: auto; }
+	#main {
+		width: 78%;
+	}
+	#photometric, #photometric_imageholder_small { max-width: 100%; height: auto; }
+}
+@media only screen and (max-height: 800px){
+	#screen { max-width: 976px; }
+}
+@media only screen and (max-height: 700px){
+	#screen { max-width: 800px; }
+}
+@media only screen and (max-height: 600px){
+	#screen { max-width: 720px; }
+}
+@media only screen and (max-height: 500px){
+	#screen { max-width: 640px; }
 }
