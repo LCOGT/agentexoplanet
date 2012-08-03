@@ -8,9 +8,7 @@
 {% block script-content %}
 	<!--[if lt IE 9]><script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/excanvas.js"></script><![endif]-->
 	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.min.js"></script>
-	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.js"></script>
-	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.axislabels.js"></script>
-	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.fillbetween.js"></script>
+	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.graph.js"></script>
 	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/lightcurve.js"></script>
 {% if calid %}
 	<script type="text/javascript">
@@ -19,7 +17,7 @@
 	document.write('<style type="text/css">.decisiontree { float: right; width: 300px; } fieldset { border: 0px; }<\/style>');
 
 	$(document).ready(function(){
-		html = '<div id="mainplot" style="padding-left:40px;height:450px;width:560px;margin-bottom:10px;float:left;"><\/div>';
+		html = '<div id="mainplot" style="height:450px;width:560px;margin-bottom:10px;float:left;"><\/div>';
 		$('.decisiontree').before(html);
 	
 		// Define help
@@ -147,6 +145,7 @@
 			// Update the decision in our data store
 			if(sources[lcurve.cal.order].decision=="X" && newdecision) undecided--;
 			sources[lcurve.cal.order].decision = decisionShort(newdecision);
+
 			// Update image in table
 			$('td.decisionimage:eq('+lcurve.cal.order+')').html(decisionImage(newdecision))
 			if(undecided > 0){
@@ -171,9 +170,11 @@
 
 			// Update the id in the form to the new calibrator
 			$('#calid').val(sources[lcurve.cal.order].order);
+
 			// Update the title for the new calibrator
 			$('h2').html(((sources[lcurve.cal.order].decision != "X") ? "Reclassify":"Classify")+' Calibrator '+(Number(sources[lcurve.cal.order].order)+1));
 			$('#USNOname').html('('+sources[lcurve.cal.order].catalogue+'+'+sources[lcurve.cal.order].sourcename+')');
+
 			// Update the name in the lightcurve
 			lcurve.cal.name = sources[lcurve.cal.order].sourcename;
 

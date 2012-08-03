@@ -7,9 +7,7 @@
 {% block script-content %}
 	<!--[if lt IE 9]><script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/excanvas.js"></script><![endif]-->
 	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.min.js"></script>
-	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.js"></script>
-	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.axislabels.js"></script>
-	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.fillbetween.js"></script>
+	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.graph.js"></script>
 	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/lightcurve.js"></script>
 
 	<script type="text/javascript">
@@ -17,7 +15,7 @@
 	var helper = true;
 	$(document).ready(function(){
 		//html = 'Next steps: <ul><li><a href="{% url average-graph event.name %}">Classify your lightcurve shapes<\/a> to combine your data with other citizen scientists\' data,</li> <li>View the <a href="{% url average-graph event.name %}">final curve<\/a> from everyone\'s results</li></ul>';
-		$('#progress').before('<span id="morecalbtn" style="float:right"><a href="{% url agentex.views.addvalue event.name %}?dataid={{event.finder}}&next=cal">Add more calibrators</a><\/span>').after('<div class="clear-block"><\/div><div id="mainplot" style="padding-left:40px;height:450px;width:880px;"><\/div>');
+		$('#progress').before('<span id="morecalbtn" style="float:right"><a href="{% url agentex.views.addvalue event.name %}?dataid={{event.finder}}&next=cal">Add more calibrators</a><\/span>').after('<div class="clear-block"><\/div><div id="mainplot" style="height:460px;width:100%;"><\/div>');
 	
 		// Define help
 		addHelpHint($('#mainplot'),$('#whatsthis').html());
@@ -28,7 +26,7 @@
 	
 	
 		{% if sources %}
-		html = "<form style='width:500px;float:left;margin-top:10px;' id='calibrator_list' method='POST' action='{%  url agentex.views.updatedataset event.name %}?mode=display'>{% csrf_token %}"
+		html = "<form style='max-width:500px;float:left;margin-top:10px;' id='calibrator_list' method='POST' action='{%  url agentex.views.updatedataset event.name %}?mode=display'>{% csrf_token %}"
 		html += "	<input type=hidden name='planet' value='{{event.name}}'>";
 		var onlyselection = false;
 		{% for d in sources %}{%if d.valid %}onlyselection = true{%endif%}{% endfor %}
@@ -71,7 +69,7 @@
 					lcurve.used[$(this).val()] = true;
 				});
 			}
-			lcurve.update()
+			lcurve.update();
 			if(nodata){
 				$('#message ul.messages').prepend('<li>Please select which calibrators to plot from the list below.<\/li>');
 				bubblePopup({id:'message',el:$('#mainplot'),style:'warning',fade:2000,dismiss:true,align:"center",w:200,animate:true});

@@ -305,7 +305,7 @@ Photometry.prototype.peakShift = function(ox,oy,counter,iter){
 	var showThumb = false;
 	var w = 23;
 	var h = 23;
-	var i = j = x = n = y = s = p = v = dx = dy = offx = offy = 0;
+	var i = j = x = n = y = s = p = v = dx = dy = offx = offy = mx = 0;
 	var id = 'thumbnail'+counter
 	var diff;
 	var threshold = 235;
@@ -325,8 +325,25 @@ Photometry.prototype.peakShift = function(ox,oy,counter,iter){
 	var tx,ty;
 	if(!iter || iter > 8) iter = 8;
 
-	for(var loop = 0 ; loop < iter ; loop++){
+	// Do we need to scale the threshold
+	for(y = -h/2, j = 0; y < h/2; y++, j++){
+		for(x = -w/2, i = 0; x < w/2; x++, i++){
+			tx = x+dx;
+			ty = y+dy;
+			if((ox+tx) < 0 || (ox+tx > this.imageData.width) || (oy+ty) < 0 || (oy+ty > this.imageData.height)) continue;
+			p = ((this.imageData.height-Math.round(oy-ty))*this.imageData.width+Math.round(ox+tx))*4;
+			v = (this.imageData.data[p]+this.imageData.data[p+1]+this.imageData.data[p+2])/3;
+			
+			diff = (tx*tx + ty*ty);
+			if(diff < w/2 && v > threshold) n++;
+		}
+	}
+	if(n < 10) threshold *= 0.8;
 	
+	n = 0;
+
+	// Try to optimize the position
+	for(var loop = 0 ; loop < iter ; loop++){
 		for(y = -h/2, j = 0; y < h/2; y++, j++){
 			for(x = -w/2, i = 0; x < w/2; x++, i++){
 				tx = x+dx;

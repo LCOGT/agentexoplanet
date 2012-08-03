@@ -31,7 +31,7 @@
 		dd.forum{ background: url('{{MEDIAURL}}/images/forum.png') no-repeat left center; }
     </style>
 </head>
-<body class="{% block body-class %}{%endblock%}{% if user.is_authenticated %}{% else %}not-{% endif %}logged-in">
+<body class="{% block body-class %}{% endblock %}{% if user.is_authenticated %}{% else %}not-{% endif %}logged-in">
 
 	<a class="access" href="#main">[Skip to Content]</a>
 

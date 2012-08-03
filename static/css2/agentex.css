@@ -15,6 +15,16 @@ table.borderless { border: 0px; }
 table.borderless td { border: 0px; }
 iframe { border: 0px; }
 #lcogt-bar { -o-background-size: 100% 100%;-moz-background-size: 100% 100%;-webkit-background-size: 100% 100%;background-size: 100% 100%;/* Internet Explorer */*background: #606060;background: #606060;filter: progid:DXImageTransform.Microsoft.gradient(gradientType=0, startColorstr=#FF404040, endColorstr=#FF606060);/* Recent browsers */background-image: -webkit-gradient(linear,left top, left bottom,from(#404040),to(#606060));background-image: -webkit-linear-gradient(top,#404040,#606060);background-image: -moz-linear-gradient(top,#404040,#606060);background-image: -o-linear-gradient(top,#404040,#606060);background-image: linear-gradient(top,#404040,#606060);color: white; }
+#lcogt-bar {
+	clear: both;
+	color: #CCCCCC;
+	font-size: 0.9em;
+	height: 24px;
+	line-height: 24px;
+	margin: 0;
+	overflow: hidden;
+	padding: 3px 8px;
+}
 
 body.agentex #page-wrapper { background: url('/images/new-agentex-bg.png') #fefefe repeat-x; }
 body.agentex #page { background: url('/images/new-header-agentex-bg.png') transparent no-repeat; background-position: center top; }
@@ -801,6 +811,7 @@ Helper information boxes
 }
 .fancybtn .arrow {
 	width: 30px!important;
+	padding-right: 0px;
 	display: inline-block;
 	background-image: url("/images/playback_play_icon&24_w.png");
  	background-position:right center;
@@ -1019,7 +1030,7 @@ ul.badges li.locked img {
 #morecalbtn a {
 	color: black;
 	text-decoration: none; 
-	padding: 0.5em;
+	padding: 0.35em;
 	background: #BBB;
 	display: block;
 	-webkit-border-radius: 0.3em;
@@ -1064,33 +1075,50 @@ ul.polaroids li:nth-child(4n) { margin-right: 0px; }
 	width: 100%;
 }
 
+@media only screen and (max-width: 1050px) {
+	body.dossier #screen { width: 90%; max-width: 976px; }
+}
+@media only screen and (max-width: 600px) {
+	body.dossier #screen { width: 92%; max-width: 590px; }
+	iframe { max-width: 100%; }
+	body.full #main .page {
+		padding: 16px 16px !important;
+		margin: 8px !important;
+	}
+	body.dossier { overflow-x: hidden; }
+	body.dossier #main .page .eventimage { top: -12px; }
+	#logo { max-width: 55%; }
+	#logo img { max-width: 100%; height: auto!important; }
+	#logo2 { max-width: 32%; }
+	#logo2 img { max-width: 100%; height: auto!important; }
+}
 @media only screen and (max-width: 1050px), only screen and (max-height: 900px) {
-	#screen { width: 90%; max-width: 976px; }
-	#container {
+	body.lightmonitor #screen { width: 90%; max-width: 976px; }
+	body.lightmonitor #container {
 		position: relative;
 		width: 100%;
 	}
-	#section-nav { width: 20%; }
-	#toolbar { position: relative; }
-	.polaroid { padding: 8px; }
-	#toolbar .fbtn { width: 100%; display: block; }
-	#finderthumb, img.snap { width: 100%; padding: 0px; height: auto; }
-	#toolbar .fancybtn, #toolbar .fancybtngrey { padding: 8px; display: block; width: auto; max-width: 100%; }
-	#finderthumb, #finderthumb img.snap, #toolbar .fancybtn, #toolbar .fancybtngrey, #finderthumb_holder svg { max-width: 100%; height: auto; }
-	#main {
+	body.lightmonitor #section-nav { width: 20%; }
+	body.lightmonitor #toolbar { position: relative; }
+	body.lightmonitor .polaroid { padding: 8px; }
+	body.lightmonitor #toolbar .fbtn { width: 100%; display: block; }
+	body.lightmonitor #finderthumb,body.lightmonitor img.snap { width: 100%; padding: 0px; height: auto; }
+	body.lightmonitor #toolbar .fancybtn,body.lightmonitor #toolbar .fancybtngrey { padding: 8px; display: block; width: auto; max-width: 100%; }
+	body.lightmonitor #finderthumb, body.lightmonitor #finderthumb img.snap, body.lightmonitor #toolbar .fancybtn, body.lightmonitor #toolbar .fancybtngrey, body.lightmonitor #finderthumb_holder svg { max-width: 100%; height: auto; }
+	body.lightmonitor #main {
 		width: 78%;
 	}
-	#photometric, #photometric_imageholder_small { max-width: 100%; height: auto; }
+	body.lightmonitor #photometric, #photometric_imageholder_small { max-width: 100%; height: auto; }
 }
 @media only screen and (max-height: 800px){
-	#screen { max-width: 976px; }
+	body.lightmonitor #screen { max-width: 976px; }
 }
 @media only screen and (max-height: 700px){
-	#screen { max-width: 800px; }
+	body.lightmonitor #screen { max-width: 800px; }
 }
 @media only screen and (max-height: 600px){
-	#screen { max-width: 720px; }
+	body.lightmonitor #screen { max-width: 720px; }
 }
 @media only screen and (max-height: 500px){
-	#screen { max-width: 640px; }
+	body.lightmonitor #screen { max-width: 640px; }
 }

@@ -182,7 +182,7 @@ function bubblePopup(inp) {
 	if(dismiss) el.bind('click',{onpop:onpop},function(e){ $(this).hide(); if(e.data.onpop){ e.data.onpop.call(); }});
 }
 function showMessage(){
-	if($("#message").length==0) $(".page").prepend('<div id="#message"></div>')
+	if($("#message").length==0) $(".page").prepend('<div id="message"></div>')
 	$("#message").html(data.message).addClass("error").show();
 	$('#message').bind('click',function(e){ $(this).fadeOut(500); } );
 }
@@ -244,7 +244,10 @@ function positionHelperLinks(){
 	var p = $('.page').position();
 	var top = p.top + tp;
 	var tall = $('#mylink').outerHeight();
-	$('.tablink').css({position:'absolute',left:(p.left+$('.page').outerWidth()+16)})
+	var padd = parseInt($('.page').css('padding-right'))/2;
+
+	$('#helplink').css({position:'absolute',left:(p.left+$('.page').outerWidth()+padd),top:(top-tall-5)});
+	$('.tablink').css({position:'absolute',left:(p.left+$('.page').outerWidth()+padd)})
 	$('#mylink').css({top:top});
 	$('#avlink').css({top:top+tall+5});
 	$('#sulink').css({top:top+tall+tall+10});
@@ -278,9 +281,9 @@ $(document).ready(function(){
 		$('body #main').append('<div id="helplink" class="tablink">?<\/div>')
 		var p = $('.page').position();
 		var tall = $('#helplink').outerHeight();
-		$('#helplink').css({position:'absolute',left:(p.left+$('.page').outerWidth()+16),top:p.top+tp-tall-5}).bind('click',function(){ toggleHelp(this); });
+		//$('#helplink').css({position:'absolute',left:(p.left+$('.page').outerWidth()+(parseInt($('.page').css('padding-left'))-16)),top:p.top+tp-tall-5}).bind('click',function(){ toggleHelp(this); });
+		setTimeout(positionHelperLinks,500)
 	}
-	
 	$('.fancybtndisable').live('click',function(e){
 		e.preventDefault();
 	});

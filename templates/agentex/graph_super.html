@@ -7,10 +7,9 @@
 {% block script-content %}
 	<!--[if lt IE 9]><script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/excanvas.js"></script><![endif]-->
 	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.min.js"></script>
-	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.js"></script>
-	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.axislabels.js"></script>
-	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.fillbetween.js"></script>
-	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.selection2.js"></script>
+	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/sylvester-min.js"></script>
+	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/optimize.js"></script>
+	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.graph.js"></script>
 	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/lightcurve.js"></script>
 	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/raphael.js"></script>
 
@@ -20,15 +19,19 @@
 	var nscroll = 1;
 	$(document).ready(function(){
 		$('#nextstep').addClass('fancybtndisable');
-		
+
+	{% if numsuper %}
+		html = '<p>{{numsuper}} calibrator{% if numsuper > 1 %}s were{%else%} was{%endif%} used to make this graph. As more people measure more calibrators the lightcurve should improve. If you can see a dip in the lightcurve, select that region to calculate the relative sizes of the star, planet and the orbit.'
+//		html += '<div id="mainplot" style="padding-left:40px;height:450px;width:880px;"><\/div>';
+		html += '<div id="mainplot" style="height:450px;width:100%;"><\/div>';
+	
+	{% endif %}		
 		addHelpHint($('#mainplot'),'This graph shows how the relative brightness of the host star changes as exoplanet <a href="{% url agentex.views.infoview event.name %}" class="objectspecific">{{event.title}}<\/a> passes in front of it.<br/><br/> This graph combines the measurements and classifications from all citizen scientists on this project, into one supercalibrator result.');
 		addHelpHint($('#mylink'),'View your measurements as <a href="{% url agentex.views.briefing %}#lightcurve">lightcurves<\/a>','left');
 		addHelpHint($('#avlink'),'Classify your measurements','left');
 		addHelpHint($('#sulink'),'This is the page you are looking at.','left');
-	
+
 	{% if numsuper %}
-		html = '<p>{{numsuper}} calibrator{% if numsuper > 1 %}s were{%else%} was{%endif%} used to make this graph. As more people measure more calibrators the lightcurve should improve. If you can see a dip in the lightcurve, select that region to calculate the relative sizes of the star, planet and the orbit.'
-		html += '<div id="mainplot" style="padding-left:40px;height:450px;width:880px;"><\/div>';
 	
 		$('.breadcrumb').after(html);
 
@@ -98,7 +101,16 @@
 		});
 		
 		lcurve.mainplot.bind("plotselected",function(event, ranges){
-	
+			makeOrbit(ranges);
+		}).bind("plotunselected",function(event, ranges){
+			stop();
+		}).bind("click",function(event){
+		});
+
+		makeOrbit(lcurve.fitted)
+
+		// Input: ranges = {xaxis: { from: a, to: b }, yaxis: { from: a, to: b }}
+		function makeOrbit(ranges){
 			t_trans = Math.abs(ranges.xaxis.to-ranges.xaxis.from)/1000;	// Transit length in seconds
 			dip = Math.abs(ranges.yaxis.to-ranges.yaxis.from);	// Depth of dip
 			if(dip > 0){
@@ -163,19 +175,15 @@
 				
 				$('#nextstep').removeClass('fancybtndisable');
 				//goto that anchor by setting the body scroll top to anchor top
-				if(nscroll > 0){
-					$('html, body').animate({scrollTop:t}, 1500);
-					nscroll--;
-				}
+//				if(nscroll > 0){
+//					$('html, body').animate({scrollTop:t}, 1500);
+//					nscroll--;
+//				}
 	
 			}else{
 				stop();
 			}
-		}).bind("plotunselected",function(event, ranges){
-			stop();
-		}).bind("click",function(event){
-		});
-		
+		}
 		function stop(){
 			$('#relativesizes').hide();
 			if(typeof planet.svg.stop == "function") planet.svg.stop();
@@ -205,7 +213,7 @@
 		
 		extra = "";
 		{% if messages %}extra = $('#message').html(){% endif %}
-		bubblePopup({id:'message',el:$('#mainplot'),align:"center",w:200,animate:true,fade:3500,dismiss:true,html:'Use your mouse to select the region of the lightcurve which corresponds to the dip in brightness - the transit.'+extra})
+//		bubblePopup({id:'message',el:$('#mainplot'),align:"center",w:200,animate:true,fade:3500,dismiss:true,html:'Use your mouse to select the region of the lightcurve which corresponds to the dip in brightness - the transit.'+extra})
 		addHelpHint($('#mainplot'),'Use your mouse to select the region of the lightcurve which corresponds to the dip in brightness - the transit.');
 	
 	//	{% if messages %} bubblePopup({id:'message',el:$('#mainplot'),fade:2000,dismiss:true,align:"center",w:200,animate:true,html:'<ul class="messages">{% for message in messages %}{%ifchanged%}<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>{%endifchanged%}{% endfor %}</ul>'});{% endif %}
@@ -257,7 +265,7 @@
 			<div id="planetcalculation">
 				<h2>How we worked this out</h2>
 				<p>The orbital period for <span class="objectspecific">{{event.title}}</span> is known to be <span class="objectspecific transitperiod">{{ target.period }} days</span>. Through either the star's <a href="http://en.wikipedia.org/wiki/Stellar_classification">stellar type</a> or radial velocity measurements, we can infer a mass for the star of <span class="objectspecific">{{ target.mass }}</span> times that of the Sun. With <a href="http://en.wikipedia.org/wiki/Kepler%27s_laws_of_planetary_motion#Third_law">Kepler's third law of planetary motion</a> we can then calculate the orbital radius to be about <span class="objectspecific transitorbit"></span> (<span class="objectspecific transitorbitau"></span>).</p>
-				<p>You have measured the transit to take <span class="transitlength objectspecific"></span> (we will call this <em>t<sub>trans</sub></em>) with a dip in brightness of <span class="transitdip objectspecific"></span>. The dip in brightness is related to the relative sizes of planet and star so your measurement means the planet has a diameter roughly <span class="transitscale objectspecific"></span> times that of the host star. The duration of a transit is related to the orbital period <em>P</em>, the star's radius <em>R&lowast;</em>, the orbital radius <em>a</em> and the inclination of the orbit <em>i</em>. These are all related by the formula:</p>
+				<p>From the graph we estimate the transit to take <span class="transitlength objectspecific"></span> (we will call this <em>t<sub>trans</sub></em>) with a dip in brightness of <span class="transitdip objectspecific"></span>. The dip in brightness is related to the relative sizes of planet and star so your measurement means the planet has a diameter roughly <span class="transitscale objectspecific"></span> times that of the host star. The duration of a transit is related to the orbital period <em>P</em>, the star's radius <em>R&lowast;</em>, the orbital radius <em>a</em> and the inclination of the orbit <em>i</em>. These are all related by the formula:</p>
 				<table summary="Properties of the transiting system based on your measurement" class="borderless" style="border:0px;font-size: 1.2em; font-family: times, serif;"><tr>
 					<td width="50%"></td>
 					<td nowrap style="vertical-align:middle;"><i>t<sub>trans</sub></i> &nbsp;=</td>
@@ -266,10 +274,10 @@
 					<td nowrap style="vertical-align:middle;border-top:2px solid black;padding:0px;">&nbsp;<span style="font-size:3em;">(<sup style="font-size:0.3em;"></sup></span></td>
 					<td nowrap style="text-align:center;vertical-align:middle;border-top:2px solid black;padding:0px;">&nbsp; <i>R&lowast;</i> &nbsp;<hr style="margin:0px;">&nbsp; <i>a</i> &nbsp;</td>
 					<td nowrap style="vertical-align:middle;border-top:2px solid black;padding:0px;"><span style="font-size:3em;">)<sup style="font-size:0.3em;">2</sup></span></td>
-					<td nowrap style="vertical-align:middle;border-top:2px solid black;">&nbsp;&minus;&nbsp;<i>cos<sup>2</sup>&nbsp;i</i></td>
+					<td nowrap style="vertical-align:middle;border-top:2px solid black;">&nbsp;&minus;&nbsp;<i>cos<sup>2</sup>&nbsp;(i)</i></td>
 					<td width="50%"></td>
 				</tr></table>
-				<p>If we assume an edge-on orbit, like in the cartoon above, this becomes the more straightforward:</p>				
+				<p>If we assume an edge-on orbit, like in the cartoon above, the inclination (<span style="font-family: times, serif;font-style:italic">i</span>) is zero and this becomes the more straightforward:</p>				
 				<table class="borderless" style="border:0px!important;font-size: 1.2em; font-family: times, serif;"><tr>
 					<td width="50%"></td>
 					<td nowrap style="vertical-align:middle;"><i>t<sub>trans</sub></i> &nbsp;=</td>

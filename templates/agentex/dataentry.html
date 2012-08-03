@@ -1,7 +1,7 @@
 {% extends 'agentex/base.html' %}
 {% load observing_extras%}
 
-{% block body-class %}agentex dossier{% ifequal complete 1 %} full{%endifequal%} {%endblock%}
+{% block body-class %}agentex dossier lightmonitor{% ifequal complete 1 %} full{%endifequal%} {%endblock%}
 
 {%block header %}Light Monitor for {{data.event.title}}{%endblock%}
 
@@ -12,8 +12,6 @@
 	<script type="text/javascript" src="{{ MEDIA_URL }}js/raphael.sizer.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}js/raphael.rangelimiter.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}js/photometry.js"></script>
-	<script type="text/javascript" src="{{ MEDIA_URL }}js/sylvester-min.js"></script>
-	<script type="text/javascript" src="{{ MEDIA_URL }}js/optimize.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}js/jquery-ui.min.js"></script>
 	<script type="text/javascript" charset="utf-8">
 	<!--
@@ -325,9 +323,11 @@
 			bubblePopup({id:'message',el:$('#photometric'),align:"center",w:200,animate:true,dismiss:true})
 			{% else %}
 			bubblePopup({id:'message',el:$('#photometric'),align:"center",fade:2000,w:200,animate:true,dismiss:true})
+			{% if messages %}{% else %}$('#message').hide();{% endif %}
 			{% endif %}{% endif %}
 			$('a#getdata').removeClass('fancybtndisable');
 			photo.bind("sky","ondrop", enableAnalyze).bind("source","ondrop", enableAnalyze).bind("calibrator","ondrop",enableAnalyze);
+
 {% endif %}
 			dataQualityFlag();
 			if(photo.sizer.length>5) $('#btn-remove').show()
@@ -343,7 +343,9 @@
 		$('a#getdata').css('display','block');
 		$('#entryform input').bind('change',function(){ changed = true; })
 		$('#finderthumb a').bind('click', toggleFinderChart);
-		$('#message').delay(5000).fadeOut(500);
+		if($('#message').length > 0){
+			$('#message').delay(5000).fadeOut(500);
+		}
 
 		// if the user prefers to use the web dataexplorer set the field in the data entry form.
 		// zemogle {{ webinput }}
@@ -438,7 +440,6 @@
 						$('#helptooltip').hide();
 
 						if (data.error){
-							//$("#message").remove();
 							bubblePopup({id:'message',el:$('#photometric'),style:'error',align:"center",w:250,animate:true,html:'Oh no! Something went wrong.<br />'+data.error});
 							$("#message").css({'z-index':20})
 							$('#message').bind('click',function(e){ $(this).removeClass("error").fadeOut(500); } );
@@ -509,7 +510,7 @@
 	<script type="text/javascript" charset="utf-8">
 	<!--
 	$(document).ready(function(){
-			bubblePopup({id:'message',el:$('#main'),align:"center",fade:2000,w:200,animate:true,dismiss:true});
+		bubblePopup({id:'message',el:$('#main'),align:"center",fade:2000,w:200,animate:true,dismiss:true});
 	});
 	// -->
 	</script>

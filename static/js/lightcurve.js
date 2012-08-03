@@ -120,6 +120,7 @@ function Lightcurve(inp){
 			}
 		});
 	}else if(this.type=="average"){
+/*
 		this.mainplot.bind("plotclick", {me:this}, function (event, pos, item) {
 			if(item) {
 				window.location = event.data.me.url.edit+event.data.me.data.id[item.dataIndex];
@@ -132,6 +133,7 @@ function Lightcurve(inp){
 				$('#editmsg').bind('click',function(){ $(this).hide(); })
 			}
 		});
+*/
 	}	
 }
 
@@ -219,9 +221,11 @@ Lightcurve.prototype.data2plot = function(){
 		if(typeof d.dates=="undefined"){
 			// Data in page
 			this.dmean = new Array(d.length);
+			this.dm = new Array(d.length);
 			this.dstd = new Array(d.length);
 			for(i=0;i<d.length;i++){
 				this.dmean[i] = ([Number(d[i].datestamp)*1000,Number(d[i].data.mean)]);
+				this.dm[i] = {x:Number(d[i].datestamp)*1000,y:Number(d[i].data.mean),err:Number(d[i].data.std)};
 				this.dstd[i] = (Number(d[i].data.std));
 				//this.ids.push(val.id);
 			}
@@ -229,9 +233,11 @@ Lightcurve.prototype.data2plot = function(){
 			// Data via request
 
 			this.dmean = new Array(d.dates.length);
+			this.dm = new Array(d.dates.length);
 			this.dstd = new Array(d.dates.length);
 			for(i=0;i<d.dates.length;i++){
 				this.dmean[i] = ([Number(d.dates[i])*1000,Number(d.normalised[i])]);
+				this.dm[i] = {x:Number(d.dates[i])*1000,y:Number(d.normalised[i])};
 				this.dstd[i] = (Number(d.std[i]));
 				//this.ids.push(val.id);
 			}
@@ -272,18 +278,82 @@ Lightcurve.prototype.data2plot = function(){
 						}else this.dataplot[c][i] = ([Number(d[i].datestamp)*1000, null,d[i].id]);
 					}
 				}
-				this.dataplot2 = new Array(d.length);
-				for(var i=0 ; i < d.length ; i++){
-//					if(d[i].data.mycals[this.cal.order] != 0) this.dataplot2[i] = [Number(d[i].datestamp)*1000,d[i].data.mycals[this.cal.order],d[i].id];
-//					else this.dataplot2[i] = [Number(d[i].datestamp)*1000,null,d[i].id];
-				}
 			}
 		}
 	}
 }
 
+// Return the model values
+Lightcurve.prototype.model = function(a, x) {
+
+	var bkg = a[0];
+	var amp = a[1];
+	var cen = a[2];
+	var sig = a[3];
+	var pow = a[4];
+	var i, j, result = [], sig2 = sig*sig, g;
+	//norm = a[0] / Math.sqrt(2 * Math.PI * sig2);
+
+	x = optimize.vector.atleast_1d(x);
+	a = optimize.vector.atleast_1d(a);
+
+	for (i = 0; i < x.length; i++) {
+		var diff = Math.abs(x[i] - cen);
+		if(diff > sig) diff *= (Math.pow(1+(diff-sig)/sig,pow));
+		g = Math.exp(-0.5 * diff * diff / sig2);
+		result.push(bkg + amp * g);
+	}
+
+	return result;
+};
+
+// Fit the model to the data
+Lightcurve.prototype.fit = function(d) {
+
+	var i, p1, outx, out, n = 200;
+	var data = [];
+	var outx = [];
+	// '#d62728','#1e77b4','#edc240'
+	var out = { id: 'model', data: [], points: { show: false }, lines: { show: true, width: 3 }, color: "rgb(51,153,255)",clickable: false,hoverable:false};
+	var _obj = this;
+
+	var range = d[d.length-1].x-d[0].x;
+	range = this.graph.x.max - this.graph.x.min;
+
+	for(i = 0; i < d.length; i++) data.push({x:(d[i].x-d[0].x)/range,y:d[i].y, err: (d[i].err)});
+	for(i = 0; i < n; i++) outx.push(i/(n-1));
+
+	p0 = [1,-0.05, 0.5, 0.25,1.5];
+
+	p1 = optimize.newton(function(p){
+		var i, chi = [];
+		for (i = 0; i < data.length; i++) {
+			chi.push((data[i].y - _obj.model(p, data[i].x)[0]) / data[i].err);
+		}
+		return chi;
+	}, p0);
+
+	var model = this.model(p1,outx);
+
+	for(i = 0; i < n; i++){
+		out.data.push({x:this.graph.x.min + range*outx[i], y: model[i] });
+	}
+
+	this.graph.addSeries(out);
+
+	var amp = p1[1];
+	var cen = p1[2];
+	var sig = p1[3];
+	var pow = p1[4];
+
+	this.fitted = { xaxis: { from: this.graph.x.min+range*(cen-sig), to: this.graph.x.min+range*(cen+sig) }, yaxis: { from: 1+amp, to: 1 }};
+
+	return this;
+};
+
 Lightcurve.prototype.update = function(){
 	var line = 0;
+	var x,y,t;
 
 	if(this.type=="super"){
 
@@ -291,23 +361,31 @@ Lightcurve.prototype.update = function(){
 	    this.dlow2 = new Array(this.dmean.length);
 	    this.dhigh = new Array(this.dmean.length);
 	    this.dhigh2 = new Array(this.dmean.length);
-		for(var i = 0; i < this.dmean.length ; i++){
+	    this.dl = this.dh = this.dm[0].y;
+		for(var i = 0; i < this.dm.length ; i++){
 		    this.dlow[i] = [this.dmean[i][0],(this.dmean[i][1] - this.dstd[i]) ];
 			this.dlow2[i] = [this.dmean[i][0],(this.dmean[i][1] - 2*this.dstd[i])];
 			this.dhigh[i] = [this.dmean[i][0],(this.dmean[i][1] + this.dstd[i])];
 			this.dhigh2[i] = [this.dmean[i][0],(this.dmean[i][1] + 2*this.dstd[i])];
-			//if(this.ids[i]==this.framenum){ line = this.dmean[i][0]; }
+
+			y = (this.dm[i].y - 1.4*this.dstd[i]);
+			if(y < this.dl) this.dl = y;
+			y = (this.dm[i].y + 1.4*this.dstd[i]);
+			if(y > this.dh) this.dh = y;
+			
 		}
 		var dataset2 = [
-			//{ data: this.dmine, points :{show:true}, color: "rgb(255,50,50)",clickable: true, hoverable:true  },
 			{ id: 'low2', data: this.dlow2, lines: { show: true, lineWidth: 0, fill: false }, color: "rgb(51,153,255)",clickable: false,hoverable:false},
 			{ id: 'low', data: this.dlow, lines: { show: true, lineWidth: 0, fill: 0.1 }, color: "rgb(51,153,255)", fillBetween: 'low2',clickable: false,hoverable:false },
 			{ id: 'mean', data: this.dmean, lines: { show: true, lineWidth: 2.5, fill: 0.2, shadowSize: 0 }, color: "rgb(51,153,255)", fillBetween: 'low',clickable: false,hoverable:false },
 			{ id: 'high', data: this.dhigh, lines: { show: true, lineWidth: 0, fill: 0.2 }, color: "rgb(51,153,255)", fillBetween: 'mean',clickable: false,hoverable:false },
 			{ id: 'high2', data: this.dhigh2, lines: { show: true, lineWidth: 0, fill: 0.1 }, color: "rgb(51,153,255)", fillBetween: 'high',clickable: false,hoverable:false },
 		];
-		//if(this.dmine.length == 0) bubblePopup({id:'editmsg',el:$(this.id),w:200,align:'center',html:this.msg.nodata,'padding':2})
+		var dataset3 = [
+			{ id: 'mean', data: this.dm, points: {show: true, radius: 3, width: 1.5}, lines: { show: false, width: 1 }, color: "rgb(51,153,255)", clickable: false,hoverable:false }
+		];
 
+		t = (this.dm[this.dm.length-1].x-this.dm[0].x)/12;
 		var means = [];
 		var maxs = [];
 		var mins = [];
@@ -325,38 +403,106 @@ Lightcurve.prototype.update = function(){
 			if(r.min-padd > min(mins)) this.options.yaxis.min = r.min-meanstd*4;
 			if(r.max+padd < max(maxs)) this.options.yaxis.max = r.max+meanstd*4;
 		}
+		/*
 		$.plot(this.mainplot, dataset2, this.options);//{ xaxis:xaxis, yaxis: yaxis, legend: { position: 'se' }, grid: { hoverable: true, clickable: true, markings:	[ { color: '#f00', lineWidth: 1, xaxis: { from: line, to: line } }] } });
+		*/
+		this.graph = $.graph('mainplot', dataset3, {
+			xaxis: { label: this.options.xaxis.axisLabel, mode: 'time', min: this.dm[0].x-t, max: this.dm[this.dm.length-1].x+t },
+			yaxis: { label: this.options.yaxis.axisLabel, min: this.dl, max: this.dh },
+			grid: { show: true, color:'rgb(150,150,150)', border: 2, clickable: true, hoverable: true }
+		});
+		//this.graph.addLine({y:1.0,width:2,color:'rgba(0,0,0,0.6)'}).update();
+
+		this.fit(this.dm);
+	
 	}else if(this.type=="calibrators"){
-		this.options.yaxis.axisLabel = 'Relative Brightness';
-		this.options.grid = { hoverable: true, clickable: true, markings:	[ { lineWidth: 1, xaxis: { from: line, to: line } }] };
-		this.options.legend = { position: 'se' };
-		this.options.series = { shadowSize: 0 }
+
 		var dataset = [];
+		var dataplot2 = [];
 		for(var d=0 ; d < this.dataplot.length ; d++){
-			if(this.used[d]) dataset.push({ data: this.dataplot[d], points :{show:true}, color: d, lines: { show: true, lineWidth: 1, fill: 0 }, clickable: true, hoverable:true  });
-		}
-		$.plot(this.mainplot, dataset, this.options);
-	}else if(this.type=="average"){
-		this.options.yaxis.axisLabel = 'Relative Brightness';
-		this.options.grid = { hoverable: true, clickable: true, markings:	[ { lineWidth: 1, xaxis: { from: line, to: line } }] };
-		this.options.legend = { position: 'se' };
-		this.options.series = { shadowSize: 0 };
-		var dataset = [];
-		if(typeof this.cal.order=="number"){
-			r = getRange(this.ys[this.cal.order])
-			if(typeof r=="object"){
-				this.options.yaxis.min = r.min;
-				this.options.yaxis.max = r.max;
+			dataplot2.push([]);
+			for(var i=0 ; i < this.dataplot[d].length ; i++){
+				dataplot2[d].push({x:this.dataplot[d][i][0],y:this.dataplot[d][i][1],id:this.dataplot[d][i][2]});
 			}
 		}
+		
+		//var colours = ["#edc240", "#afd8f8", "#cb4b4b", "#4da74d", "#9440ed","#c29a2d","#87adc7","#a83f3a","#437e47","#5e2796"]
+		var colours = ['#d62728','#1e77b4','#edc240','#2ba02c','#9467bd','#8c564b',"#c29a2d","#87adc7","#a83f3a","#437e47","#5e2796"];
+		var url = this.url.edit;
 		for(var d=0 ; d < this.dataplot.length ; d++){
-			if(this.used[d]) dataset.push({ data: this.dataplot[d], points: {show:false}, color: "rgba(0,0,0,0.1)", lines: { show: true, lineWidth: 1, fill: 0 }, hoverable: false });
-			if(this.cal.order==d) dataset.push({ data: this.dataplot[d], points: {show:false}, color: "rgba(0,0,0,1)", lines: { show: true, lineWidth: 2, fill: 0 }, hoverable: false });
+			if(this.used[d]){
+				// Add a data set
+				dataset.push({
+					data: dataplot2[d],
+					points: { show: true, radius: 3, width: 1.5 },
+					lines: { show: true ,width: 1.5 },
+					color: colours[d],
+					clickable: true,
+					hoverable: true,
+					hover: {
+						text: function(e){
+							return '<a href="'+url+'{{id}}">Edit the frame<br />at '+unixtohours(e.data.x)+'</a>';
+						},
+						radius: 7,
+						width: 3.5
+				    },
+				    css: { 'background-color': 'white', 'text-align':'center' },
+					class: 'poppitypin chat-bubble'
+				});
+			}
 		}
-		dataset.push({ data: this.dataplot2, points: {show:true}, color: "rgba(0,0,0,1)", lines: { show: false }, clickable: true, hoverable:true })
-		$.plot(this.mainplot, dataset, this.options);
+
+		if(this.graph) this.graph.updateData(dataset);
+		else{
+			this.graph = $.graph('mainplot', dataset,{
+				xaxis: { label: this.options.xaxis.axisLabel, mode: 'time' },
+				yaxis: { label: this.options.yaxis.axisLabel },
+				grid: { show: true, color:'rgb(150,150,150)', clickable: true, hoverable: true }
+			});
+		}
+
+	}else if(this.type=="average"){
+
+		if(this.graph) this.graph.clear();
+
+		var dataset = [];
+		var dataplot2 = [];
+		var mn = this.dataplot[this.cal.order][0][1];
+		var mx = this.dataplot[this.cal.order][0][1];
+
+		for(var d=0 ; d < this.dataplot.length ; d++){
+			dataplot2.push([]);
+			for(var i=0 ; i < this.dataplot[d].length ; i++){
+				dataplot2[d].push({x:this.dataplot[d][i][0],y:this.dataplot[d][i][1],id:this.dataplot[d][i][2]});
+				if(this.cal.order==d){
+					if(this.dataplot[d][i][1] < mn) mn = this.dataplot[d][i][1];
+					if(this.dataplot[d][i][1] > mx) mx = this.dataplot[d][i][1];
+				}
+			}
+		}
+		
+		var r = (mx-mn);
+		mn -= r/10;
+		mx += r/10;
+
+		for(var d=0 ; d < this.dataplot.length ; d++) dataset.push({ data: dataplot2[d], points: {show:false}, color: "rgba(0,0,0,"+(this.cal.order==d ? 1 : 0.1)+")", lines: { show: true, width: (this.cal.order==d ? 2 : 1) }, hoverable: false });
+
+		// Update the graph
+		if(this.graph){
+			this.graph.setOptions({yaxis:{min:mn, max: mx}})
+			this.graph.updateData(dataset);
+		}else{
+			// Create a new graph
+			this.graph = $.graph('mainplot', dataset,{
+				xaxis: { label: this.options.xaxis.axisLabel, mode: 'time' },
+				yaxis: { label: this.options.yaxis.axisLabel, min: mn, max: mx },
+				grid: { show: true, color:'rgb(150,150,150)' }
+			});
+		}
+
 	}
 }
+
 Lightcurve.prototype.calibrate_data = function(){
 	// Send a server side request for all validated calibrators
 	var querstr = "mode=super"	
