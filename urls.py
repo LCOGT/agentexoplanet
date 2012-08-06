@@ -11,7 +11,7 @@ admin.autodiscover()
 urlpatterns = patterns('',
 #    (r'^api/', include('odin.api.urls')),
     url(r'^$','agentex.views.home',name='portal'),
-    (r'^auth$','agentex.views.proxyconnect'),
+    #(r'^auth$','agentex.views.proxyconnect'),
     (r'^account/login/$', login, {'template_name' :'login.html'}),
     (r'^account/logout/$', logout,{'template_name' :'logout.html'}),
     url(r'^account/register/$', 'agentex.views.register',name='register'),
