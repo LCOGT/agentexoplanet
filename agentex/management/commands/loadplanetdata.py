@@ -73,65 +73,6 @@ class Command(BaseCommand):
 
         self.stdout.write('Successfully imported all data for "%s"\n' % e.title)
 
-def importfits(ev,tg,url):
-    fitsdir = "%s%s%s" % (path,url,urlf)
-    print "Listing %s" % fitsdir
-    ls = os.listdir(fitsdir)
-    listf = []
-    listj = []
-    i = 0
-
-    for l in ls:
-        if l.endswith('.fits'):
-            listf.append(l)
-    
-    e = Event.objects.get(id=int(ev))
-    target = Target.objects.get(id=int(tg))
-    print "%s : %s\n" % (target.name,e.title)
-    for lf in listf:
-        datapath = "%s%s%s%s" % (path,url,urlf,lf)
-        print "reading from %s" % datapath
-        head = pyfits.getheader(datapath)
-        imagej = lf.replace('.fits','.jpg')
-        fitsurl = "/%s%s%s" % (url,urlf,lf)
-        try:
-            print head['TELESCOP']
-        except:
-            print "Not FTN or FTS"
-        if head['TELESCOP'] == 'Faulkes Telescope North' or head['TELESCOP'] == 'Faulkes Telescope South': 
-            # FTN/S data
-            timestamp = datetime.strptime(head['DATE-OBS'], "%Y-%m-%dT%H:%M:%S.%f")
-            maxx = int(head['CCDXIMSI'])
-            maxy = int(head['CCDYIMSI'])
-            print maxx,maxy
-        else:
-            # Sedgwick data
-            timestamp = datetime.strptime(head['DATE-OBS'], "%Y-%m-%dT%H:%M:%S")
-            maxx= int(head['NAXIS1'])
-            maxy = int(head['NAXIS2'])
-        ds = DataSource(fits = fitsurl,
-                    event=e,
-                    target=target,
-                    timestamp=timestamp,
-                    telescopeid=head['TELESCOP'],
-                    max_x=maxx,
-                    max_y=maxy,
-                    )
-        try:
-            imageurl = "/%s%s%s" % (url,urlj,imagej)
-            ds.image = imageurl
-        except:
-            print "failed to find JPG for lf"
-        ds.save()
-        i += 1
-        print "Saved %s at %s" % (ds.id,datapath)
-    ds = DataSource.objects.filter(event=e).order_by('timestamp')
-    e.numobs = ds.count()
-    e.start = ds[0].timestamp
-    e.end = ds[ds.count()-1].timestamp
-    e.midpoint = ds[ds.count()/2].timestamp
-    e.save()
-
 def f(x,y,z):
      if x.endswith('.fits'):
          return y.append(x)
