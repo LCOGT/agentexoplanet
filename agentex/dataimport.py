@@ -86,9 +86,9 @@ def correctimages(event):
         d.image = "/%s/%s/%s" % (ipath[1],ipath[3],ipath[-1])
         d.save()
         
-def findsources(dataid,url):
+def findsources(dataid,datapath):
     d = DataSource.objects.filter(id=dataid)
-    dfile = '%s%s' % (path,d[0].fits)
+    dfile = '%s%s' % (datapath,d[0].fits)
     #dfile = '%s%s/astrometry-solution.fits' % (path,url)
     dc = pyfits.open(dfile)
     #### Map WCS coords to pixel values for the first file in the dataset
