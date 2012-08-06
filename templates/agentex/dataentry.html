@@ -72,10 +72,11 @@
 		var h = 100;
 
 		bubblePopup({id:type+'pin',el:{x:l,y:t,w:(r*2),h:(r*2)},html:'',w:w,h:h,animate:true,z:10})
-		$('#'+type+'pin').bind('mouseover',function(){
-			$('.openpin').css('z-index',10)
-			$(this).css('z-index',11)
+		$('#'+type+'pin').bind('mouseover',function(e){
+			$('.openpin').css('z-index',10);
+			$(this).css('z-index',11);
 		});
+
 		$('#'+type+'pin').bind('click',function(){
 			$(this).remove();
 			changed = true;
@@ -93,7 +94,14 @@
 		// Add the labels to the plot
 		if(typeof labels=="object"){
 			for(i = 0; i < labels.length ; i++) rplot.g.text(0, 8+i*12, labels[i]).attr({fill:rplot.g.colors[i],"text-anchor": "start"});
+			/*
+			$('#'+type+'pin').bind('mouseover',{plot:rplot,w:w*2,h:h*2},function(e){
+				e.data.plot.setViewBox(0,0,e.data.w,e.data.h,true);
+			}).bind('mouseout',{plot:rplot,w:w,h:h},function(e){
+				e.data.plot.setViewBox(0,0,e.data.w,e.data.h,true);
+			});*/
 		}
+		
 	}
 
 	function toggleFinderChart(e){

@@ -297,6 +297,9 @@ Lightcurve.prototype.model = function(a, x) {
 	x = optimize.vector.atleast_1d(x);
 	a = optimize.vector.atleast_1d(a);
 
+	// Keep the power positive
+	pow = Math.abs(pow)
+
 	for (i = 0; i < x.length; i++) {
 		var diff = Math.abs(x[i] - cen);
 		if(diff > sig) diff *= (Math.pow(1+(diff-sig)/sig,pow));
@@ -317,10 +320,10 @@ Lightcurve.prototype.fit = function(d) {
 	var out = { id: 'model', data: [], points: { show: false }, lines: { show: true, width: 3 }, color: "rgb(51,153,255)",clickable: false,hoverable:false};
 	var _obj = this;
 
-	var range = d[d.length-1].x-d[0].x;
-	range = this.graph.x.max - this.graph.x.min;
+	//var range = d[d.length-1].x-d[0].x;
+	var range = this.graph.x.max - this.graph.x.min;
 
-	for(i = 0; i < d.length; i++) data.push({x:(d[i].x-d[0].x)/range,y:d[i].y, err: (d[i].err)});
+	for(i = 0; i < d.length; i++) data.push({x:(d[i].x-this.graph.x.min)/range,y:d[i].y, err: (d[i].err)});
 	for(i = 0; i < n; i++) outx.push(i/(n-1));
 
 	p0 = [1,-0.05, 0.5, 0.25,1.5];
@@ -336,7 +339,7 @@ Lightcurve.prototype.fit = function(d) {
 	var model = this.model(p1,outx);
 
 	for(i = 0; i < n; i++){
-		out.data.push({x:this.graph.x.min + range*outx[i], y: model[i] });
+		out.data.push({x:this.graph.x.min + range*(outx[i]), y: model[i] });
 	}
 
 	this.graph.addSeries(out);
@@ -427,7 +430,7 @@ Lightcurve.prototype.update = function(){
 		}
 		
 		//var colours = ["#edc240", "#afd8f8", "#cb4b4b", "#4da74d", "#9440ed","#c29a2d","#87adc7","#a83f3a","#437e47","#5e2796"]
-		var colours = ['#d62728','#1e77b4','#edc240','#2ba02c','#9467bd','#8c564b',"#c29a2d","#87adc7","#a83f3a","#437e47","#5e2796"];
+		var colours = ["#d62728","#1e77b4","#edc240","#2ba02c","#9467bd","#8f2323","#1b5278","#9e790b","#076b08","#572b7e","#eb7172","#66aada","#f6dc8c","#76d077","#cebcde"];
 		var url = this.url.edit;
 		for(var d=0 ; d < this.dataplot.length ; d++){
 			if(this.used[d]){
