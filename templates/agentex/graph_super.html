@@ -21,7 +21,7 @@
 		$('#nextstep').addClass('fancybtndisable');
 
 	{% if numsuper %}
-		html = '<p>{{numsuper}} calibrator{% if numsuper > 1 %}s were{%else%} was{%endif%} used to make this graph. As more people measure more calibrators the lightcurve should improve. If you can see a dip in the lightcurve, select that region to calculate the relative sizes of the star, planet and the orbit.'
+		html = '<p>Measurements with {{numsuper}} calibrator{% if numsuper > 1 %}s were combined{%else%} was used{%endif%} to make this final lightcurve. With more calibrators the lightcurve should improve.'
 //		html += '<div id="mainplot" style="padding-left:40px;height:450px;width:880px;"><\/div>';
 		html += '<div id="mainplot" style="height:450px;width:100%;"><\/div>';
 	
@@ -61,7 +61,8 @@
 					series: { points: { show: false } },
 					grid: { hoverable: false, clickable: false, markings:markings },
 					selection: { mode: "xy", color: '#000000' }
-			}
+			},
+			period: {{ target.period }}*86400000
 		});
 	
 	

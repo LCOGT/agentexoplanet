@@ -40,6 +40,7 @@ function Lightcurve(inp){
 	this.id = (typeof inp.id=="string") ? inp.id : "#mainplot";
 	this.type = (typeof inp.type=="string") ? inp.type : "calibrators";
 	this.framenum = (typeof inp.framenum=="number") ? inp.framenum : 0;
+	this.period = (typeof inp.period=="number") ? inp.period : 0;
 	this.msg = {nodata: ((typeof inp.msg.nodata=="string") ? inp.msg.nodata : "<p>You have no data points yet</p>"), login: ((typeof inp.msg.login=="string") ? inp.msg.login : "Please login to edit") };
 	this.url = (inp.url) ? {edit: ((typeof inp.url.edit=="string") ? inp.url.edit : ""), json: ((typeof inp.url.json=="string") ? inp.url.json : ""), xhr: ((typeof inp.url.xhr=="string") ? inp.url.xhr : "") } : { edit:'',json:'',xhr:'' };
 	this.data = (typeof inp.data=="object") ? inp.data : "";
@@ -284,30 +285,58 @@ Lightcurve.prototype.data2plot = function(){
 }
 
 // Return the model values
-Lightcurve.prototype.model = function(a, x) {
+// This model assumes a linear first order limb darkening and 
+// uses the method defined in Addison, Durrance & Schwieterman 
+// http://adsabs.harvard.edu/abs/2010JSARA...3...45A
+Lightcurve.prototype.model = function(p, t) {
 
-	var bkg = a[0];
-	var amp = a[1];
-	var cen = a[2];
-	var sig = a[3];
-	var pow = a[4];
-	var i, j, result = [], sig2 = sig*sig, g;
-	//norm = a[0] / Math.sqrt(2 * Math.PI * sig2);
+	t = optimize.vector.atleast_1d(t);
+	p = optimize.vector.atleast_1d(p);
 
-	x = optimize.vector.atleast_1d(x);
-	a = optimize.vector.atleast_1d(a);
+	var a = p[0];	// in units of rstar
+	var rstar = 1;
+	var rplanet = p[1];	// in units of rstar
+	var tzero = p[2];
+	var period = 1;
+	var inc = 0.0;
+	
+	// The fractional drop in intensity caused by the planet
+	var Fb;
+	var px = 8;
+	var i, j, dpix, x, theta, xpos, ypos, result = [], v, n;
+	var mu = 0.684;
 
-	// Keep the power positive
-	pow = Math.abs(pow)
+	ypos = a * Math.sin(inc);
 
-	for (i = 0; i < x.length; i++) {
-		var diff = Math.abs(x[i] - cen);
-		if(diff > sig) diff *= (Math.pow(1+(diff-sig)/sig,pow));
-		g = Math.exp(-0.5 * diff * diff / sig2);
-		result.push(bkg + amp * g);
+	var pxstar = (4/3)*Math.PI*Math.pow(px*rstar/rplanet,2);
+
+	for (x = 0; x < t.length; x++) {
+
+		theta = (t[x]-tzero)/(period);
+
+		xpos = a * Math.sin(2*Math.PI*theta);
+
+		Fb = 0;
+		n = 0;
+		for(i = -px; i <= px ; i++){
+			for(j = -px; j <= px ; j++){
+				dpix = Math.sqrt( Math.pow((xpos + rplanet*i/px),2) + Math.pow((ypos + rplanet*j/px),2));
+				
+				if(dpix < rstar){
+
+					v = (1 - mu*(1 - Math.sqrt(1 - Math.pow((dpix/rstar),2))))
+					Fb += v;
+					n++;
+				}
+			}
+		}
+
+		// Scale by star pixels
+		result.push(1 - Fb/pxstar);
 	}
 
 	return result;
+
 };
 
 // Fit the model to the data
@@ -319,37 +348,39 @@ Lightcurve.prototype.fit = function(d) {
 	// '#d62728','#1e77b4','#edc240'
 	var out = { id: 'model', data: [], points: { show: false }, lines: { show: true, width: 3 }, color: "rgb(51,153,255)",clickable: false,hoverable:false};
 	var _obj = this;
+	var xs = [], ys = [], es = [];
 
 	//var range = d[d.length-1].x-d[0].x;
 	var range = this.graph.x.max - this.graph.x.min;
 
-	for(i = 0; i < d.length; i++) data.push({x:(d[i].x-this.graph.x.min)/range,y:d[i].y, err: (d[i].err)});
-	for(i = 0; i < n; i++) outx.push(i/(n-1));
+	for(i = 0; i < d.length; i++) xs.push((d[i].x-d[0].x)/this.period);
+	for(i = 0; i < d.length; i++) ys.push(d[i].y);
+	for(i = 0; i < d.length; i++) es.push(d[i].err);
+	for(i = 0; i < n; i++) outx.push((i/(n-1))*(d[d.length-1].x-d[0].x)/this.period);
 
-	p0 = [1,-0.05, 0.5, 0.25,1.5];
+	// orbital radius, star radius, planet radius
+	p0 = [6.966,0.1,(d[Math.floor(d.length/2)].x-d[0].x)/this.period];
 
 	p1 = optimize.newton(function(p){
 		var i, chi = [];
-		for (i = 0; i < data.length; i++) {
-			chi.push((data[i].y - _obj.model(p, data[i].x)[0]) / data[i].err);
+		var model = _obj.model(p, xs);
+		for (i = 0; i < xs.length; i++) {
+			chi.push((ys[i] - model[i]) / es[i]);
 		}
 		return chi;
 	}, p0);
 
 	var model = this.model(p1,outx);
 
+	var mn = 1;
 	for(i = 0; i < n; i++){
-		out.data.push({x:this.graph.x.min + range*(outx[i]), y: model[i] });
+		out.data.push({x:(outx[i]*this.period)+d[0].x, y: model[i],points:{show:true} });
+		if(model[i] < mn) mn = model[i];
 	}
 
 	this.graph.addSeries(out);
-
-	var amp = p1[1];
-	var cen = p1[2];
-	var sig = p1[3];
-	var pow = p1[4];
-
-	this.fitted = { xaxis: { from: this.graph.x.min+range*(cen-sig), to: this.graph.x.min+range*(cen+sig) }, yaxis: { from: 1+amp, to: 1 }};
+	
+	this.fitted = { xaxis: { from: this.graph.x.min, to: this.graph.x.min+(this.period)/(Math.PI*p1[0]) }, yaxis: { from: mn, to: 1 }};
 
 	return this;
 };
@@ -388,7 +419,7 @@ Lightcurve.prototype.update = function(){
 			{ id: 'mean', data: this.dm, points: {show: true, radius: 3, width: 1.5}, lines: { show: false, width: 1 }, color: "rgb(51,153,255)", clickable: false,hoverable:false }
 		];
 
-		t = (this.dm[this.dm.length-1].x-this.dm[0].x)/12;
+		t = (this.dm[this.dm.length-1].x-this.dm[0].x)/25;
 		var means = [];
 		var maxs = [];
 		var mins = [];
@@ -414,7 +445,6 @@ Lightcurve.prototype.update = function(){
 			yaxis: { label: this.options.yaxis.axisLabel, min: this.dl, max: this.dh },
 			grid: { show: true, color:'rgb(150,150,150)', border: 2, clickable: true, hoverable: true }
 		});
-		//this.graph.addLine({y:1.0,width:2,color:'rgba(0,0,0,0.6)'}).update();
 
 		this.fit(this.dm);
 	
