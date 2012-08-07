@@ -245,7 +245,7 @@ Lightcurve.prototype.data2plot = function(){
 		}
 	}else if(this.type=="average"){
 
-		if(typeof d=="undefined"){
+		if(typeof d=="undefined" || d.length < 1){
 		
 		}else if(typeof d[0].date=="undefined"){
 			this.dataplot = new Array(d.calibration.length);
