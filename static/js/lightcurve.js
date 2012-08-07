@@ -458,7 +458,7 @@ Lightcurve.prototype.update = function(){
 		for(var d=0 ; d < this.dataplot.length ; d++){
 			dataplot2.push([]);
 			for(var i=0 ; i < this.dataplot[d].length ; i++){
-				dataplot2[d].push({x:this.dataplot[d][i][0],y:this.dataplot[d][i][1],id:this.dataplot[d][i][2]});
+				dataplot2[d].push({x:this.dataplot[d][i][0],y:this.dataplot[d][i][1],id:this.dataplot[d][i][2],series:(d+1)});
 			}
 		}
 		
@@ -477,12 +477,12 @@ Lightcurve.prototype.update = function(){
 					hoverable: true,
 					hover: {
 						text: function(e){
-							return '<a href="'+url+'{{id}}">Edit the frame<br />at '+unixtohours(e.data.x)+'</a>';
+							return '<strong>Calibrator '+e.data.series+'</strong><a href="'+url+'{{id}}"><br />Edit the frame<br />at '+unixtohours(e.data.x)+'</a>';
 						},
 						radius: 7,
 						width: 3.5
 				    },
-				    css: { 'background-color': 'white', 'text-align':'center' },
+				    css: { 'background-color': 'white', 'text-align':'center', 'color': 'black' },
 					class: 'poppitypin chat-bubble'
 				});
 			}

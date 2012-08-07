@@ -3,7 +3,19 @@
 {% block body-class %}full {%endblock%}
 
 {%block header %}Citizen Science portal{%endblock%}
-    
+
+{% block script-content %}
+{% if messages %}
+	<script type="text/javascript">
+	<!--
+	$(document).ready(function(){
+		bubblePopup({id:'message',el:$('#main'),align:"center",fade:2000,w:200,animate:true,dismiss:true});
+	});
+	// -->
+	</script>
+{% endif %}
+{% endblock %}
+
 {% block main-content %}
 				
 				<div class="row rowfirst">
@@ -39,4 +51,11 @@
 					</div>				
 				</div>
 
+{% if messages %}
+				<div id="message">
+					<ul class="messages">
+{% for message in messages %}{%ifchanged%}						<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message|safe }}</li>{%endifchanged%}{% endfor %}
+					</ul>
+				</div>
+{% endif %}
 {% endblock %}

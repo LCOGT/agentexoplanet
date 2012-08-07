@@ -194,9 +194,8 @@
 			orbiting = true;
 			planet.svg.animate({
 				"50%": {cx: star.x+(planet.a*metres2px), easing: "<>", callback: function () { planet.svg.toBack(); }},
-				"100%": {cx: star.x-(planet.a*metres2px), easing: "<>", callback: function () { planet.svg.toFront(); orbit() } }
-			}, 10000)
-	
+				"100%": {cx: star.x-(planet.a*metres2px), easing: "<>", callback: function () { planet.svg.toFront(); orbit(); } }
+			}, 10000);
 		}
 		function check (){
 			vals = [];

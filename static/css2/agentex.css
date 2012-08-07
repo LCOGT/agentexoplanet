@@ -33,13 +33,13 @@ body.agentex #logo { margin-top: 8px; margin-bottom: 0px; }
 body.agentex #logo img { width: 247px; height: 104px;}
 #navbar {
 	margin: -21px;
-	padding: 0px 96px 0px 0px;
+	padding: 0px 0px 0px 0px;
 }
 #navbar.primary a {
 	color: white;
 }
 body.planets ul.links { z-index: 10; }
-body.agentex #navbar ul.links { margin: 0px; height: 21px; }
+body.agentex #navbar ul.links { margin: 0px; float: none; }
 body.agentex #navbar ul.links li { padding: 0px; }
 body.agentex #navbar ul.links li a { padding:5px 10px 5px 10px; }
 body.agentex #navbar ul.links li a {
@@ -57,7 +57,7 @@ body.agentex #navbar ul.links li a {
 	border-top-left-radius: 8px;
 	border-top-right-radius: 8px;
 }
-body.dossierfront #navbar ul.links li.menu-home a, body.planets #navbar ul.links li.menu-planets a, body.briefing #navbar ul.links li.menu-briefing a, body.profile #navbar ul.links li.menu-profile a { background: #e7d3a5; }
+body.dossierfront #navbar ul.links li.menu-home a, body.planets #navbar ul.links li.menu-planets a, body.briefing #navbar ul.links li.menu-briefing a, body.profile #navbar ul.links li.menu-profile a { background: #e7d3a5; z-index: 20; }
 body.dossier #main {
 	border: 0px;
 }
@@ -77,9 +77,6 @@ body.full #content, body.airmail #content {
 	margin: 0px;
 	background-color: #fff;
 	padding-bottom: 10px;
-	box-shadow: 1px 1px 20px rgba(0,0,0,0.6);
-	-moz-box-shadow: 1px 1px 20px rgba(0,0,0,0.6);
-	-webkit-box-shadow: 1px 1px 20px rgba(0,0,0,0.6);
 }
 
 body.full #main {
@@ -1077,6 +1074,7 @@ ul.polaroids li:nth-child(4n) { margin-right: 0px; }
 
 @media only screen and (max-width: 1050px) {
 	body.dossier #screen { width: 90%; max-width: 976px; }
+	#navbar { position:absolute; right: 20% }
 }
 @media only screen and (max-width: 600px) {
 	body.dossier #screen { width: 92%; max-width: 590px; }
