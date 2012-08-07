@@ -23,7 +23,7 @@
 	{% if numsuper %}
 		html = '<p>Measurements with {{numsuper}} calibrator{% if numsuper > 1 %}s were combined{%else%} was used{%endif%} to make this final lightcurve. With more calibrators the lightcurve should improve.'
 //		html += '<div id="mainplot" style="padding-left:40px;height:450px;width:880px;"><\/div>';
-		html += '<div id="mainplot" style="height:450px;width:100%;"><\/div>';
+		html += '<div id="mainplot" style="height:448px;width:100%;"><\/div>';
 	
 	{% endif %}		
 		addHelpHint($('#mainplot'),'This graph shows how the relative brightness of the host star changes as exoplanet <a href="{% url agentex.views.infoview event.name %}" class="objectspecific">{{event.title}}<\/a> passes in front of it.<br/><br/> This graph combines the measurements and classifications from all citizen scientists on this project, into one supercalibrator result.');
@@ -137,7 +137,7 @@
 					line = svg.path("M0 "+star.y+"L"+wide+" "+star.y).attr({stroke:'#000000',"stroke-width": 1,"stroke-dasharray":["--"],"stroke-opacity": 0.7});
 					marker.svg = svg.path("M"+(star.x+marker.a*metres2px)+" "+(star.y-5)+"L"+(star.x+marker.a*metres2px)+" "+(star.y+5)).attr({stroke:'#000000',"stroke-width": 1,"stroke-opacity": 0.7});
 					label.svg = svg.text((star.x+label.a*metres2px),(star.y+15),(label.a/au).toFixed(2)+' AU');
-					star.svg = svg.circle(star.x,star.y,star.radius*metres2px).attr({fill: '#ffdd00',stroke: '#ddbb00',"stroke-width": 2,"stroke-dasharray":["--"],"fill-opacity": 0.95});
+					star.svg = svg.circle(star.x,star.y,star.radius*metres2px).attr({fill: 'r#ffdd00-#ddbb00',stroke: '#bb9900',"stroke-width": 2,"stroke-dasharray":["--"],"fill-opacity": 0.95});
 					planet.svg = svg.circle(star.x-planet.a*metres2px,planet.y,planet.radius*metres2px).attr({fill: '#444444',stroke:'#000000',"stroke-width": 2,"stroke-dasharray":["-"],"fill-opacity": 0.95});
 					orbit();
 					

@@ -303,33 +303,34 @@ Lightcurve.prototype.model = function(p, t) {
 	var inc = 0.0;
 	
 	// The fractional drop in intensity caused by the planet
-	var Fb;
-	var px = 8;
-	var i, j, dpix, x, theta, xpos, ypos, result = [], v, n;
+	var px = 9;	// Half the number of pixels to use for the planet
+	var Fb, i, j, dpix, x, theta, xpos, ypos, result = [], pxstar;
 	var mu = 0.684;
 
+	// The planet's y position
 	ypos = a * Math.sin(inc);
 
-	var pxstar = (4/3)*Math.PI*Math.pow(px*rstar/rplanet,2);
+	// A normalization factor
+	pxstar = (4/3)*Math.PI*Math.pow(px*rstar/rplanet,2);
+
+	var rplanetpx = rplanet/px;
 
 	for (x = 0; x < t.length; x++) {
 
 		theta = (t[x]-tzero)/(period);
 
+		// The planet's x-position for this time step
 		xpos = a * Math.sin(2*Math.PI*theta);
 
 		Fb = 0;
-		n = 0;
 		for(i = -px; i <= px ; i++){
 			for(j = -px; j <= px ; j++){
-				dpix = Math.sqrt( Math.pow((xpos + rplanet*i/px),2) + Math.pow((ypos + rplanet*j/px),2));
-				
-				if(dpix < rstar){
 
-					v = (1 - mu*(1 - Math.sqrt(1 - Math.pow((dpix/rstar),2))))
-					Fb += v;
-					n++;
-				}
+				// Find distance from star centre to this planet-pixel
+				dpix = Math.sqrt( Math.pow((xpos + rplanetpx*i),2) + Math.pow((ypos + rplanetpx*j),2));
+				
+				if(dpix < rstar) Fb += (1 - mu*(1 - Math.sqrt(1 - Math.pow((dpix/rstar),2))));
+
 			}
 		}
 
