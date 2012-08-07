@@ -500,6 +500,8 @@ Lightcurve.prototype.update = function(){
 
 		if(this.graph) this.graph.clear();
 
+		if(typeof this.dataplot=="undefined") return this;
+
 		var dataset = [];
 		var dataplot2 = [];
 		var mn = this.dataplot[this.cal.order][0][1];
@@ -536,6 +538,7 @@ Lightcurve.prototype.update = function(){
 		}
 
 	}
+	return this;
 }
 
 Lightcurve.prototype.calibrate_data = function(){
