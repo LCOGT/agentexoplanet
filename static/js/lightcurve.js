@@ -245,7 +245,9 @@ Lightcurve.prototype.data2plot = function(){
 		}
 	}else if(this.type=="average"){
 
-		if(typeof d[0].date=="undefined"){
+		if(typeof d=="undefined"){
+		
+		}else if(typeof d[0].date=="undefined"){
 			this.dataplot = new Array(d.calibration.length);
 			this.ys = new Array(d.calibration.length);
 			if(d.source.length == 0) bubblePopup({id:'editmsg',el:$(this.id),w:200,align:'center',html:this.msg.nodata,'padding':2})
