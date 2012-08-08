@@ -103,7 +103,7 @@ def profile(request):
     completed = DataCollection.objects.values('planet').filter(person=request.user).annotate(Count('complete')).count()
     #ndecs = Decision.objects.filter(person=request.user,planet=d[0].event,current=True).count()
     badgelist = Badge.objects.exclude(id__in=[b.badge.id for b in a]).order_by('name')
-    return render_to_response("profile.html",{'unlocked':a,'badges':badgelist,'planets':noplanet,'measurements':nomeas,'completed':completed},context_instance=RequestContext(request))
+    return render_to_response("agentex/profile.html",{'unlocked':a,'badges':badgelist,'planets':noplanet,'measurements':nomeas,'completed':completed},context_instance=RequestContext(request))
 
 #@login_required
 def target(request):  
@@ -677,6 +677,31 @@ def addvalidset(request,code):
     else:
         return True
         
+@login_required
+def my_data(o,code):
+    data = []
+    sources = DataSource.objects.filter(event__name=code).order_by('timestamp')
+    points  = Datapoint.objects.filter(data__event__name=code,user=o.user)
+    for s in sources:
+        ps = points.filter(data=s)
+        myp = ps.filter(pointtype='S')
+        try:
+            mypoint = '%f' % myp[0].value
+        except:
+            mypoint = 'null'
+        cals = ps.filter(pointtype='C').values_list('value',flat=True).order_by('coorder')
+        line = {
+                'id'        : "%i" % s.id,
+                'date'      : s.timestamp.isoformat(" "),
+                'datestamp' : timegm(s.timestamp.timetuple())+1e-6*s.timestamp.microsecond,
+                'data'      : { 'source' : list(ps.filter(pointtype='S').values_list('value',flat=True)),
+                                'background' :  list(ps.filter(pointtype='B').values_list('value',flat=True)),
+                                'calibrator' :  list(cals),
+                            },
+                }
+        data.append(line)
+    return data,points,sources
+        
 @login_required  
 def graphview(request,code,mode,calid):
     #measurement = Datapoint.objects.filter(taken=date,data__event__name=code)
@@ -684,44 +709,22 @@ def graphview(request,code,mode,calid):
     o = personcheck(request)
     progress = checkprogress(o.user,code)
     planet = Event.objects.filter(name=code)[0]
-    data = []
+    n = 0
     if mode == 'simple':
-        sources = DataSource.objects.filter(event__name=code).order_by('timestamp')
-        points  = Datapoint.objects.filter(data__event__name=code,user=o.user)
-        # points = Datapoint.objects.filter(~Q(pointtype='R'),data__event__name=code).values('data__id','data__timestamp').order_by('data__timestamp')
-        # mypoints = Datapoint.objects.filter(~Q(pointtype='R'),data__event__name=code,user=o[0])
-        n = 0
-        for s in sources:
-            ps = points.filter(data=s)
-            myp = ps.filter(pointtype='S')
-            try:
-                mypoint = '%f' % myp[0].value
-            except:
-                mypoint = 'null'
-            cals = ps.filter(pointtype='C').values_list('value',flat=True).order_by('coorder')
-            line = {
-                    'id'        : "%i" % s.id,
-                    'date'      : s.timestamp.isoformat(" "),
-                    'datestamp' : timegm(s.timestamp.timetuple())+1e-6*s.timestamp.microsecond,
-                    'data'      : { 'source' : list(ps.filter(pointtype='S').values_list('value',flat=True)),
-                                    'background' :  list(ps.filter(pointtype='B').values_list('value',flat=True)),
-                                    'calibrator' :  list(cals),
-                                },
-                    }
-            data.append(line)
+        data,points,sources = my_data(o,code)
         dc = DataCollection.objects.filter(person=o.user,planet=planet)
         if dc.count() > n:
-        	n = range(0,dc.count())
-        	cats = []
-        	for order in n:
-        	    dc0 = dc.filter(calid=order)[0]
-        	    c = points.filter(pointtype='C',coorder=dc0)[:1]
-        	    valid = c[0].coorder.display
-        	    coll = {'order' : order,
-        	            'name'  : c[0].coorder.source,
-        	            'valid' : valid,
-        	            }
-        	    cats.append(coll)
+            n = range(0,dc.count())
+            cats = []
+            for order in n:
+                dc0 = dc.filter(calid=order)[0]
+                c = points.filter(pointtype='C',coorder=dc0)[:1]
+                valid = c[0].coorder.display
+                coll = {'order' : order,
+                        'name'  : c[0].coorder.source,
+                        'valid' : valid,
+                        }
+                cats.append(coll)
         else:
             cats = None
         classif = classified(o,code)
@@ -734,9 +737,9 @@ def graphview(request,code,mode,calid):
                                                                 'target':DataSource.objects.filter(event__name=code)[0].target}, 
                                                                 context_instance=RequestContext(request))
     elif mode == 'ave':
+        data = []
         # get and restructure the average data JS can read it nicely
         now = datetime.now()
-        #cals,normcals,sb,bg,dates,stamps,ids,cats = myaverages(code, o.user)
         cals,normcals,sb,bg,dates,stamps,ids,cats = averagecals(code, o.user)
         numcals = len(normcals)
         for i,id in enumerate(ids):
@@ -813,7 +816,6 @@ def graphview(request,code,mode,calid):
             else : msg = 'Achievement unlocked'+msg
             messages.add_message(request, messages.SUCCESS, msg)
 
-
         return render_to_response('agentex/graph_average.html', {'event': planet,
                                                                 'data':data,
                                                                 'sources':cats,
@@ -853,20 +855,11 @@ def graphsuper(request,code):
     now = datetime.now()
     ti = 0
     planet = Event.objects.filter(name=code)[0]
-#    ti += 1
-#    messages.error(request,"%s - %s" % (ti, datetime.now()-now))
-    numsuper, normvals, std,radiusratio = supercaldata(planet)
-#    messages.error(request,"%s - %s" % (ti, datetime.now()-now))
-#    ti += 1
+    numsuper, normvals, myvals, std,radiusratio = supercaldata(request,planet)
     sources = DataSource.objects.filter(event=planet).order_by('timestamp')
-#    messages.error(request,"%s - %s" % (ti, datetime.now()-now))
-#    ti += 1
     n = 0
-    #classif = classified(o,code)
     data = []
     if len(normvals) == planet.numobs :
-#        messages.error(request,"%s - %s" % (ti, datetime.now()-now))
-#        ti += 1
         for i,s in enumerate(sources):
             line = {
                     'id'        : "%i" % s.id,
@@ -875,11 +868,10 @@ def graphsuper(request,code):
                     'data'      : {
                                     'mean' : normvals[i],
                                     'std'  : std[i],
+                                    'mine' : myvals[i],
                         },
                     }
             data.append(line)
-#        messages.error(request,"%s - %s" % (ti, datetime.now()-now))
-#       ti += 1
     else:
         data = None
     return render_to_response('agentex/graph_super.html', {'event':planet,
@@ -1115,18 +1107,6 @@ def measurementsummary(request,code,format):
             return HttpResponse(simplejson.dumps(data,indent = 2),mimetype='application/javascript')
         elif format == 'xml':
             return render_to_response('agentex/data_summary.xml',{'data':data},mimetype="application/xhtml+xml")
-        # elif format == 'csv':
-        #     csv = "Date of observation, total source counts, total background counts, total counts calibrator 1, total counts calibrator 2, ...\n"
-        #     for s in points.filter(pointtype='S'):
-        #         csv += "%s,%s," % (s[2],s[1].strftime('%Y-%m-%d %H:%M'))
-        #         #csv += "\t"
-        #         csv +=  '%.0f,' % s[0]
-        #         #csv += "\t"
-        #         csv +=  "%.0f, " % points.filter(data=s[2],pointtype='B')[0][0]
-        #         for cal in list(points.filter(data=s[2],pointtype='C').order_by('coorder__calid').values_list('value',flat=True)):
-        #             csv += "%.0f, " % cal
-        #         csv +="\n"
-        #     return HttpResponse(csv,mimetype='text/csv')
         elif format == 'csv':
             csv = ""#"Date of observation, total source counts, total background counts, total counts calibrator 1, total counts calibrator 2, ...\n"
             for s in points.filter(pointtype='S'):
@@ -1138,16 +1118,16 @@ def calibratemydata(code,user):
     ds = DataSource.objects.filter(event__name=code).order_by('timestamp')
     stars = DataCollection.objects.filter(planet__name = code,person=user).values_list('source',flat=True)
     cals = []
-    mycals = []
-    dates = []
-    stamps = []
-    timestamps = []
-    ids = []
-    scA = []
-    bgA = []
+    # mycals = []
+    # dates = []
+    # stamps = []
+    # timestamps = []
+    # ids = []
+    # scA = []
+    # bgA = []
     for i,st in enumerate(stars):
         vals = []
-        myvals = []
+        #myvals = []
         for d in ds:
             points = Datapoint.objects.filter(data=d)
             cp = points.filter(pointtype='C',coorder__source=st).aggregate(ave=Avg('value'))['ave']
@@ -1159,24 +1139,63 @@ def calibratemydata(code,user):
                 vals.append(0.0)
             mypoint = points.filter(user=user)
             if mypoint:
-                myvals.append((sb-bg)/(mypoint[0].value-bg))
+                vals.append((sb-bg)/(mypoint[0].value-bg))
             else:
-                myvals.append(0.0)
-            if i == 0:
-                dates.append(d.timestamp.isoformat(" "))
-                stamps.append(timegm(d.timestamp.timetuple())+1e-6*d.timestamp.microsecond)
-                timestamps.append(d.timestamp)
-                ids.append(d.id)
-                scA.append(sb)
-                bgA.append(bg)
-        maxvals = r_[vals[:3],vals[-3:]]
-        nz = maxvals.nonzero()
-        maxval = mean(maxvals[nz])
+                vals.append('0.0')
+        maxval = max(vals)
+        #nz = maxvals.nonzero()
+        #maxval = mean(maxvals)
+        print vals
         cals.append(list(vals/maxval)) 
-        mycals.append(list(myvals/maxval))
-    return cals,mycals,scA,bgA,dates,stamps,ids
+        #mycals.append(list(myvals/maxval))
+    return mycals
     
 def myaverages(code,person):
+    now = datetime.now()
+    cals = []
+    mycals = []
+    dates = []
+    stamps = []
+    timestamps = []
+    normcals = []
+    maxvals = []
+    cats = []
+    # Find which Cat Sources I have observed and there is a complete set of (including other people's data)
+    # Unlike CalibrateMyData it only includes set where there are full sets
+    e = Event.objects.filter(name=code)[0]
+    ds = DataSource.objects.filter(event__name=code).order_by('timestamp').values_list('id',flat=True)
+    dc = DataCollection.objects.filter(~Q(source=None),person=person,planet=e).order_by('calid')
+    cs = CatSource.objects.filter(id__in=[c.source.id for c in dc]).annotate(count=Count('datacollection__datapoint')).filter(count__gte=e.numobs).values_list('id',flat=True)
+    mydecisions = Decision.objects.filter(person=person,current=True,planet=e,value='D').values_list('source__id',flat=True)
+    if cs.count() > 0:
+        # Only use ones where we have more than numobs
+        for c in dc:
+            # make sure these are in the mydecision list (i.e. I've said they have a Dip)
+            if c.source.id in mydecisions:
+                v = Datapoint.objects.filter(coorder__source=c.source.id,pointtype='C',user=person).order_by('data__timestamp').values_list('data__id','value')
+                cals.append(dict(v))
+        if cals:
+            # Only proceed if we have calibrators in the list (i.e. arrays of numobs)
+            points = Datapoint.objects.filter(user=person,data__event__name=code).order_by('data__timestamp')
+            scA = points.filter(pointtype='S').values_list('data__id','value')
+            bgA = points.filter(pointtype='B').values_list('data__id','value')
+            # Create a list of normalised values with gaps if I haven't done the full dataset but have contributed to a 'Dip' classification
+            sc=dict(scA)
+            bg=dict(bgA)
+            sc = dictconv(sc,ds)
+            sc = array(sc)
+            bg = dictconv(bg,ds)
+            bg = array(bg)
+            for cal in cals:
+                val = (sc - bg)/(array(dictconv(cal,ds))-bg)
+                normcals.append(val)
+            normmean = mean(normcals,axis=0)
+            return list(normmean/max(normmean))
+    # If they have no 'D' decisions
+    return [0.]*ds.count()
+
+def averagecals(code,person):
+    # Uses and SQL statement to try to speed up the query for averaging data points
     now = datetime.now()
     cals = []
     mycals = []
@@ -1190,8 +1209,10 @@ def myaverages(code,person):
     # Find which Cat Sources I have observed and there is a complete set of (including other people's data)
     # Unlike CalibrateMyData it only includes set where there are full sets
     e = Event.objects.filter(name=code)[0]
-    dc = DataCollection.objects.filter(~Q(source=None),person=person,planet=e).order_by('calid')
+    dc = DataCollection.objects.filter(~Q(source=None),person=person,planet__name=code).order_by('calid')
     cs = CatSource.objects.filter(id__in=[c.source.id for c in dc]).annotate(count=Count('datacollection__datapoint')).filter(count__gte=e.numobs).values_list('id',flat=True)
+    dcall = DataCollection.objects.filter(planet=e,source__in=cs).values_list('id',flat=True)
+    # print "** Collections %s" % dcall.count()
     if cs.count() > 0:
         # Only use ones where we have more than numobs
         for c in dc:
@@ -1199,7 +1220,6 @@ def myaverages(code,person):
             if c.source.id in cs:
                 v = Datapoint.objects.filter(coorder__source=c.source.id,pointtype='C').order_by('data__timestamp').values_list('data__id').annotate(Avg('value'))
                 # Double check we have same number of obs and cals
-                # Find out if the current person has made any classifications yet
                 if v.count() == e.numobs:
                     ids,b = zip(*v)
                     cals.append(list(b))
@@ -1211,18 +1231,23 @@ def myaverages(code,person):
                     callist.append(c.source.id)
         if callist:
             # Only proceed if we have calibrators in the list (i.e. arrays of numobs)
-            ds = DataSource.objects.filter(event__name=code,id__in=ids).order_by('timestamp')
-            #points = Datapoint.objects.filter(data__id__in=ids)
-            dps = Datapoint.objects.filter(coorder__source__in=cs).values_list('taken','user','data')
-            taken,users,data = zip(*dps)
-            points = Datapoint.objects.filter(taken__in=taken,user__in=users,data__event__name=code).order_by('data__timestamp')
-            scA = points.filter(pointtype='S').values_list('data__id').annotate(ave=Avg('value'))
-            #scA = points.filter(pointtype='S',id__in=points).order_by('data__timestamp').values_list('data__id').annotate(Avg('value'))
-            bgA = points.filter(pointtype='B').values_list('data__id').annotate(Avg('value'))
-            tmp,sc=zip(*scA)
-            tmp,bg=zip(*bgA)
+            ds = DataSource.objects.filter(event__name=code).order_by('timestamp')
+            users = DataCollection.objects.filter(id__in=dcall).values_list('person',flat=True).distinct()
+            maxnum = ds.count()
+            dsmax1 = ds.aggregate(Max('id'))
+            dsmax = dsmax1['id__max']
+            dsmin = dsmax - maxnum
+            ds = ds.values_list('id',flat=True)
+            sc_my = ds.filter(datapoint__pointtype='S',datapoint__user=person).annotate(value=Sum('datapoint__value')).values_list('id','value')
+            bg_my = ds.filter(datapoint__pointtype='B',datapoint__user=person).annotate(value=Sum('datapoint__value')).values_list('id','value')
+            if sc_my.count() < maxnum:
+                return cals,normcals,[],[],dates,stamps,[],cats
+            else:
+                tmp,sc=zip(*sc_my)
+                tmp,bg=zip(*bg_my)
+                # Convert to numpy arrays to allow simple calibrations
             sc = array(sc)
-            bg = array(bg)
+            bg = array(bg)     
             for cal in cals:
                 val = (sc - bg)/(array(cal)-bg)
                 maxval = mean(r_[val[:3],val[-3:]])
@@ -1230,51 +1255,16 @@ def myaverages(code,person):
                 norm = val/maxval
                 normcals.append(list(norm))
             # Find my data and create unix timestamps
-            #mydp = DataSource.objects.filter(event__name=code).order_by('timestamp')
-            source = ds.filter(datapoint__pointtype='S',datapoint__user=person).annotate(value=Sum('datapoint__value')).values_list('id','value')
-            backgs = ds.filter(datapoint__pointtype='B',datapoint__user=person).annotate(value=Sum('datapoint__value')).values('id','value')
-            print "lists"
-            a = dict(source)
-            b = dict(scA)
-            print a
-            print b
-            print dict(b.items() + a.items()).setdefault(0.)
-            # sources = Datapoint.objects.values_list('value',flat=True).filter(pointtype='S',data__id__in=ids,user=person).order_by('data__timestamp')
-            # backgs = Datapoint.objects.values_list('value',flat=True).filter(pointtype='B',data__id__in=ids,user=person).order_by('data__timestamp')
-            # lookup = Datapoint.objects.values_list('data__id', flat=True).filter(pointtype='S',data__event=e,user=person).order_by('data__timestamp')
-            # mypoints = Datapoint.objects.filter(pointtype='C',data__id__in=ids,user=person).order_by('data__timestamp')
-            mycals = ds.filter(datapoint__pointtype='C',datapoint__user=person)
-            numcals = len(cals)
-            #mycals = [[] for i in range(numcals)]
-            # This is a bottleneck
             unixt = lambda x: timegm(x.timetuple())+1e-6*x.microsecond
             iso = lambda x: x.isoformat(" ")
             times = ds.values_list('timestamp',flat=True)
             stamps = map(unixt,times)
             dates = map(iso,times)
-            now = datetime.now()
-            #for coll in dc:
-                
-            # for d in ds:
-            #     if d.id in lookup:
-            #         index = [i for i,x in enumerate(lookup) if x == d.id][0]
-            #         for i,c in enumerate(callist):
-            #             myp = mypoints.filter(data=d,coorder__source=c).values_list('value',flat=True)
-            #             if myp:
-            #                 source = sources[index]
-            #                 backg = backgs[index]         
-            #                 val = (source-backg)/(myp[0]-backg)/maxvals[i]
-            #                 mycals[i].append(val)
-            #             else:
-            #                 mycals[i].append(0.0)
-            #     else:
-            #         for i,c in enumerate(callist):
-            #             mycals[i].append(0.0)
-            print datetime.now() - now
-            return cals,normcals,mycals,list(sc),list(bg),dates,stamps,[int(i) for i in ids],cats
-    return cals,normcals,mycals,[],[],dates,stamps,[],cats
+            return cals,normcals,list(sc),list(bg),dates,stamps,[int(i) for i in ids],cats
+    return cals,normcals,[],[],dates,stamps,[],cats
 
-def averagecals(code,person):
+def averagecals_combined(code,person):
+    # The old code which takes an average of everyone's values for each calibrator you've used
     # Uses and SQL statement to try to speed up the query for averaging data points
     now = datetime.now()
     cals = []
@@ -1355,111 +1345,28 @@ def averagecals(code,person):
             return cals,normcals,list(sc),list(bg),dates,stamps,[int(i) for i in ids],cats
     return cals,normcals,[],[],dates,stamps,[],cats
 
-
-def averagecals_orm(code,person):
-    # Averaging using the Django ORM -- this method is currently INACTIVE
-    now = datetime.now()
-    cals = []
-    mycals = []
-    dates = []
-    stamps = []
-    timestamps = []
-    normcals = []
-    maxvals = []
-    callist = []
-    cats = []
-    # Find which Cat Sources I have observed and there is a complete set of (including other people's data)
-    # Unlike CalibrateMyData it only includes set where there are full sets
-    e = Event.objects.filter(name=code)[0]
-    dc = DataCollection.objects.filter(~Q(source=None),person=person,planet__name=code).order_by('calid')
-    cs = CatSource.objects.filter(id__in=[c.source.id for c in dc]).annotate(count=Count('datacollection__datapoint')).filter(count__gte=e.numobs).values_list('id',flat=True)
-    dcall = DataCollection.objects.filter(planet=e,source__in=cs).values_list('id',flat=True)
-    # print "** Collections %s" % dcall.count()
-    if cs.count() > 0:
-        # Only use ones where we have more than numobs
-        for c in dc:
-            # make sure these are in the CatSource list (can't use cs because the order isn't right)
-            if c.source.id in cs:
-                v = Datapoint.objects.filter(coorder__source=c.source.id,pointtype='C').order_by('data__timestamp').values_list('data__id').annotate(Avg('value'))
-                # Double check we have same number of obs and cals
-                if v.count() == e.numobs:
-                    ids,b = zip(*v)
-                    cals.append(list(b))
-                    try:
-                        decvalue = Decision.objects.filter(source=c.source,person=person,planet__name=code,current=True)[0].value
-                    except:
-                        decvalue ='X'
-                    cats.append({'order':'%s' % c.calid,'sourcename':c.source.name,'catalogue':c.source.catalogue,'decision':decvalue})
-                    callist.append(c.source.id)
-        if callist:
-            # Only proceed if we have calibrators in the list (i.e. arrays of numobs)
-            ds = DataSource.objects.filter(event__name=code,id__in=ids).order_by('timestamp')
-            #points = Datapoint.objects.filter(data__id__in=ids)
-            #dps = Datapoint.objects.filter(coorder__in=dcall).values_list('taken','user','data')
-            #taken,users,data = zip(*dps)
-            users = DataCollection.objects.filter(id__in=dcall).values_list('person',flat=True).distinct()
-            print users.count()
-            print datetime.now() - now
-            # points = Datapoint.objects.filter(taken__in=taken,user__in=users,data__event__name=code).order_by('data__timestamp')
-            points = Datapoint.objects.filter(user__in=users,data__event__name=code).order_by('data__timestamp')
-            print datetime.now() - now
-            print points.count()
-            print datetime.now() - now
-            scA = points.filter(pointtype='S').values_list('data__id').annotate(ave=Avg('value'))
-            #scA = points.filter(pointtype='S',id__in=points).order_by('data__timestamp').values_list('data__id').annotate(Avg('value'))
-            bgA = points.filter(pointtype='B').values_list('data__id').annotate(Avg('value'))
-            tmp,sc=zip(*scA)
-            tmp,bg=zip(*bgA)
-            sc = array(sc)
-            bg = array(bg)
-            #print datetime.now() - now
-            for cal in cals:
-                val = (sc - bg)/(array(cal)-bg)
-                maxval = mean(r_[val[:3],val[-3:]])
-                maxvals.append(maxval)
-                norm = val/maxval
-                normcals.append(list(norm))
-            # Find my data and create unix timestamps
-            #mydp = DataSource.objects.filter(event__name=code).order_by('timestamp')
-            # source = ds.filter(datapoint__pointtype='S',datapoint__user=person).annotate(value=Sum('datapoint__value')).values_list('id','value')
-            # backgs = ds.filter(datapoint__pointtype='B',datapoint__user=person).annotate(value=Sum('datapoint__value')).values('id','value')
-            # # print "lists"
-            # # a = dict(source)
-            # # b = dict(scA)
-            # # print a
-            # # print b
-            # # print dict(b.items() + a.items()).setdefault(0.)
-            # sources = Datapoint.objects.values_list('value',flat=True).filter(pointtype='S',data__id__in=ids,user=person).order_by('data__timestamp')
-            # backgs = Datapoint.objects.values_list('value',flat=True).filter(pointtype='B',data__id__in=ids,user=person).order_by('data__timestamp')
-            # lookup = Datapoint.objects.values_list('data__id', flat=True).filter(pointtype='S',data__event=e,user=person).order_by('data__timestamp')
-            # mypoints = Datapoint.objects.filter(pointtype='C',data__id__in=ids,user=person).order_by('data__timestamp')
-            unixt = lambda x: timegm(x.timetuple())+1e-6*x.microsecond
-            iso = lambda x: x.isoformat(" ")
-            times = ds.values_list('timestamp',flat=True)
-            stamps = map(unixt,times)
-            dates = map(iso,times)
-            print cals,normcals,list(sc),list(bg)
-            return cals,normcals,list(sc),list(bg),dates,stamps,[int(i) for i in ids],cats
-    return cals,normcals,[],[],dates,stamps,[],cats
-
-def supercaldata(planet):
+def supercaldata(request,planet):
     calibs = []
+    mypoints = []
     ti = 0.
     # assume data which has Decisions forms part of a complete set
     # People and their sources who have Dips in the select planet
     now = datetime.now()
-    decs = Decision.objects.values_list('person','source').filter(value='D',current=True,planet__name=planet).annotate(Count('source'))
+    planet = Event.objects.get(name = planet)
+    decs = Decision.objects.values_list('person','source').filter(value='D',current=True,planet=planet).annotate(Count('source'))
     numsuper = decs.count()
     # Create a lists of sources  and people
     if decs:
         peoplelst,sourcelst,tmp = zip(*decs)
-        print "%s - %s" % (ti, datetime.now()-now)
+        #print "%s - %s" % (ti, datetime.now()-now)
         ti += 1
         people = set(peoplelst)
         sources = set(sourcelst)
+        if request.user.is_authenticated():
+            me = request.user.id
         for p in people:
             calslist = []
-            vals = Datapoint.objects.filter(data__event__name=planet,user=p).order_by('data__timestamp')
+            vals = Datapoint.objects.filter(data__event=planet,user=p).order_by('data__timestamp')
             sourceave = vals.filter(pointtype='S').annotate(mean=Avg('value')).values_list('mean',flat=True)
             bgave = vals.filter(pointtype='B').annotate(mean=Avg('value')).values_list('mean',flat=True)
             # make into Numpy arrays for easier manipulation
@@ -1476,34 +1383,41 @@ def supercaldata(planet):
                 # This throws a wobbly sometimes
                 cc = (sc-bg)/(calstack-bg)
                 calibs.append(cc.tolist())
-            print "%s %s - %s" % (ti, p, datetime.now()-now)
+                if p == me:
+                    # Calculate calibrated values for 'me'
+                    mypoints = array(cc)
+            #print "%s %s - %s" % (ti, p, datetime.now()-now)
             ti += 1
-        #superc = mean(cc,axis=0)
+        print mypoints
+        # Create normalisation function
+        norm_a = lambda a: mean(r_[a[:3],a[-3:]])
+        mycals = []
         try:
             cala = vstack(calibs)
-            norm_a = lambda a: mean(r_[a[:3],a[-3:]])
             norms = apply_along_axis(norm_a, 1, cala)
             dim = len(cala)
             norm1 = cala/norms.reshape(dim,1)
-        except:
+            mynorm1=[]
+            if mypoints != []:
+                #mynorms = apply_along_axis(norm_a, 1, mypoints)
+                myaves = average(mypoints,0)
+                mynorm_val = norm_a(myaves)
+                mycals = list(myaves/mynorm_val)
+        except Exception, e:
+            print e
             print "\033[1;35mHave you started again but not removed all the data?\033[1;m"
-            return None,[],[],None
+            return None,[],[],[],None
+        #if dim != len(mycals):
+        # check if I have a full set of data, if not we need to do all the calibrator averages manually
+            
         norm_alt = mean(norm1,axis=0)
         variance = var(norm1,axis=0)
         std = sqrt(variance)
-        print "%s - %s" % (ti, datetime.now()-now)
-        ti += 1
-        # mean(r_[superc[:3],superc[-3:]])
         fz = list(norm_alt)
-        # Commenting out model for limb darkening 
-        # if numsuper > 1:
-        #     p = modelfit(fz,vals[0].data.target)
-        # else:
-        #     p = 0.
-        p = 0.
-        return numsuper,fz,list(std),p
+        mycals = myaverages(planet,request.user)
+        return numsuper,fz,mycals,list(std),0.
     else:
-        return None,[],[],None
+        return None,[],[],[],None
 
 
 def modelfit(fz,target):
@@ -1537,18 +1451,6 @@ def leastmeasured(code):
         coords.append({'x':int(s.xpos),'y':int(s.ypos),'r':int(e[0].radius)})
     return coords   
         
-def proxyconnect(request):
-    if request.user.is_anonymous():
-        user = ""
-    else:
-        try:
-            name = request.user.get_full_name()
-        except:
-            name = "none given"
-        user = "UniqueID=%s " % request.user.id
-        user += "Name=%s " % name
-        user += "Email=%s " % request.user.email
-    return HttpResponse(user,mimetype='text/html')
 def upload_dataset():
     #################
     # Unused function for making use of exisiting API for access RTI data
@@ -1676,6 +1578,15 @@ def fetch_averages_sql(dsmin,dsmax,pointtype,users):
     result = list(cursor.fetchall())
     #ave_values = dict(result)
     return result
+    
+def dictconv(data,ref):
+    tmp = []
+    for i in ref:
+        try:
+            tmp.append(data[i])
+        except:
+            tmp.append(0.)
+    return tmp
   
 def addcomment(request):
 # Log user comments in the Django log
