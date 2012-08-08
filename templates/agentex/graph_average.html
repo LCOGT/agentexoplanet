@@ -17,7 +17,7 @@
 	document.write('<style type="text/css">.decisiontree { float: right; width: 300px; } fieldset { border: 0px; }<\/style>');
 
 	$(document).ready(function(){
-		html = '<div id="mainplot" style="height:450px;width:560px;max-width:100%;margin-bottom:10px;float:left;"><\/div>';
+		html = '<div id="mainplot"><\/div>';
 		$('.decisiontree').before(html);
 	
 		// Define help
@@ -229,13 +229,7 @@
 								</ul>
 							</div>{% endif %}
 		<h1>Step 2: Classify Lightcurves for <a href="{% url agentex.views.infoview event.name %}" class="objectspecific">{{event.title}}</a></h1>
-<!--
-		<ol class="breadcrumb">
-			<li><a href="{%url my-graph event.name%}"><img src="{{ MEDIA_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" />Step 1: My measurements</a></li>
-			<li class="active"><a href="{%url average-graph event.name%}"><img src="{{ MEDIA_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" />Step 2: Classify lightcurves</a></li>
-			<li><a href="{%url super-graph event.name%}"><img src="{{ MEDIA_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" />Step 3: Final lightcurve</a></li>
-		</ol>
--->
+
 		<div id="mylink" style="display:none;"><a href="{%url my-graph event.name%}"><img src="{{ MEDIA_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" /></a></div>
 		<div id="avlink" class="tabactive" style="display:none;"><a href="{%url average-graph event.name%}"><img src="{{ MEDIA_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" /></a></div>
 		<div id="sulink" style="display:none;"><a href="{%url super-graph event.name%}"><img src="{{ MEDIA_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" /></a></div>
@@ -272,7 +266,7 @@
 					<input type="reset" name="reset" class="fancybtngrey" value="Start over" tabindex="201" /> <input type="submit" class="fancybtn" value="Save my choices" tabindex="202" />
 				</div>
 			</form>
-			<div style="text-align:right;margin-top:130px;">
+			<div style="text-align:center;">
 				<a href="{%url super-graph event.name%}" class="fancybtn" id="nextstep">Step 3: Final lightcurve<span class="arrow">&nbsp;</span></a> 
 			</div>
 		</div>

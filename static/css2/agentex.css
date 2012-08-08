@@ -1072,9 +1072,28 @@ ul.polaroids li:nth-child(4n) { margin-right: 0px; }
 	width: 100%;
 }
 
+#mainplotholder {
+	height:450px;
+	width:560px;
+	float:left;
+	margin-bottom: 16px;
+}
+#mainplot {
+	height:450px;
+	width:560px;
+	max-width:100%;
+	margin-bottom:10px;
+}
+#nextstep { margin-bottom: 16px; }
+
 @media only screen and (max-width: 1050px) {
 	body.dossier #screen { width: 90%; max-width: 976px; }
 	#navbar { position:absolute; right: 20% }
+	.decisiontree { display: block; width: 100%!important; }
+	.decisiontree form { text-align: center; }
+	.decisiontree .radio { float: none; display: inline-block; }
+	#mainplotholder { float: none; width: 100%;  }
+	#mainplot { width: 100%; }
 }
 @media only screen and (max-width: 600px) {
 	body.dossier #screen { width: 92%; max-width: 590px; }
