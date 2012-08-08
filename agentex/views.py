@@ -1414,7 +1414,8 @@ def supercaldata(request,planet):
         variance = var(norm1,axis=0)
         std = sqrt(variance)
         fz = list(norm_alt)
-        mycals = myaverages(planet,request.user)
+        if mycals == []:
+            mycals = myaverages(planet,request.user)
         return numsuper,fz,mycals,list(std),0.
     else:
         return None,[],[],[],None
