@@ -72,8 +72,8 @@
 		// Constants
 		var au = 1.496e11;
 		var G = 6.67e-11;
-		var wide = 880;
-		var tall = 250;
+		var wide = $('#mainplotholder').outerWidth();
+		var tall = Math.round((wide/3)/16)*16;
 	
 		// Scaling
 		var metres2px = 0;
@@ -195,7 +195,7 @@
 			planet.svg.animate({
 				"50%": {cx: star.x+(planet.a*metres2px), easing: "<>", callback: function () { planet.svg.toBack(); }},
 				"100%": {cx: star.x-(planet.a*metres2px), easing: "<>", callback: function () { planet.svg.toFront(); orbit(); } }
-			}, 30000);
+			}, 20000);
 		}
 		function check (){
 			vals = [];

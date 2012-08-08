@@ -9,7 +9,7 @@
 	font-style: normal;
 }
 
-table { margin-top: 0px; }
+table { margin-top: 0px; width:100%; }
 table th,table td { line-height: 31px; }
 table.borderless { border: 0px; }
 table.borderless td { border: 0px; }
