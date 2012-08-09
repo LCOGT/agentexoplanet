@@ -295,6 +295,7 @@
 		</div>
 
 		<div style="max-width:900px;overflow:auto;">
+		    <a href="{% url agentex.views.measurementsummary event.name 'csv'%}">Download the data for this lightcurve as a CSV file</a><br/>
 		<table class="accessible" id="datatable" summary="The data used to make the final lightcurve">
 			<tr><th>Observation date</th><th>Relative brightness</th><th>Estimated uncertainty</th></tr>
 	{% for line in data %}
