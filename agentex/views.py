@@ -1088,29 +1088,34 @@ def measurementsummary(request,code,format):
                 }
         return HttpResponse(simplejson.dumps(line,indent = 2),mimetype='application/javascript')
     else:
-        points = Datapoint.objects.filter(data__event__name=code).values_list('value','data__timestamp','data__id','user__id').order_by('data__timestamp')
-        sources = DataSource.objects.filter(event__name=code).order_by('timestamp')
-        mypoints = Datapoint.objects.filter(pointtype='S',data__event__name=code,user=o[0]).annotate(mean=Avg('value'))
-        for s in points.filter(pointtype='S'):
-            line = {
-                    'id'        : s[2],
-                    'date'      : s[1].isoformat(" "),
-                    'datestamp' : timegm(s[1].timetuple())+1e-6*s[1].microsecond,
-                    'values'    : {
-                                        'source': '%f' % s[0],
-                                        'bg' : "%f" % points.filter(data=s[2],pointtype='B')[0][0],
-                                        'cal' : list(points.filter(data=s[2],pointtype='C').order_by('coorder__calid').values_list('value',flat=True)),
-                                }
-                    }
-            data.append(line)
+        planet = Event.objects.filter(name=code)[0]
+        numsuper, normvals, myvals, std,radiusratio = supercaldata(request,planet)
+        sources = DataSource.objects.filter(event=planet).order_by('timestamp')
+        n = 0
         if format == 'json':
+            data = []
+            if len(normvals) == planet.numobs :
+                for i,s in enumerate(sources):
+                    line = {
+                            'id'        : "%i" % s.id,
+                            'date'      : s.timestamp.isoformat(" "),
+                            'datestamp' : timegm(s.timestamp.timetuple())+1e-6*s.timestamp.microsecond,
+                            'data'      : {
+                                            'mean' : normvals[i],
+                                            'std'  : std[i],
+                                            'mine' : myvals[i],
+                                },
+                            }
+                    data.append(line)
+            else:
+                data = None
             return HttpResponse(simplejson.dumps(data,indent = 2),mimetype='application/javascript')
-        elif format == 'xml':
-            return render_to_response('agentex/data_summary.xml',{'data':data},mimetype="application/xhtml+xml")
+        # elif format == 'xml':
+        #     return render_to_response('agentex/data_summary.xml',{'data':data},mimetype="application/xhtml+xml")
         elif format == 'csv':
-            csv = ""#"Date of observation, total source counts, total background counts, total counts calibrator 1, total counts calibrator 2, ...\n"
-            for s in points.filter(pointtype='S'):
-                csv += "%s %s %s\n" % (s[2],s[0],s[3])
+            csv = "# Date of observation, Unix timestamp, normalised average values, standard deviation, my normalised values\n"
+            for i,s in enumerate(sources):
+                csv += "%s, %s, %s, %s, %s\n" % (s.timestamp.isoformat(" "),timegm(s.timestamp.timetuple())+1e-6*s.timestamp.microsecond,normvals[i],std[i],myvals[i])
             return HttpResponse(csv,mimetype='text/csv')
 
 def calibratemydata(code,user):
