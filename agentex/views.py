@@ -1156,46 +1156,47 @@ def calibratemydata(code,user):
     return mycals
     
 def myaverages(code,person):
-    now = datetime.now()
-    cals = []
-    mycals = []
-    dates = []
-    stamps = []
-    timestamps = []
-    normcals = []
-    maxvals = []
-    cats = []
-    # Find which Cat Sources I have observed and there is a complete set of (including other people's data)
-    # Unlike CalibrateMyData it only includes set where there are full sets
-    e = Event.objects.filter(name=code)[0]
     ds = DataSource.objects.filter(event__name=code).order_by('timestamp').values_list('id',flat=True)
-    dc = DataCollection.objects.filter(~Q(source=None),person=person,planet=e).order_by('calid')
-    cs = CatSource.objects.filter(id__in=[c.source.id for c in dc]).annotate(count=Count('datacollection__datapoint')).filter(count__gte=e.numobs).values_list('id',flat=True)
-    mydecisions = Decision.objects.filter(person=person,current=True,planet=e,value='D').values_list('source__id',flat=True)
-    if cs.count() > 0:
-        # Only use ones where we have more than numobs
-        for c in dc:
-            # make sure these are in the mydecision list (i.e. I've said they have a Dip)
-            if c.source.id in mydecisions:
-                v = Datapoint.objects.filter(coorder__source=c.source.id,pointtype='C',user=person).order_by('data__timestamp').values_list('data__id','value')
-                cals.append(dict(v))
-        if cals:
-            # Only proceed if we have calibrators in the list (i.e. arrays of numobs)
-            points = Datapoint.objects.filter(user=person,data__event__name=code).order_by('data__timestamp')
-            scA = points.filter(pointtype='S').values_list('data__id','value')
-            bgA = points.filter(pointtype='B').values_list('data__id','value')
-            # Create a list of normalised values with gaps if I haven't done the full dataset but have contributed to a 'Dip' classification
-            sc=dict(scA)
-            bg=dict(bgA)
-            sc = dictconv(sc,ds)
-            sc = array(sc)
-            bg = dictconv(bg,ds)
-            bg = array(bg)
-            for cal in cals:
-                val = (sc - bg)/(array(dictconv(cal,ds))-bg)
-                normcals.append(val)
-            normmean = mean(normcals,axis=0)
-            return list(normmean/max(normmean))
+    if person.is_authenticated():
+        now = datetime.now()
+        cals = []
+        mycals = []
+        dates = []
+        stamps = []
+        timestamps = []
+        normcals = []
+        maxvals = []
+        cats = []
+        # Find which Cat Sources I have observed and there is a complete set of (including other people's data)
+        # Unlike CalibrateMyData it only includes set where there are full sets
+        e = Event.objects.filter(name=code)[0]
+        dc = DataCollection.objects.filter(~Q(source=None),person=person,planet=e).order_by('calid')
+        cs = CatSource.objects.filter(id__in=[c.source.id for c in dc]).annotate(count=Count('datacollection__datapoint')).filter(count__gte=e.numobs).values_list('id',flat=True)
+        mydecisions = Decision.objects.filter(person=person,current=True,planet=e,value='D').values_list('source__id',flat=True)
+        if cs.count() > 0:
+            # Only use ones where we have more than numobs
+            for c in dc:
+                # make sure these are in the mydecision list (i.e. I've said they have a Dip)
+                if c.source.id in mydecisions:
+                    v = Datapoint.objects.filter(coorder__source=c.source.id,pointtype='C',user=person).order_by('data__timestamp').values_list('data__id','value')
+                    cals.append(dict(v))
+            if cals:
+                # Only proceed if we have calibrators in the list (i.e. arrays of numobs)
+                points = Datapoint.objects.filter(user=person,data__event__name=code).order_by('data__timestamp')
+                scA = points.filter(pointtype='S').values_list('data__id','value')
+                bgA = points.filter(pointtype='B').values_list('data__id','value')
+                # Create a list of normalised values with gaps if I haven't done the full dataset but have contributed to a 'Dip' classification
+                sc=dict(scA)
+                bg=dict(bgA)
+                sc = dictconv(sc,ds)
+                sc = array(sc)
+                bg = dictconv(bg,ds)
+                bg = array(bg)
+                for cal in cals:
+                    val = (sc - bg)/(array(dictconv(cal,ds))-bg)
+                    normcals.append(val)
+                normmean = mean(normcals,axis=0)
+                return list(normmean/max(normmean))
     # If they have no 'D' decisions
     return [0.]*ds.count()
 
@@ -1369,6 +1370,8 @@ def supercaldata(request,planet):
         sources = set(sourcelst)
         if request.user.is_authenticated():
             me = request.user.id
+        else:
+            me = 0
         for p in people:
             calslist = []
             vals = Datapoint.objects.filter(data__event=planet,user=p).order_by('data__timestamp')
