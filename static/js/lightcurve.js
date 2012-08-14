@@ -3,17 +3,13 @@ function Lightcurve(inp){
 	this.dataplot = [];
 	this.dmean = [];
 	this.dstd = [];
-	this.dlow = [];
-	this.dlow2 = [];
-	this.dhigh = [];
-	this.dhigh2 = [];
 	this.dcal = [];
 	this.fullcal = [];
 	this.dsource = [];
 	this.dmine = [];
 	this.ids = [];
-	this.dataset2 = [];
 	this.used = [];
+	this.events = { onfit: (typeof inp.onfit==="function") ? [inp.onfit] : "" };
 	this.mypoints = false;
 	this.datahighest;
 	this.options = {
@@ -145,12 +141,10 @@ Lightcurve.prototype.init = function(){
 	var _obj = this;
 
 	if(typeof this.data=="object"){
-//console.log('Using existing data ',this.data)
 		this.data2plot();
 		this.update();
 	}else{
 		$.getJSON(this.url.xhr,function(data){
-//console.log('It is AJAXing ',data)
 			_obj.data = data;
 			_obj.data2plot();
 			_obj.update();
@@ -227,20 +221,19 @@ Lightcurve.prototype.data2plot = function(){
 			for(i=0;i<d.length;i++){
 				this.dmean[i] = ([Number(d[i].datestamp)*1000,Number(d[i].data.mean)]);
 				this.dm[i] = {x:Number(d[i].datestamp)*1000,y:Number(d[i].data.mean),err:Number(d[i].data.std)};
+				this.dmine[i] = {x:Number(d[i].datestamp)*1000,y:Number(d[i].data.mine),err:Number(d[i].data.std)};
 				this.dstd[i] = (Number(d[i].data.std));
-				//this.ids.push(val.id);
 			}
 		}else{
 			// Data via request
-
 			this.dmean = new Array(d.dates.length);
 			this.dm = new Array(d.dates.length);
 			this.dstd = new Array(d.dates.length);
 			for(i=0;i<d.dates.length;i++){
 				this.dmean[i] = ([Number(d.dates[i])*1000,Number(d.normalised[i])]);
 				this.dm[i] = {x:Number(d.dates[i])*1000,y:Number(d.normalised[i])};
+				this.dmine[i] = {x:Number(d.dates[i])*1000,y:Number(d.normalised[i])};
 				this.dstd[i] = (Number(d.std[i]));
-				//this.ids.push(val.id);
 			}
 		}
 	}else if(this.type=="average"){
@@ -383,73 +376,45 @@ Lightcurve.prototype.fit = function(d) {
 
 	this.graph.addSeries(out);
 	
-	this.fitted = { xaxis: { from: this.graph.x.min, to: this.graph.x.min+(this.period)/(Math.PI*p1[0]) }, yaxis: { from: mn, to: 1 }};
+	this.fitted = { transit: (this.period)/(1000*Math.PI*p1[0]), dip: 1-mn };
+
+	this.triggerEvent("onfit",{ transit:this.fitted.transit, dip: this.fitted.dip });
 
 	return this;
 };
 
-Lightcurve.prototype.update = function(){
+Lightcurve.prototype.update = function(a){
 	var line = 0;
-	var x,y,t;
+	var x,y,t,d;
 
 	if(this.type=="super"){
 
-	    this.dlow = new Array(this.dmean.length);
-	    this.dlow2 = new Array(this.dmean.length);
-	    this.dhigh = new Array(this.dmean.length);
-	    this.dhigh2 = new Array(this.dmean.length);
-	    this.dl = this.dh = this.dm[0].y;
-		for(var i = 0; i < this.dm.length ; i++){
-		    this.dlow[i] = [this.dmean[i][0],(this.dmean[i][1] - this.dstd[i]) ];
-			this.dlow2[i] = [this.dmean[i][0],(this.dmean[i][1] - 2*this.dstd[i])];
-			this.dhigh[i] = [this.dmean[i][0],(this.dmean[i][1] + this.dstd[i])];
-			this.dhigh2[i] = [this.dmean[i][0],(this.dmean[i][1] + 2*this.dstd[i])];
+		d = (a && a=="mine") ? this.dmine : this.dm;
 
-			y = (this.dm[i].y - 1.4*this.dstd[i]);
+	    this.dl = this.dh = d[0].y;
+		for(var i = 0; i < d.length ; i++){
+			y = (d[i].y - 1.2*this.dstd[i]);
 			if(y < this.dl) this.dl = y;
-			y = (this.dm[i].y + 1.4*this.dstd[i]);
+			y = (d[i].y + 1.2*this.dstd[i]);
 			if(y > this.dh) this.dh = y;
-			
 		}
-		var dataset2 = [
-			{ id: 'low2', data: this.dlow2, lines: { show: true, lineWidth: 0, fill: false }, color: "rgb(51,153,255)",clickable: false,hoverable:false},
-			{ id: 'low', data: this.dlow, lines: { show: true, lineWidth: 0, fill: 0.1 }, color: "rgb(51,153,255)", fillBetween: 'low2',clickable: false,hoverable:false },
-			{ id: 'mean', data: this.dmean, lines: { show: true, lineWidth: 2.5, fill: 0.2, shadowSize: 0 }, color: "rgb(51,153,255)", fillBetween: 'low',clickable: false,hoverable:false },
-			{ id: 'high', data: this.dhigh, lines: { show: true, lineWidth: 0, fill: 0.2 }, color: "rgb(51,153,255)", fillBetween: 'mean',clickable: false,hoverable:false },
-			{ id: 'high2', data: this.dhigh2, lines: { show: true, lineWidth: 0, fill: 0.1 }, color: "rgb(51,153,255)", fillBetween: 'high',clickable: false,hoverable:false },
-		];
-		var dataset3 = [
-			{ id: 'mean', data: this.dm, points: {show: true, radius: 3, width: 1.5}, lines: { show: false, width: 1 }, color: "rgb(51,153,255)", clickable: false,hoverable:false }
+		var dataset = [
+			{ id: 'mean', data: d, points: {show: true, radius: 3, width: 1.5}, lines: { show: false, width: 1 }, color: "rgb(51,153,255)", clickable: false,hoverable:false }
 		];
 
-		t = (this.dm[this.dm.length-1].x-this.dm[0].x)/25;
-		var means = [];
-		var maxs = [];
-		var mins = [];
-		var meanstd = 0;
-		for(var i = 0; i < this.dmean.length ; i++){
-			means.push(this.dmean[i][1]);
-			maxs.push(this.dhigh2[i][1]);
-			mins.push(this.dlow2[i][1]);
-			meanstd += this.dstd[i];
-		}
-		meanstd /= this.dmean.length
-		r = getRange(means);
-		if(typeof r=="object"){
-			var padd = meanstd*4;
-			if(r.min-padd > min(mins)) this.options.yaxis.min = r.min-meanstd*4;
-			if(r.max+padd < max(maxs)) this.options.yaxis.max = r.max+meanstd*4;
-		}
-		/*
-		$.plot(this.mainplot, dataset2, this.options);//{ xaxis:xaxis, yaxis: yaxis, legend: { position: 'se' }, grid: { hoverable: true, clickable: true, markings:	[ { color: '#f00', lineWidth: 1, xaxis: { from: line, to: line } }] } });
-		*/
-		this.graph = $.graph('mainplot', dataset3, {
-			xaxis: { label: this.options.xaxis.axisLabel, mode: 'time', min: this.dm[0].x-t, max: this.dm[this.dm.length-1].x+t },
-			yaxis: { label: this.options.yaxis.axisLabel, min: this.dl, max: this.dh },
-			grid: { show: true, color:'rgb(150,150,150)', border: 2, clickable: true, hoverable: true }
-		});
+		t = (d[d.length-1].x-d[0].x)/25;
 
-		this.fit(this.dm);
+		if(this.graph){
+			this.graph.updateData(dataset)
+		}else{
+			this.graph = $.graph('mainplot', dataset, {
+				xaxis: { label: this.options.xaxis.axisLabel, mode: 'time', min: d[0].x-t, max: d[d.length-1].x+t },
+				yaxis: { label: this.options.yaxis.axisLabel, min: this.dl, max: this.dh },
+				grid: { show: true, color:'rgb(150,150,150)', border: 2, clickable: true, hoverable: true }
+			});
+		}
+
+		this.fit(d);
 	
 	}else if(this.type=="calibrators"){
 
@@ -564,7 +529,24 @@ Lightcurve.prototype.calibrate_data = function(){
 		}
 	});
 }
-
+Lightcurve.prototype.bind = function(ev,fn){
+	if(typeof ev!="string" || typeof fn!="function") return this;
+	if(this.events[ev]) this.events[ev].push(fn);
+	else this.events[ev] = [fn];
+	return this;
+}
+Lightcurve.prototype.triggerEvent = function(ev,args){
+	if(typeof ev != "string") return;
+	if(typeof args != "object") args = {};
+	var o = [];
+	var _obj = this;
+	if(typeof this.events[ev]=="object"){
+		for(i = 0 ; i < this.events[ev].length ; i++){
+			if(typeof this.events[ev][i] == "function") o.push(this.events[ev][i].call(_obj,args))
+		}
+	}
+	if(o.length > 0) return o;
+}
 function getRange(d){
 	var hi = max(d);
 	var lo = min(d);

@@ -132,25 +132,10 @@ body.full #section-nav {
 	padding: 0 0 5px;
 }
 
-#sidebar-right .content h2.title,
-#section-nav .content h2.title {
-  color: #777;
-  padding-bottom: 10px;
-}
-
-#sidebar-right p,
-#section-nav p {
-  margin: 0;
-  padding: 0;
-}
-
-#section-nav .panel-separator {
-	margin-bottom: 0.5em;
-}
-
-#lower {
-	margin-top: 16px;
-}
+#sidebar-right .content h2.title, #section-nav .content h2.title { color: #777; padding-bottom: 10px; }
+#sidebar-right p, #section-nav p { margin: 0; padding: 0; }
+#section-nav .panel-separator { margin-bottom: 0.5em; }
+#lower { margin-top: 16px; }
 
 body.dossier #main {
     background: #e7d3a5;
@@ -177,9 +162,7 @@ body.dossier #main {
     border-radius: 8px;
 }
 
-body.dossierfront h1 {
-	margin: 10px 0 16px 0;
-}
+body.dossierfront h1 { margin: 10px 0 16px 0; }
 
 body.dossierfront #main {
     background: #e7d3a5;
@@ -370,6 +353,26 @@ body.dossier #main .furtherinfo {
 	-moz-box-shadow: 1px 1px 2px #777;
 	-webkit-box-shadow: 1px 1px 2px #777;
 }
+
+body.dossier #main .title { margin-bottom: 4px; }
+body.dossier #main .infobox {
+	max-width: 100%;
+	float: left;
+	display: inline-block;
+}
+
+body.dossier #main .furtherinfo {
+	max-width: 100%;
+	display: inline-block;
+	float: none;
+	margin: 0px 0px 0px 32px;
+}
+body.dossier #main .column {
+	display: block;
+	text-align: right;
+}
+
+
 body.dossier #main .page .furtherinfo img.paperclip { 
 	z-index: 2;
 	position: absolute;
@@ -400,34 +403,6 @@ body.dossier #main .furtherinfo table {
 body.dossier #main .page .infobox {
 }
 
-
-/*.exoplanet{
-    border: solid 5px #333;
-    width: 210px;
-    float: left;
-    box-shadow: 0 0 10px #333;
-    -moz-box-shadow: 0 0 10px #333;
-    -webkit-box-shadow: 0 0 10px #333;
-    margin:5px;
-}
-
-.exoplanet .title h3{
-    margin:0;
-    padding: 5px 5px 5px 5px;
-    text-align: center;
-    color: #ddd;
-    background: #000;
-}
-
-.exoplanet .eventimage{
-background: #000;
-}
-
-.exoplanet .eventimage img{
-    display:block;
-    margin:0px auto;
-    padding: 0 0 5px 0;
-}*/
 
 .exoplanet2 {
     background: #e7d3a5!important;
@@ -675,7 +650,7 @@ Helper information boxes
 }
 .helpactive {
 	background-color:#49AAFA!important;
-	width: 1.5em;
+	padding-left: 0.7em;
 }
 .helpactive:hover {
 	background-color:#1F6DBA!important;
@@ -1044,6 +1019,9 @@ ul.polaroids li.polaroid {
 	width: 205px;
 	height: 248px;
 	border: 1px solid #cccccc;
+	-webkit-box-shadow: 0 3px 6px rgba(0,0,0,.25);
+	-moz-box-shadow: 0 3px 6px rgba(0,0,0,.25);
+	box-shadow: 0 3px 6px rgba(0,0,0,.25);
 }
 
 ul.polaroids img {
@@ -1094,6 +1072,19 @@ ul.polaroids li:nth-child(4n) { margin-right: 0px; }
 	.decisiontree .radio { float: none; display: inline-block; }
 	#mainplotholder { float: none; width: 100%;  }
 	#mainplot { width: 100%; }
+
+	body.dossier #main .infobox, body.dossier #main .furtherinfo {
+		width: auto;
+		max-width: 100%;
+		float: none;
+		margin: 0px;
+	}
+	body.dossier #main .page .furtherinfo img.tape {
+		left: -24px;
+		top: -24px;
+		width: 80px;
+	}
+	body.dossier #main .page .eventimage { margin-right: -24px; }
 }
 @media only screen and (max-width: 600px) {
 	body.dossier #screen { width: 92%; max-width: 590px; }
