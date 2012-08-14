@@ -1,0 +1,14 @@
+{% extends 'admin/index.html' %}
+
+{% block coltype %}colM{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    {% for c in cats%}
+    {{c.sourcename}} - {{c.decisions}}</br>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block sidebar %}
+{% endblock %}
