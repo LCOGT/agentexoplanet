@@ -1200,8 +1200,10 @@ def myaverages(code,person):
     # If they have no 'D' decisions
     return [0.]*ds.count()
 
+
 def averagecals(code,person):
     # Uses and SQL statement to try to speed up the query for averaging data points
+    # If person == 0 this will return all calibrator values individually - for problem solving
     now = datetime.now()
     cals = []
     mycals = []
@@ -1215,8 +1217,11 @@ def averagecals(code,person):
     # Find which Cat Sources I have observed and there is a complete set of (including other people's data)
     # Unlike CalibrateMyData it only includes set where there are full sets
     e = Event.objects.filter(name=code)[0]
-    dc = DataCollection.objects.filter(~Q(source=None),person=person,planet__name=code).order_by('calid')
-    cs = CatSource.objects.filter(id__in=[c.source.id for c in dc]).annotate(count=Count('datacollection__datapoint')).filter(count__gte=e.numobs).values_list('id',flat=True)
+    if person == 0:
+        dc = DataCollection.objects.filter(~Q(source=None),planet__name=code).distinct('source')
+    else:
+        dc = DataCollection.objects.filter(~Q(source=None),person=person,planet__name=code).order_by('calid')
+    cs = CatSource.objects.filter(id__in=[c.source.id for c in dc]).annotate(count=Count('datacollection__datapoint')).filter(count__gte=e.numobs).values_list('id',flat=True).distinct('name')
     dcall = DataCollection.objects.filter(planet=e,source__in=cs).values_list('id',flat=True)
     # print "** Collections %s" % dcall.count()
     if cs.count() > 0:
@@ -1230,10 +1235,19 @@ def averagecals(code,person):
                     ids,b = zip(*v)
                     cals.append(list(b))
                     try:
-                        decvalue = Decision.objects.filter(source=c.source,person=person,planet__name=code,current=True)[0].value
+                        if person == 0:
+                            decvalue = Decision.objects.filter(source=c.source,planet__name=code,current=True).values_list('value').annotate(total=Count('id'))
+                        else:
+                            decvalue = Decision.objects.filter(source=c.source,person=person,planet__name=code,current=True)[0].value
                     except:
                         decvalue ='X'
-                    cats.append({'order':'%s' % c.calid,'sourcename':c.source.name,'catalogue':c.source.catalogue,'decision':decvalue})
+                    cat_item = {'sourcename':c.source.name,'catalogue':c.source.catalogue}
+                    if person != 0:
+                        cat_item['decsion'] = decvalue
+                        cat_item['order'] = str(c.calid)
+                    else:
+                        cat_item['decisions'] = decvalue
+                    cats.append(cat_item)
                     callist.append(c.source.id)
         if callist:
             # Only proceed if we have calibrators in the list (i.e. arrays of numobs)
@@ -1244,14 +1258,23 @@ def averagecals(code,person):
             dsmax = dsmax1['id__max']
             dsmin = dsmax - maxnum
             ds = ds.values_list('id',flat=True)
-            sc_my = ds.filter(datapoint__pointtype='S',datapoint__user=person).annotate(value=Sum('datapoint__value')).values_list('id','value')
-            bg_my = ds.filter(datapoint__pointtype='B',datapoint__user=person).annotate(value=Sum('datapoint__value')).values_list('id','value')
-            if sc_my.count() < maxnum:
-                return cals,normcals,[],[],dates,stamps,[],cats
+            if person == 0:
+                sc_my = ds.filter(datapoint__pointtype='S').annotate(value=Avg('datapoint__value')).values_list('id','value')
+                bg_my = ds.filter(datapoint__pointtype='B').annotate(value=Avg('datapoint__value')).values_list('id','value')
+                if sc_my.count() < maxnum:
+                    return normcals,stamps,[int(i) for i in ids],cats
+                else:
+                    tmp,sc=zip(*sc_my)
+                    tmp,bg=zip(*bg_my)
             else:
-                tmp,sc=zip(*sc_my)
-                tmp,bg=zip(*bg_my)
-                # Convert to numpy arrays to allow simple calibrations
+                sc_my = ds.filter(datapoint__pointtype='S',datapoint__user=person).annotate(value=Sum('datapoint__value')).values_list('id','value')
+                bg_my = ds.filter(datapoint__pointtype='B',datapoint__user=person).annotate(value=Sum('datapoint__value')).values_list('id','value')
+                if sc_my.count() < maxnum:
+                    return cals,normcals,[],[],dates,stamps,[],cats
+                else:
+                    tmp,sc=zip(*sc_my)
+                    tmp,bg=zip(*bg_my)
+            # Convert to numpy arrays to allow simple calibrations
             sc = array(sc)
             bg = array(bg)     
             for cal in cals:
@@ -1266,7 +1289,11 @@ def averagecals(code,person):
             times = ds.values_list('timestamp',flat=True)
             stamps = map(unixt,times)
             dates = map(iso,times)
+            if person == 0:
+                return normcals,stamps,[int(i) for i in ids],cats
             return cals,normcals,list(sc),list(bg),dates,stamps,[int(i) for i in ids],cats
+    if person == 0:
+        return normcals,stamps,[],[]
     return cals,normcals,[],[],dates,stamps,[],cats
 
 def averagecals_combined(code,person):
