@@ -23,6 +23,8 @@ urlpatterns = patterns('',
     (r'^showmestars/(?P<eventid>\w+)/$','showmestars.views.latestimages'),
     (r'^showmestars/$','showmestars.views.latestimages',{'eventid':0}),
     (r'^comments/', include('django.contrib.comments.urls')),
+    (r'^admin/agentex/event/(?P<planetid>\d+)/calibrators/(?P<calid>\d+)/$','agentex.admin.calibrator_check'),
+    (r'^admin/agentex/event/(?P<planetid>\d+)/calibrators/$','agentex.admin.allcalibrators_check'),
     (r'^admin/', include(admin.site.urls)),
 )
 
