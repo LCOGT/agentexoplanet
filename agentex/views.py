@@ -701,6 +701,8 @@ def my_data(o,code):
                 }
         data.append(line)
     return data,points,sources
+    
+    
         
 @login_required  
 def graphview(request,code,mode,calid):
@@ -1218,80 +1220,103 @@ def averagecals(code,person):
     # Unlike CalibrateMyData it only includes set where there are full sets
     e = Event.objects.filter(name=code)[0]
     if person == 0:
-        dc = DataCollection.objects.filter(~Q(source=None),planet__name=code).distinct('source')
+        dc = DataCollection.objects.filter(~Q(source=None),planet__name=code).values_list('source__id',flat=True).distinct('source')
+        cs = CatSource.objects.filter(id__in=[c for c in dc]).annotate(count=Count('datacollection__datapoint')).filter(count__gte=e.numobs).values_list('id',flat=True).distinct('name')
+        dcall = DataCollection.objects.filter(planet=e,source__in=cs).values_list('id',flat=True)
+        # print "** Collections %s" % dcall.count()
+        if cs.count() > 0:
+            # Only use ones where we have more than numobs
+            for c in dc:
+                # make sure these are in the CatSource list (can't use cs because the order isn't right)
+                if c in cs:
+                    v = Datapoint.objects.filter(coorder__source=c,pointtype='C').order_by('data__timestamp').values_list('data__id').annotate(Avg('value'))
+                    # Double check we have same number of obs and cals
+                    if v.count() == e.numobs:
+                        ids,b = zip(*v)
+                        cals.append(list(b))
+                        try:
+                            decvalue = Decision.objects.filter(source=c,planet__name=code,current=True).values_list('value').annotate(total=Count('id'))
+                        except:
+                            decvalue ='X'
+                        source = CatSource.objects.get(id=c)
+                        cat_item = {'sourcename':source.name,'catalogue':source.catalogue}
+                        cat_item['decisions'] = decvalue
+                        cats.append(cat_item)
+                        callist.append(c)
+        print cats
     else:
         dc = DataCollection.objects.filter(~Q(source=None),person=person,planet__name=code).order_by('calid')
-    cs = CatSource.objects.filter(id__in=[c.source.id for c in dc]).annotate(count=Count('datacollection__datapoint')).filter(count__gte=e.numobs).values_list('id',flat=True).distinct('name')
-    dcall = DataCollection.objects.filter(planet=e,source__in=cs).values_list('id',flat=True)
-    # print "** Collections %s" % dcall.count()
-    if cs.count() > 0:
-        # Only use ones where we have more than numobs
-        for c in dc:
-            # make sure these are in the CatSource list (can't use cs because the order isn't right)
-            if c.source.id in cs:
-                v = Datapoint.objects.filter(coorder__source=c.source.id,pointtype='C').order_by('data__timestamp').values_list('data__id').annotate(Avg('value'))
-                # Double check we have same number of obs and cals
-                if v.count() == e.numobs:
-                    ids,b = zip(*v)
-                    cals.append(list(b))
-                    try:
-                        if person == 0:
-                            decvalue = Decision.objects.filter(source=c.source,planet__name=code,current=True).values_list('value').annotate(total=Count('id'))
+        cs = CatSource.objects.filter(id__in=[c.source.id for c in dc]).annotate(count=Count('datacollection__datapoint')).filter(count__gte=e.numobs).values_list('id',flat=True).distinct('name')
+        dcall = DataCollection.objects.filter(planet=e,source__in=cs).values_list('id',flat=True)
+        # print "** Collections %s" % dcall.count()
+        if cs.count() > 0:
+            # Only use ones where we have more than numobs
+            for c in dc:
+                # make sure these are in the CatSource list (can't use cs because the order isn't right)
+                if c.source.id in cs:
+                    v = Datapoint.objects.filter(coorder__source=c.source.id,pointtype='C').order_by('data__timestamp').values_list('data__id').annotate(Avg('value'))
+                    # Double check we have same number of obs and cals
+                    if v.count() == e.numobs:
+                        ids,b = zip(*v)
+                        cals.append(list(b))
+                        try:
+                            if person == 0:
+                                decvalue = Decision.objects.filter(source=c.source,planet__name=code,current=True).values_list('value').annotate(total=Count('id'))
+                            else:
+                                decvalue = Decision.objects.filter(source=c.source,person=person,planet__name=code,current=True)[0].value
+                        except:
+                            decvalue ='X'
+                        cat_item = {'sourcename':c.source.name,'catalogue':c.source.catalogue}
+                        if person != 0:
+                            cat_item['decsion'] = decvalue
+                            cat_item['order'] = str(c.calid)
                         else:
-                            decvalue = Decision.objects.filter(source=c.source,person=person,planet__name=code,current=True)[0].value
-                    except:
-                        decvalue ='X'
-                    cat_item = {'sourcename':c.source.name,'catalogue':c.source.catalogue}
-                    if person != 0:
-                        cat_item['decsion'] = decvalue
-                        cat_item['order'] = str(c.calid)
-                    else:
-                        cat_item['decisions'] = decvalue
-                    cats.append(cat_item)
-                    callist.append(c.source.id)
-        if callist:
-            # Only proceed if we have calibrators in the list (i.e. arrays of numobs)
-            ds = DataSource.objects.filter(event__name=code).order_by('timestamp')
-            users = DataCollection.objects.filter(id__in=dcall).values_list('person',flat=True).distinct()
-            maxnum = ds.count()
-            dsmax1 = ds.aggregate(Max('id'))
-            dsmax = dsmax1['id__max']
-            dsmin = dsmax - maxnum
-            ds = ds.values_list('id',flat=True)
-            if person == 0:
-                sc_my = ds.filter(datapoint__pointtype='S').annotate(value=Avg('datapoint__value')).values_list('id','value')
-                bg_my = ds.filter(datapoint__pointtype='B').annotate(value=Avg('datapoint__value')).values_list('id','value')
-                if sc_my.count() < maxnum:
-                    return normcals,stamps,[int(i) for i in ids],cats
-                else:
-                    tmp,sc=zip(*sc_my)
-                    tmp,bg=zip(*bg_my)
-            else:
-                sc_my = ds.filter(datapoint__pointtype='S',datapoint__user=person).annotate(value=Sum('datapoint__value')).values_list('id','value')
-                bg_my = ds.filter(datapoint__pointtype='B',datapoint__user=person).annotate(value=Sum('datapoint__value')).values_list('id','value')
-                if sc_my.count() < maxnum:
-                    return cals,normcals,[],[],dates,stamps,[],cats
-                else:
-                    tmp,sc=zip(*sc_my)
-                    tmp,bg=zip(*bg_my)
-            # Convert to numpy arrays to allow simple calibrations
-            sc = array(sc)
-            bg = array(bg)     
-            for cal in cals:
-                val = (sc - bg)/(array(cal)-bg)
-                maxval = mean(r_[val[:3],val[-3:]])
-                maxvals.append(maxval)
-                norm = val/maxval
-                normcals.append(list(norm))
-            # Find my data and create unix timestamps
-            unixt = lambda x: timegm(x.timetuple())+1e-6*x.microsecond
-            iso = lambda x: x.isoformat(" ")
-            times = ds.values_list('timestamp',flat=True)
-            stamps = map(unixt,times)
-            dates = map(iso,times)
-            if person == 0:
+                            cat_item['decisions'] = decvalue
+                        cats.append(cat_item)
+                        callist.append(c.source.id)
+    if callist:
+        # Only proceed if we have calibrators in the list (i.e. arrays of numobs)
+        ds = DataSource.objects.filter(event__name=code).order_by('timestamp')
+        users = DataCollection.objects.filter(id__in=dcall).values_list('person',flat=True).distinct()
+        maxnum = ds.count()
+        dsmax1 = ds.aggregate(Max('id'))
+        dsmax = dsmax1['id__max']
+        dsmin = dsmax - maxnum
+        ds = ds.values_list('id',flat=True)
+        if person == 0:
+            sc_my = ds.filter(datapoint__pointtype='S').annotate(value=Avg('datapoint__value')).values_list('id','value')
+            bg_my = ds.filter(datapoint__pointtype='B').annotate(value=Avg('datapoint__value')).values_list('id','value')
+            if sc_my.count() < maxnum:
                 return normcals,stamps,[int(i) for i in ids],cats
-            return cals,normcals,list(sc),list(bg),dates,stamps,[int(i) for i in ids],cats
+            else:
+                tmp,sc=zip(*sc_my)
+                tmp,bg=zip(*bg_my)
+        else:
+            sc_my = ds.filter(datapoint__pointtype='S',datapoint__user=person).annotate(value=Sum('datapoint__value')).values_list('id','value')
+            bg_my = ds.filter(datapoint__pointtype='B',datapoint__user=person).annotate(value=Sum('datapoint__value')).values_list('id','value')
+            if sc_my.count() < maxnum:
+                return cals,normcals,[],[],dates,stamps,[],cats
+            else:
+                tmp,sc=zip(*sc_my)
+                tmp,bg=zip(*bg_my)
+        # Convert to numpy arrays to allow simple calibrations
+        sc = array(sc)
+        bg = array(bg)     
+        for cal in cals:
+            val = (sc - bg)/(array(cal)-bg)
+            maxval = mean(r_[val[:3],val[-3:]])
+            maxvals.append(maxval)
+            norm = val/maxval
+            normcals.append(list(norm))
+        # Find my data and create unix timestamps
+        unixt = lambda x: timegm(x.timetuple())+1e-6*x.microsecond
+        iso = lambda x: x.isoformat(" ")
+        times = ds.values_list('timestamp',flat=True)
+        stamps = map(unixt,times)
+        dates = map(iso,times)
+        if person == 0:
+            return normcals,stamps,[int(i) for i in ids],cats
+        return cals,normcals,list(sc),list(bg),dates,stamps,[int(i) for i in ids],cats
     if person == 0:
         return normcals,stamps,[],[]
     return cals,normcals,[],[],dates,stamps,[],cats
