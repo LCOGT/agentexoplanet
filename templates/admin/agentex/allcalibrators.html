@@ -1,5 +1,13 @@
 {% extends 'admin/index.html' %}
 
+{% comment %}
+'calibrators' - multidimensional list of normalised lightcurves for individual calibrators
+'dates' - list of UNIX timestamps in same order as calibrators
+'calids' - list of the calibrator IDs
+'cats' - list of dictionaries containing each calibrator star ID (.sourcename), catalogue name (.catalogue) and totals for each decision (.decisions)
+'title' - A title for the page
+{% endcomment %}
+
 {% block coltype %}colM{% endblock %}
 
 {% block content %}
