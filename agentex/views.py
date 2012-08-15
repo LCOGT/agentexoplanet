@@ -702,7 +702,29 @@ def my_data(o,code):
         data.append(line)
     return data,points,sources
     
-    
+def calibrator_data(calid,code):
+    data = []
+    sources, times = zip(*DataSource.objects.filter(event__name=code).values_list('id','timestamp').order_by('timestamp'))
+    points  = Datapoint.objects.filter(data__in=sources)
+    #points.filter(pointtype='C').values('data__id','user','value')
+    people = Decision.objects.filter(source__id=calid,planet__name=code,value='D',current=True).values_list('person__username',flat=True).distinct()
+    norm = dict((key,0) for key in sources)
+    for pid in people:
+        cal = []
+        sc = dict(points.filter(user__username=pid,pointtype='S').values_list('data__id','value'))
+        bg = dict(points.filter(user__username=pid,pointtype='B').values_list('data__id','value'))
+        c = dict(points.filter(user__username=pid,pointtype='C',coorder__source__id=calid).values_list('data__id','value'))
+        sc_norm = dict(norm.items() + sc.items())
+        bg_norm = dict(norm.items() + bg.items())
+        c_norm = dict(norm.items() + c.items())
+        #print sc_norm,bg_norm,c_norm
+        for v in sources:
+            try:
+                cal.append((sc_norm[v]- bg_norm[v])/(c_norm[v] - bg_norm[v]))
+            except:
+                cal.append(0)
+        data.append(cal)
+    return data,[timegm(s.timetuple())+1e-6*s.microsecond for s in times],list(people)
         
 @login_required  
 def graphview(request,code,mode,calid):
@@ -1239,11 +1261,10 @@ def averagecals(code,person):
                         except:
                             decvalue ='X'
                         source = CatSource.objects.get(id=c)
-                        cat_item = {'sourcename':source.name,'catalogue':source.catalogue}
+                        cat_item = {'sourcename':source.name,'catalogue':source.catalogue,'sourceid':c}
                         cat_item['decisions'] = decvalue
                         cats.append(cat_item)
                         callist.append(c)
-        print cats
     else:
         dc = DataCollection.objects.filter(~Q(source=None),person=person,planet__name=code).order_by('calid')
         cs = CatSource.objects.filter(id__in=[c.source.id for c in dc]).annotate(count=Count('datacollection__datapoint')).filter(count__gte=e.numobs).values_list('id',flat=True).distinct('name')
