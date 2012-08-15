@@ -1,8 +1,10 @@
 from agentex.models import Target, Event, Datapoint, DataSource, Badge, Achievement, DataCollection,Decision,CatSource, Observer
-from agentex.views import averagecals
+from agentex.views import averagecals, calibrator_data
 from django.contrib import admin
 from django.shortcuts import render_to_response
+from django.http import HttpResponse
 from django.template import RequestContext
+from django.utils import simplejson
 
 class DatapointAd(admin.ModelAdmin):
     list_display = ['taken','data','pointtype','user','xpos','ypos','value','coorder','get_source']
@@ -36,26 +38,16 @@ def allcalibrators_check(request,planetid):
     #a = averagecals(event.name,0)
     #print len(a)
     title = 'Check calibrators for %s' % event.title
-    return render_to_response('admin/agentex/allcalibrators.html',{'calibrators':normcals,'dates':dates,'calids':ids,'cats':cats,'title':title},context_instance=RequestContext(request))
+    return render_to_response('admin/agentex/allcalibrators.html',{'calibrators':normcals,'dates':dates,'calids':ids,'cats':cats,'title':title,'planetid':planetid},context_instance=RequestContext(request))
     
 def calibrator_check(request,planetid,calid):
-    planet = Event.objects.get(id=clid)
-    n = 0
-    data,points,sources = my_data(o,code)
-    dc = DataCollection.objects.filter(person=o.user,planet=planet)
-    if dc.count() > n:
-        n = range(0,dc.count())
-        cats = []
-        for order in n:
-            dc0 = dc.filter(calid=order)[0]
-            c = points.filter(pointtype='C',coorder=dc0)[:1]
-            valid = c[0].coorder.display
-            coll = {'order' : order,
-                    'name'  : c[0].coorder.source,
-                    'valid' : valid,
-                    }
-            cats.append(coll)
-    return render_to_response('admin/agentex/calibrator.html',context_instance=RequestContext(request))
+    planet = Event.objects.get(id=planetid)
+    data,times,people = calibrator_data(calid,planet.name)
+    resp = {'data'       : data,
+            'timestamps' : times,
+            'people'     : people,
+            }
+    return HttpResponse(simplejson.dumps(resp,indent=2),mimetype='application/javascript')
     
 admin.site.register(Target, TargetAdmin)
 admin.site.register(Event,EventAdmin)
