@@ -4,7 +4,7 @@
 'calibrators' - multidimensional list of normalised lightcurves for individual calibrators
 'dates' - list of UNIX timestamps in same order as calibrators
 'calids' - list of the calibrator IDs
-'cats' - list of dictionaries containing each calibrator star ID (.sourcename), catalogue name (.catalogue) and totals for each decision (.decisions)
+'cats' - JSON containing each calibrator star ID (sourcename), catalogue name (catalogue) and totals for each decision (decisions)
 'title' - A title for the page
 {% endcomment %}
 
@@ -12,9 +12,12 @@
 
 {% block content %}
 <div id="content-main">
-    {% for c in cats%}
-    <a href="{% url agentex.admin.calibrator_check planetid c.sourceid %}">{{c.sourcename}}</a> - {{c.decisions}}</br>
+    {{cats|safe}}
+    {% comment %}
+    {% for c in cats %}
+    <a href="{% url agentex.admin.calibrator_check planetid cs.sourceid %}">{{c.sourcename}}</a> - {{c.decisions}}</br>
     {% endfor %}
+    {% endcomment %}
 </div>
 {% endblock %}
 
