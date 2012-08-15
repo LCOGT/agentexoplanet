@@ -16,6 +16,7 @@ class DatapointAd(admin.ModelAdmin):
     
 class DCAdmin(admin.ModelAdmin):
     list_display = ['planet','person','calid']
+    list_filter = ['display','complete','planet']
 
 class DecAdmin(admin.ModelAdmin):
     list_display = ['value','person','planet','taken','source']
@@ -35,18 +36,25 @@ class TargetAdmin(admin.ModelAdmin):
 def allcalibrators_check(request,planetid):
     event = Event.objects.get(id=planetid)
     normcals,dates,ids,cats = averagecals(event.name,0)
-    #a = averagecals(event.name,0)
-    #print len(a)
     title = 'Check calibrators for %s' % event.title
-    return render_to_response('admin/agentex/allcalibrators.html',{'calibrators':normcals,'dates':dates,'calids':ids,'cats':cats,'title':title,'planetid':planetid},context_instance=RequestContext(request))
+    c = simplejson.dumps(cats)
+    return render_to_response('admin/agentex/allcalibrators.html',{'calibrators':normcals,
+                                                                    'title':title,
+                                                                    'planetid':planetid,
+                                                                    'dates':dates,
+                                                                    'calids':ids,
+                                                                    'cats':c},context_instance=RequestContext(request))
     
 def calibrator_check(request,planetid,calid):
     planet = Event.objects.get(id=planetid)
-    data,times,people = calibrator_data(calid,planet.name)
-    resp = {'data'       : data,
-            'timestamps' : times,
-            'people'     : people,
-            }
+    if request.POST:
+        Decision.objects.filter(source__id=calid,planet=planet)
+    else:
+        data,times,people = calibrator_data(calid,planet.name)
+        resp = {'data'       : data,
+                'timestamps' : times,
+                'people'     : people,
+                }
     return HttpResponse(simplejson.dumps(resp,indent=2),mimetype='application/javascript')
     
 admin.site.register(Target, TargetAdmin)

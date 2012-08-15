@@ -653,10 +653,11 @@ def addvalidset(request,code):
     point = DataCollection.objects.filter(person=o.user,calid=calid,planet__name=code)
     planet = Event.objects.filter(name=code)[0]
     if choice1 and point and calid:
+        point[0].display = True
         value = decisions[choice1]
         source = point[0].source
         old = Decision.objects.filter(person=o.user,planet=planet,source=source)
-        old.update(current=False)
+        old.delete()
         decision1 = Decision(source=source,
                         value=value,
                         person=o.user,
@@ -1257,11 +1258,12 @@ def averagecals(code,person):
                         ids,b = zip(*v)
                         cals.append(list(b))
                         try:
-                            decvalue = Decision.objects.filter(source=c,planet__name=code,current=True).values_list('value').annotate(total=Count('id'))
+                            decvalue_full = Decision.objects.filter(source=c,planet__name=code,current=True).values_list('value').annotate(total=Count('id')) 
+                            decvalue = dict((str(key),value) for key,value in decvalue_full)                          
                         except:
                             decvalue ='X'
                         source = CatSource.objects.get(id=c)
-                        cat_item = {'sourcename':source.name,'catalogue':source.catalogue,'sourceid':c}
+                        cat_item = {'sourcename':str(source.name),'catalogue':str(source.catalogue),'sourceid': str(c)}
                         cat_item['decisions'] = decvalue
                         cats.append(cat_item)
                         callist.append(c)
@@ -1288,11 +1290,8 @@ def averagecals(code,person):
                         except:
                             decvalue ='X'
                         cat_item = {'sourcename':c.source.name,'catalogue':c.source.catalogue}
-                        if person != 0:
-                            cat_item['decsion'] = decvalue
-                            cat_item['order'] = str(c.calid)
-                        else:
-                            cat_item['decisions'] = decvalue
+                        cat_item['decsion'] = decvalue
+                        cat_item['order'] = str(c.calid)
                         cats.append(cat_item)
                         callist.append(c.source.id)
     if callist:
@@ -1432,7 +1431,7 @@ def supercaldata(request,planet):
     # People and their sources who have Dips in the select planet
     now = datetime.now()
     planet = Event.objects.get(name = planet)
-    decs = Decision.objects.values_list('person','source').filter(value='D',current=True,planet=planet).annotate(Count('source'))
+    decs = Decision.objects.values_list('person','source').filter(value='D',current=True,planet=planet,source__datacollection__display=True).annotate(Count('source'))
     numsuper = decs.count()
     # Create a lists of sources  and people
     if decs:
