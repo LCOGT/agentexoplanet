@@ -171,9 +171,10 @@
 		<div style="max-width:900px;overflow:auto;">
 		    <a href="{% url agentex.views.measurementsummary event.name 'csv'%}">Download the data for this lightcurve as a CSV file</a><br/>
 		<table class="accessible" id="datatable" summary="The data used to make the final lightcurve">
-			<tr><th>Observation date</th><th>Relative brightness</th><th>Estimated uncertainty</th></tr>
+			<tr><th>Observation date</th><th colspan="2">Relative brightness</th><th>Estimated uncertainty</th></tr>
+			<tr><th></th><th>Mine</th><th>Everyone</th><th></th></tr>
 	{% for line in data %}
-			<tr><td><a href="{% url agentex.views.addvalue event.name %}?dataid={{line.id}}">{{line.date}}</a></td><td>{{line.data.mean|floatformat:3}}</td><td>{{line.data.std|floatformat:3}}</td></tr>
+			<tr><td><a href="{% url agentex.views.addvalue event.name %}?dataid={{line.id}}">{{line.date}}</a></td><td>{{line.data.mine|floatformat:3}}</td><td>{{line.data.mean|floatformat:3}}</td><td>{{line.data.std|floatformat:3}}</td></tr>
 	{% endfor %}
 		</table>
 		</div>

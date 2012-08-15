@@ -1138,7 +1138,7 @@
 	// Draw the data onto the graph
 	Graph.prototype.drawData = function(){
 
-		var lo,hi,x,y,l,d,f,t,t2,ii;
+		var lo,hi,x,y,l,d,f,r,t,t2,ii,fx,fy,a,b;
 		var twopi = Math.PI*2;
 		var c = this.canvas.ctx;
 
@@ -1153,29 +1153,67 @@
 				c.beginPath();
 				c.lineWidth = (d.lines.width ? d.lines.width : 1);
 
-				for(var i = 0; i < d.x.length ; i++){
+				c.moveTo(d.x[0],d.y[0]);
+				for(var i = 1; i < d.x.length ; i++){
 					if(d.x[i] && d.y[i]){
-						if(d.data[i].x >= this.x.min && d.data[i].x <= this.x.max && d.data[i].y >= this.y.min && d.data[i].y <= this.y.max){
-							if(i == 0) c.moveTo(d.x[i],d.y[i]);
-							else c.lineTo(d.x[i],d.y[i]);
-						}else{
-							if(d.data[i].x < this.x.min){
-								if(i < d.x.length - 1){
-									t = (d.data[i+1].x - d.data[i].x);
-									f = (this.x.min - d.data[i].x)/t;
-									ii = this.getPixPos(d.data[i].x+f*t,d.data[i].y+f*(d.data[i+1].y-d.data[i].y));
-									c.moveTo(ii[0],ii[1]);
-								}else c.moveTo(d.x[i],d.y[i]);
-							}
-							if(d.data[i].x > this.x.max){
-								if(i > 0){
-									t = (d.data[i].x - d.data[i-1].x);
-									f = (this.x.max - d.data[i-1].x)/t;
-									ii = this.getPixPos(d.data[i-1].x+f*t,d.data[i-1].y+f*(d.data[i].y-d.data[i-1].y));
-									c.lineTo(ii[0],ii[1]);
-								}else c.moveTo(d.x[i],d.y[i]);
-							}
+					
+						a = {x : d.data[i-1].x, y: d.data[i-1].y };
+						b = {x : d.data[i].x, y: d.data[i].y };
+
+						// If the current and previous points were both off the graph 
+						// on the same side, we can ignore this point
+						if((a.x < this.x.min && b.x < this.x.min) || (a.x > this.x.max && b.x > this.x.max) || (a.y < this.y.min && b.y < this.y.min) || (a.y > this.y.max && b.y > this.y.max)) continue;
+
+						// We need to take each of the two xs and two ys and bring 
+						// them to the edges of the graph if necessary
+
+						// The previous point is left of the graph
+						if(a.x < this.x.min){
+							t = (b.x - a.x);
+							f = (this.x.min - a.x)/t;
+							a.x += f*t;
+							a.y += f*(b.y - a.y);
 						}
+						// The previous point is below the graph
+						if(a.y < this.y.min){
+							t = (b.y - a.y);
+							f = (this.y.min - a.y)/t;
+							a.x += f*(b.x - a.x);
+							a.y += f*t;
+						}
+						// The previous point is above the graph
+						if(a.y > this.y.max){
+							t = (b.y - a.y);
+							f = (this.y.max - a.y)/t;
+							a.x += f*(b.x - a.x);
+							a.y += f*t;
+						}
+						// The current point is off to the right of the graph
+						if(b.x > this.x.max){
+							t = (b.x - a.x);
+							f = (b.x - this.x.max)/t;
+							b.x -= f*t;
+							b.y -= f*(b.y - a.y);
+						}
+						// The current point is below the graph
+						if(b.y < this.y.min){
+							t = (b.y - a.y);
+							f = (b.y - this.y.min)/t;
+							b.x -= f*(b.x - a.x);
+							b.y -= f*t;
+						}
+						// The current point is above the graph
+						if(b.y > this.y.max){
+							t = (b.y - a.y);
+							f = (b.y - this.y.max)/t;
+							b.x -= f*(b.x - a.x);
+							b.y -= f*t;
+						}
+
+						ii = this.getPixPos(a.x,a.y);
+						c.moveTo(ii[0],ii[1]);
+						ii = this.getPixPos(b.x,b.y);
+						c.lineTo(ii[0],ii[1]);
 					}
 				}
 				c.stroke();

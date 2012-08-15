@@ -8,6 +8,134 @@
 'title' - A title for the page
 {% endcomment %}
 
+{% block extrahead %}
+	<style>
+	#lightcurves { width: 600px; }
+	.calibrator {
+		background-color: #eee;
+		padding: 16px;
+		border-radius: 8px;
+		margin-bottom: 16px;
+		width: 784px;
+		position: relative;
+	}
+	.calibrator h3 { margin-top: 0px; }
+	.calibrator .graph {
+		width: 600px;
+		height: 200px;
+		display: inline-block;
+	}
+	.calibrator .decisions {
+		width: 168px;
+		margin-left: 16px;
+		display: inline-block;
+		position: absolute;
+		top: 38px;
+	}
+	.calibrator .decision {
+		background: white;
+		padding: 4px;
+		display: inline-block;
+		margin: 0px 8px 8px 0px;
+		border-radius: 4px;
+		text-align: center;
+	}
+	.calibrator .decision:nth-child(3n) {
+		margin-right: 0px;
+	}
+	.calibrator .decision a {
+		display: block;
+		width: 42px;
+		height: 28px;
+	}
+	.calibrator .decision img {
+		float: left;
+		width: 100%;
+	}
+	.calibrator .decision.zero {
+		opacity: 0.3;
+		background: #bbbbbb;
+	}
+	</style>
+	<script type="text/javascript" src="{{MEDIA_URL}}js/jquery.min.js"></script>
+	<!--[if lt IE 9]><script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/excanvas.js"></script><![endif]-->
+	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.graph.js"></script>
+	<script type="text/javascript" charset="utf-8">
+	<!--
+	
+	$(document).ready(function(){
+		// First we'll build an array of data sets
+		var c,cal,i,id,d,data,dataset = [],n;
+
+		// The data
+		var calibrators = {{calibrators}};
+		var dates = {{ dates }};
+		var cats = {{ cats|safe }};
+
+		// Define some options
+		var options = {
+			xaxis:{ label:'Time', mode:'time' },
+			yaxis: { label: 'Delta (mag)' },
+			grid: { hoverable: true, clickable: true, background: 'white' }
+		};
+
+
+		function decisionFull(d){
+			if(d == "D") return "dip";
+			if(d == "N") return "nodip";
+			if(d == "O") return "odd";
+			if(d == "B") return "blip";
+			if(d == "P") return "periodic";
+			if(d == "R") return "other";
+		}
+		function decisionShort(d){
+			if(d == "dip") return "D";
+			if(d == "nodip") return "N";
+			if(d == "odd") return "O";
+			if(d == "blip") return "B";
+			if(d == "periodic") return "P";
+			if(d == "other") return "R";
+		}
+		function decisionImage(d){
+			return '<img title="Classified as '+d+'" alt="'+d+'" src="/images/choice_'+d+'.png">';
+		}
+
+
+		decs = ["D","N","O","B","P","R"];
+
+		for(c = 0; c < calibrators.length ; c++){
+			cal = calibrators[c];
+			d = [];
+			for(i = 0; i < cal.length ; i++){
+				d.push({x:dates[i],y:cal[i]});
+			}
+			id = 'graph-'+(c+1);
+			$('#lightcurves').append('<div class="calibrator"><h3>'+cats[c].catalogue+' '+cats[c].sourcename+'<\/h3><div id="'+id+'" class="graph"><\/div><div class="decisions"><\/div><\/div>');
+
+			decisions = '';
+			for(ds = 0 ; ds < decs.length ; ds++){
+				n = (cats[c].decisions[decs[ds]] ? cats[c].decisions[decs[ds]] : 0);
+				decisions += '<div class="decision'+(n==0 ? " zero" : "")+'"><a href="">'+decisionImage(decisionFull(decs[ds]))+'<\/a>'+n+'<\/div>';
+			}
+			decisions += '<br /><input type="checkbox" checked="checked" /> Use in final lightcurve';
+			$('#'+id).parent().find('.decisions').html(decisions);
+			// Attach to the DOM element with the ID 'lightcurve'
+			graph = $.graph(id, {
+				data:d,
+				color: '#d62728',
+				points: { show: false },
+				lines: { show: true ,width: 1 },
+				clickable: false,
+				hoverable: false
+			}, options);
+		}
+		
+	});
+		
+	// -->
+	</script>
+{% endblock %}
+
 {% block coltype %}colM{% endblock %}
 
 {% block content %}
@@ -17,7 +145,10 @@
     {% for c in cats %}
     <a href="{% url agentex.admin.calibrator_check planetid cs.sourceid %}">{{c.sourcename}}</a> - {{c.decisions}}</br>
     {% endfor %}
+
     {% endcomment %}
+
+	<div id="lightcurves"></div>
 </div>
 {% endblock %}
 
