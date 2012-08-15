@@ -13,7 +13,7 @@
 {% block content %}
 <div id="content-main">
     {% for c in cats%}
-    {{c.sourcename}} - {{c.decisions}}</br>
+    <a href="{% url agentex.admin.calibrator_check planetid c.sourceid %}">{{c.sourcename}}</a> - {{c.decisions}}</br>
     {% endfor %}
 </div>
 {% endblock %}
