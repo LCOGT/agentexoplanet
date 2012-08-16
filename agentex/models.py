@@ -96,6 +96,7 @@ class CatSource(models.Model):
     xpos = models.IntegerField('x position on finder image', blank=True)
     ypos = models.IntegerField('y position on finder image', blank=True)
     catalogue = models.CharField('catalogue name',blank=False,max_length=20)
+    final = models.BooleanField('include in final curve')
     class Meta:
         verbose_name = "catalogue source"
         db_table = u'dataexplorer_catsource'
@@ -136,7 +137,7 @@ class Datapoint(models.Model):
         search_fields = ('user',)
     def __unicode__(self):
         return self.taken.isoformat()
-        
+            
 class Decision(models.Model):
     source = models.ForeignKey(CatSource)
     value = models.CharField('decision',blank=False,max_length=1,choices=DECISIONS)
@@ -180,8 +181,6 @@ class Observer(models.Model):
     user = models.OneToOneField(User, unique=True,)
     tag = models.CharField(max_length=75, blank=False,default="LCO")
     organization = models.CharField(max_length=150, blank=True)
-#    rtiuser = models.BooleanField("RTI user",default=False)
-#    fixedblockcredit = models.IntegerField("minutes of fixed block time available", blank=True,null=True)
     dataexploreview = models.BooleanField("use web interface for dataexplorer", default=True)
     class Meta:
         db_table = u'observer'
