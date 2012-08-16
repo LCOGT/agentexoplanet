@@ -1560,26 +1560,7 @@ def update_web_pref(request,setting):
         return HttpResponse("Setting unchanged")
             
 def tester(request):
-    #measurement = Datapoint.objects.filter(taken=date,data__event__name=code)
-    #calibrate(measurement)
-    # code='corot2b'
-    # if (request.user.is_authenticated()):
-    #     o = Observer.objects.filter(user=request.user)
-    # else:
-    #     o = Observer.objects.filter(user=guestuser)
-    # 
-    # calibrators = []
-    # cals = Datapoint.objects.values_list('data__timestamp').filter(data__event__name=code,pointtype = 'C').annotate(mean=Avg('value'))
-    # #cals[0].data.target
-    # for c in cals:
-    #     datestamp = timegm(c[0].timetuple())+1e-6*c[0].microsecond
-    #     data = (datestamp,c[1])
-    #     calibrators.append(data)
-    #return render_to_response('agentex/test.html', {'event':Event.objects.filter(name=code)[0],'cal':simplejson.dumps(calibrators),'target':DataSource.objects.filter(event__name=code)[0].target}, context_instance=RequestContext(request))
-    if (request.POST):
-        fitsanalyse(request)
-    else:
-        return render_to_response('agentex/test_local.html')
+    return render_to_response('agentex/test.html')
     
 def average_sources(code):
     typep = ('S','C','B')
