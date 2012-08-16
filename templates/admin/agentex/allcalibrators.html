@@ -102,6 +102,7 @@
 
 
 		decs = ["D","N","O","B","P","R"];
+		var include_cal;
 
 		for(c = 0; c < calibrators.length ; c++){
 			cal = calibrators[c];
@@ -115,9 +116,14 @@
 			decisions = '';
 			for(ds = 0 ; ds < decs.length ; ds++){
 				n = (cats[c].decisions[decs[ds]] ? cats[c].decisions[decs[ds]] : 0);
-				decisions += '<div class="decision'+(n==0 ? " zero" : "")+'"><a href="">'+decisionImage(decisionFull(decs[ds]))+'<\/a>'+n+'<\/div>';
+				decisions += '<div class="decision'+(n==0 ? " zero" : "")+'"><a href="{% url agentex.admin.allcalibrators_check planetid %}'+cats[c].sourceid+'/">'+decisionImage(decisionFull(decs[ds]))+'<\/a>'+n+'<\/div>';
 			}
-			decisions += '<br /><input type="checkbox" checked="checked" /> Use in final lightcurve';
+		    if (cats[c].include == true){
+		        include_cal = "checked";
+		    }else{
+		        include_cal = "";
+		    }
+			decisions += '<br /><input type="checkbox" checked="'+include_cal+'" /> Use in final lightcurve';
 			$('#'+id).parent().find('.decisions').html(decisions);
 			// Attach to the DOM element with the ID 'lightcurve'
 			graph = $.graph(id, {
@@ -140,10 +146,9 @@
 
 {% block content %}
 <div id="content-main">
-    {{cats|safe}}
     {% comment %}
     {% for c in cats %}
-    <a href="{% url agentex.admin.calibrator_check planetid cs.sourceid %}">{{c.sourcename}}</a> - {{c.decisions}}</br>
+    <a href="{% url agentex.admin.calibrator_check planetid c.sourceid %}">{{c.sourcename}}</a> - {{c.decisions}}</br>
     {% endfor %}
 
     {% endcomment %}
