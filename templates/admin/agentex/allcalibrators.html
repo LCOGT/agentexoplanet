@@ -162,7 +162,7 @@
 						for(i = 0; i < data.data.length ; i++){
 							d = [];
 							for(c = 0; c < data.data[i].length ; c++) d.push({x:data.timestamps[c]*1000,y:data.data[i][c]});
-							id = 'user-graph-'+(c+1);
+							id = 'user-graph-'+(i+1);
 							breakdown.append('<div class="user-calibrator"><div id="'+id+'" class="graph"><\/div><div class="included"><h4>'+data.people[i]+'<\/h4><input type="checkbox" '+(data.include[i] ? 'checked="checked"' : '')+'/> Include in final lightcurve<\/div><\/div>');
 
 							// Attach to the DOM element with the ID 'lightcurve'
