@@ -1703,3 +1703,10 @@ def addcomment(request):
         else:
             form = CommentForm()
     return render_to_response('agentex/comments_box.html', {'form':form}, context_instance=RequestContext(request))
+
+def update_dc_display():
+    decs = Decision.objects.filter(value='D',current=True)
+    for d in decs:
+        dc = DataCollection.objects.filter(person=d.person,source=d.source)
+        dc.update(display=True)
+        print dc
