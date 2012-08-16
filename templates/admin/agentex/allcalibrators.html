@@ -118,12 +118,14 @@
 				n = (cats[c].decisions[decs[ds]] ? cats[c].decisions[decs[ds]] : 0);
 				decisions += '<div class="decision'+(n==0 ? " zero" : "")+'"><a href="{% url agentex.admin.allcalibrators_check planetid %}'+cats[c].sourceid+'/">'+decisionImage(decisionFull(decs[ds]))+'<\/a>'+n+'<\/div>';
 			}
+			console.log(cats[c].include)
 		    if (cats[c].include == true){
-		        include_cal = "checked";
+		        include_cal = "checked=checked";
 		    }else{
 		        include_cal = "";
 		    }
-			decisions += '<br /><input type="checkbox" checked="'+include_cal+'" /> Use in final lightcurve';
+		    console.log(include_cal)
+			decisions += '<br /><input type="checkbox" '+include_cal+' /> Use in final lightcurve';
 			$('#'+id).parent().find('.decisions').html(decisions);
 			// Attach to the DOM element with the ID 'lightcurve'
 			graph = $.graph(id, {
