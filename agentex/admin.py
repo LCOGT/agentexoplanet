@@ -15,7 +15,7 @@ class DatapointAd(admin.ModelAdmin):
     get_source.short_description = 'Cat Source'
     
 class DCAdmin(admin.ModelAdmin):
-    list_display = ['planet','person','calid']
+    list_display = ['planet','person','calid','display','complete']
     list_filter = ['display','complete','planet']
 
 class DecAdmin(admin.ModelAdmin):
@@ -23,6 +23,11 @@ class DecAdmin(admin.ModelAdmin):
     list_filter = ['planet','value']
 class CatAdmin(admin.ModelAdmin):
     search_fields = ['name']
+    list_display = ['name','data','get_planet','final']
+    def get_planet(self,obj):
+        return '%s' % obj.data.event.title
+    get_planet.allow_tags = True
+    get_planet.short_description = 'Planet'
       
 class DSAdmin(admin.ModelAdmin):
     list_filter = ['event','target']
@@ -48,13 +53,21 @@ def allcalibrators_check(request,planetid):
 def calibrator_check(request,planetid,calid):
     planet = Event.objects.get(id=planetid)
     if request.POST:
-        Decision.objects.filter(source__id=calid,planet=planet)
-    else:
-        data,times,people = calibrator_data(calid,planet.name)
-        resp = {'data'       : data,
-                'timestamps' : times,
-                'people'     : people,
-                }
+        people = request.POST.getlist('user')
+        dcs = DataCollection.objects.filter(source__in=calid)
+        dcs.update(display=False)  
+        if people:
+            dcup = dcs.filter(person__in=people)
+            dcup.update(display=True)
+        remove = request.POST.get('remove','false')
+        if remove == 'true':
+            cs = CatSource.objects.filter(id=calid)
+            cs.update(final=False)
+    data,times,people = calibrator_data(calid,planet.name)
+    resp = {'data'       : data,
+            'timestamps' : times,
+            'people'     : people,
+            }
     return HttpResponse(simplejson.dumps(resp,indent=2),mimetype='application/javascript')
     
 admin.site.register(Target, TargetAdmin)
