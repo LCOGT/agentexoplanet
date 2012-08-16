@@ -465,6 +465,7 @@ def savemeasurement(person,pointsum,coords,dataid,entrymode):
                 dcoll = DataCollection(person=person,planet=d[0].event,complete=False,calid=i,source=cats[0])
             else:
                 dcoll = DataCollection(person=person,planet=d[0].event,complete=False,calid=i)
+            dcoll.display = True
             dcoll.save()
         else:
             dcoll = DataCollection.objects.filter(person=person,planet=d[0].event,calid=i)[0]
@@ -653,7 +654,6 @@ def addvalidset(request,code):
     point = DataCollection.objects.filter(person=o.user,calid=calid,planet__name=code)
     planet = Event.objects.filter(name=code)[0]
     if choice1 and point and calid:
-        point[0].display = True
         value = decisions[choice1]
         source = point[0].source
         old = Decision.objects.filter(person=o.user,planet=planet,source=source)
@@ -1452,7 +1452,7 @@ def supercaldata(request,planet):
             # make into Numpy arrays for easier manipulation
             sc = array(sourceave)
             bg = array(bgave)
-            calvals = Datapoint.objects.values('data','coorder__source').filter(user= p,coorder__source__in=sources,pointtype='C')
+            calvals = Datapoint.objects.values('data','coorder__source').filter(user= p,coorder__source__in=sources,pointtype='C',coorder__source__final=True)
             for c in sources:
                 calaves = calvals.filter(coorder__source=c)
                 calpoints = calaves.order_by('data__timestamp').annotate(mean=Avg('value')).values_list('mean',flat=True)
@@ -1468,7 +1468,6 @@ def supercaldata(request,planet):
                     mypoints = array(cc)
             #print "%s %s - %s" % (ti, p, datetime.now()-now)
             ti += 1
-        print mypoints
         # Create normalisation function
         norm_a = lambda a: mean(r_[a[:3],a[-3:]])
         mycals = []
