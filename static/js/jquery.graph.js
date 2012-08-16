@@ -469,32 +469,29 @@
 					g.trigger("mousemove",{event:ev.event,x:pos.x,y:pos.y});
 				}
 
-			}else{
-
-				if(g.within(x,y)){
-
-					g.selectto = [x,y];
-					g.canvas.pasteFromClipboard();
-					// Draw selection rectangle
-					g.canvas.ctx.beginPath();
-					g.canvas.ctx.strokeStyle = 'rgb(0,0,0)';
-					g.canvas.ctx.lineWidth = g.options.grid.border;
-					g.canvas.ctx.strokeRect(g.selectfrom[0]-0.5,g.selectfrom[1]-0.5,g.selectto[0]-g.selectfrom[0],g.selectto[1]-g.selectfrom[1]);
-					g.canvas.ctx.stroke();
-					g.canvas.ctx.closePath();
-
-				}
-
 			}
 
 			return true;
 
+		});
+
+		// For the graph zoom selection we'll attach mouse events 
+		// to the document so that we catch them when the cursor
+		// goes off the main canvas.
+		$(document).bind("mousemove",{me:this},function(ev){
+
+			var g = ev.data.me;	// The graph object
+			var o = g.canvas.canvas.offset();
+
+			var x = ev.pageX - o.left;
+			var y = ev.pageY - o.top;
+			if(g.selecting) g.selectionRectangle(x,y);
+
 		}).bind("mouseup",{me:this},function(ev){
 
-			var g = ev.data.me;	 // The graph object
+			if(ev.data.me.selecting){
 
-			if(g.selecting){
-
+				var g = ev.data.me;	 // The graph object
 				var c1 = g.pixel2data(g.selectfrom[0],g.selectfrom[1]);
 				var c2 = g.pixel2data(g.selectto[0],g.selectto[1]);
 
@@ -508,18 +505,17 @@
 					g.zoom(xlo,xhi,ylo,yhi);
 
 				}
+				g.selecting = false;
+				g.canvas.pasteFromClipboard();
+				g.drawOverlay();
+	
+				if(g.events["mouseup"]) g.trigger("mouseup",{event:ev.event,x:[xlo,xhi],y:[ylo,yhi]});
 
 			}
 
-			g.selecting = false;
-			g.canvas.pasteFromClipboard();
-			g.drawOverlay();
-
-			if(g.events["mouseup"]) g.trigger("mouseup",{event:ev.event,x:[xlo,xhi],y:[ylo,yhi]});
-
 			return true;
 
-		});
+		})
 
 		// Extend the options with those provided by the user
 		this.setOptions(options);
@@ -561,6 +557,21 @@
 		if(o.length > 0) return o;
 	}
 
+	Graph.prototype.selectionRectangle = function(x,y){
+		var p = this.limitToChart([x,y]);
+
+		this.selectto = p;
+		this.canvas.pasteFromClipboard();
+		// Draw selection rectangle
+		this.canvas.ctx.beginPath();
+		this.canvas.ctx.strokeStyle = 'rgb(0,0,0)';
+		this.canvas.ctx.lineWidth = this.options.grid.border;
+		this.canvas.ctx.strokeRect(this.selectfrom[0]-0.5,this.selectfrom[1]-0.5,this.selectto[0]-this.selectfrom[0],this.selectto[1]-this.selectfrom[1]);
+		this.canvas.ctx.stroke();
+		this.canvas.ctx.closePath();
+
+		return this;
+	}
 	Graph.prototype.setOptions = function(options){
 		options = options || {};
 		if(typeof this.options!="object") this.options = {};
@@ -713,6 +724,14 @@
 	Graph.prototype.within = function(x,y){
 		if(x > this.chart.left && y < this.chart.top+this.chart.height) return true;
 		return false;
+	}
+	Graph.prototype.limitToChart = function(p){
+		var c = this.chart;
+		if(p[0] < c.left) p[0] = c.left+0.5;
+		if(p[0] > c.left+c.width) p[0] = c.left+c.width+0.5;
+		if(p[1] < c.top) p[1] = c.top+0.5;
+		if(p[1] > c.top+c.height) p[1] = c.top+c.height+0.5;
+		return p;
 	}
 	
 	// Provide the pixel coordinates (x,y) and return the data-space values
