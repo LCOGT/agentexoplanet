@@ -1263,7 +1263,7 @@ def averagecals(code,person):
                         except:
                             decvalue ='X'
                         source = CatSource.objects.get(id=c)
-                        cat_item = {'sourcename':str(source.name),'catalogue':str(source.catalogue),'sourceid': str(c)}
+                        cat_item = {'sourcename':str(source.name),'catalogue':str(source.catalogue),'sourceid': str(c),'include':source.final}
                         cat_item['decisions'] = decvalue
                         cats.append(cat_item)
                         callist.append(c)
@@ -1704,9 +1704,11 @@ def addcomment(request):
             form = CommentForm()
     return render_to_response('agentex/comments_box.html', {'form':form}, context_instance=RequestContext(request))
 
-def update_dc_display():
+def update_final_display():
+    c = CatSource.objects.all()
+    c.update(final=True)
     decs = Decision.objects.filter(value='D',current=True)
     for d in decs:
         dc = DataCollection.objects.filter(person=d.person,source=d.source)
         dc.update(display=True)
-        print dc
+        print d.planet, d.person

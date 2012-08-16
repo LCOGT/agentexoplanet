@@ -52,9 +52,9 @@ def allcalibrators_check(request,planetid):
     
 def calibrator_check(request,planetid,calid):
     planet = Event.objects.get(id=planetid)
+    dcs = DataCollection.objects.filter(source__id=calid)
     if request.POST:
         people = request.POST.getlist('user')
-        dcs = DataCollection.objects.filter(source__in=calid)
         dcs.update(display=False)  
         if people:
             dcup = dcs.filter(person__in=people)
@@ -64,9 +64,11 @@ def calibrator_check(request,planetid,calid):
             cs = CatSource.objects.filter(id=calid)
             cs.update(final=False)
     data,times,people = calibrator_data(calid,planet.name)
+    include = dcs.filter(person__username__in=people).values_list('display',flat=True)
     resp = {'data'       : data,
             'timestamps' : times,
             'people'     : people,
+            'include'    : list(include),
             }
     return HttpResponse(simplejson.dumps(resp,indent=2),mimetype='application/javascript')
     
