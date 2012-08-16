@@ -56,13 +56,15 @@ def calibrator_check(request,planetid,calid):
     if request.POST:
         people = request.POST.getlist('user')
         dcs.update(display=False)  
-        if people:
-            dcup = dcs.filter(person__in=people)
-            dcup.update(display=True)
-        remove = request.POST.get('remove','false')
-        if remove == 'true':
-            cs = CatSource.objects.filter(id=calid)
+        include = request.POST.get('include','none')
+        cs = CatSource.objects.filter(id=calid)
+        if include == 'false':
             cs.update(final=False)
+        elif include == 'true':
+            cs.update(final=True)
+        elif include == 'none':
+            dcup = dcs.filter(person__username__in=people)
+            dcup.update(display=True)
     data,times,people = calibrator_data(calid,planet.name)
     include = dcs.filter(person__username__in=people).values_list('display',flat=True)
     resp = {'data'       : data,
