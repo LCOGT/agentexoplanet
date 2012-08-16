@@ -15,7 +15,7 @@ def agentex_info():
     for p in planets:
         name = p.title
         num = cols.filter(planet=p).count()
-        completes.append({'name':name,'subtotal':num})
+        completes.append({'name':name,'subtotal':num,'id':p.id})
     volunteers = Observer.objects.all()
     readmanual = Achievement.objects.filter(badge__name='manual').count()
     params = { 'planets' : planets.count(),
