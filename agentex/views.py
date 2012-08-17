@@ -1252,16 +1252,17 @@ def averagecals(code,person):
             for c in dc:
                 # make sure these are in the CatSource list (can't use cs because the order isn't right)
                 if c in cs:
-                    v = Datapoint.objects.filter(coorder__source=c,pointtype='C').order_by('data__timestamp').values_list('data__id').annotate(Avg('value'))
+                    people = Decision.objects.filter(source__id=c,current=True,value='D').values_list('person',flat=True)
+                    if people:
+                        v = Datapoint.objects.filter(coorder__source=c,pointtype='C',user__id__in=people).order_by('data__timestamp').values_list('data__id').annotate(Avg('value'))
+                    else:
+                        v = Datapoint.objects.filter(coorder__source=c,pointtype='C').order_by('data__timestamp').values_list('data__id').annotate(Avg('value'))
                     # Double check we have same number of obs and cals
                     if v.count() == e.numobs:
                         ids,b = zip(*v)
                         cals.append(list(b))
-                        try:
-                            decvalue_full = Decision.objects.filter(source=c,planet__name=code,current=True).values_list('value').annotate(total=Count('id')) 
-                            decvalue = dict((str(key),value) for key,value in decvalue_full)                          
-                        except:
-                            decvalue ='X'
+                        decvalue_full = Decision.objects.filter(source=c,planet__name=code,current=True).values_list('value').annotate(total=Count('id')) 
+                        decvalue = dict((str(key),value) for key,value in decvalue_full)                          
                         source = CatSource.objects.get(id=c)
                         cat_item = {'sourcename':str(source.name),'catalogue':str(source.catalogue),'sourceid': str(c),'include':source.final}
                         cat_item['decisions'] = decvalue
@@ -1283,10 +1284,7 @@ def averagecals(code,person):
                         ids,b = zip(*v)
                         cals.append(list(b))
                         try:
-                            if person == 0:
-                                decvalue = Decision.objects.filter(source=c.source,planet__name=code,current=True).values_list('value').annotate(total=Count('id'))
-                            else:
-                                decvalue = Decision.objects.filter(source=c.source,person=person,planet__name=code,current=True)[0].value
+                            decvalue = Decision.objects.filter(source=c.source,person=person,planet__name=code,current=True)[0].value
                         except:
                             decvalue ='X'
                         cat_item = {'sourcename':c.source.name,'catalogue':c.source.catalogue}
