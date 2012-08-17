@@ -1302,9 +1302,8 @@ def averagecals(code,person):
         dsmin = dsmax - maxnum
         ds = ds.values_list('id',flat=True)
         if person == 0:
-            norm = dict((key,0) for key in ids)
             people = Decision.objects.filter(planet=e,value='D',current=True).values_list('person',flat=True).distinct('person')
-            dp = Datapoint.objects.filter(data__event=e,user__id__in=people).order_by('data__timestamp')
+            dp = Datapoint.objects.filter(data__event=e,user__id__in=people)
             sc = []
             bg = []
             for d in ds:
@@ -1312,7 +1311,6 @@ def averagecals(code,person):
                 bg_ave = dp.filter(pointtype='B',data__id=d).aggregate(val=Avg('value'))
                 sc.append(sc_ave['val'])
                 bg.append(bg_ave['val'])
-            print sc,bg
         else:
             sc_my = ds.filter(datapoint__pointtype='S',datapoint__user=person).annotate(value=Sum('datapoint__value')).values_list('id','value')
             bg_my = ds.filter(datapoint__pointtype='B',datapoint__user=person).annotate(value=Sum('datapoint__value')).values_list('id','value')
