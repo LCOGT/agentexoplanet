@@ -1450,7 +1450,7 @@ def supercaldata(request,planet):
             # make into Numpy arrays for easier manipulation
             sc = array(sourceave)
             bg = array(bgave)
-            calvals = Datapoint.objects.values('data','coorder__source').filter(user= p,coorder__source__in=sources,pointtype='C',coorder__source__final=True)
+            calvals = Datapoint.objects.values('data','coorder__source').filter(user= p,coorder__source__in=sources,pointtype='C',coorder__source__final=True,coorder__complete=True)
             for c in sources:
                 calaves = calvals.filter(coorder__source=c)
                 calpoints = calaves.order_by('data__timestamp').annotate(mean=Avg('value')).values_list('mean',flat=True)
