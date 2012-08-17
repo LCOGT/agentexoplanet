@@ -24,11 +24,11 @@
 	.calibrator h3 { margin-top: 0px; }
 	.calibrator .graph {
 		width: 600px;
-		height: 200px;
+		height: 180px;
 		display: inline-block;
 	}
 	.breakdown { position: relative; }
-	.breakdown .user-calibrator { margin-top: 16px; }
+	.breakdown .user-calibrator { margin-top: 16px; position: relative; }
 	.calibrator .decisions, .breakdown .included {
 		width: 168px;
 		margin-left: 16px;
@@ -79,7 +79,7 @@
 		// Define some options
 		var options = {
 			xaxis:{ label:'Time', mode:'time' },
-			yaxis: { label: 'Delta (mag)' },
+			yaxis: { label: 'Relative magnitude' },
 			grid: { hoverable: true, clickable: true, background: 'white' }
 		};
 
@@ -120,10 +120,15 @@
 			graph = $.graph(id, {
 				data:d,
 				color: '#d62728',
-				points: { show: false },
-				lines: { show: true ,width: 1 },
+				points: { show: true },
+				lines: { show: true ,width: 1.5 },
 				clickable: false,
-				hoverable: false
+				hoverable: true,
+				css: {
+				  'font-size': '0.9em',
+				  'background-color': '#d62728'
+				}
+
 			}, options);
 
 			// Loop over each decision and output the icon/number
@@ -131,7 +136,58 @@
 				n = (cats[c].decisions[decs[ds]] ? cats[c].decisions[decs[ds]] : 0);
 				el.append('<div class="decision'+(n==0 ? " zero" : "")+'"><a href="{% url agentex.admin.allcalibrators_check planetid %}'+cats[c].sourceid+'/" class="'+decs[ds]+'" data="'+n+'">'+decisionImage(decisionFull(decs[ds]))+'<\/a>'+n+'<\/div>');
 				// Attach click events to the decision images
-				el.find('.decision a.'+decs[ds]).bind('click',{el:$('#'+id).parent()},function(e){ e.preventDefault(); });
+				el.find('.decision a.'+decs[ds]).bind('click',{id:id,el:$('#'+id).parent(),decision:decs[ds]},function(e){
+					e.preventDefault();
+					if(e.data.decision=="D"){
+
+						var p = e.data.el.parent();
+
+						if(p.find('.breakdown').length > 0) p.find('.breakdown').remove();
+						else{
+							// Do something
+							var _obj = { calibrator: p, a: $(this), id:e.data.id };
+		
+							$.getJSON($(this).attr('href'),function(data){
+								
+								var i,c,d,id,breakdown;
+		
+								// Remove any existing breakdown
+								if(_obj.calibrator.find('.breakdown').length==0) _obj.calibrator.append('<div class="breakdown"><\/div>');
+								breakdown = _obj.calibrator.find('.breakdown');
+								breakdown.html('<h3>Measurements classified as &quot;dip&quot;<\/h3>');
+								
+								var opts = {
+									xaxis:{ label:'Time', mode:'time' },
+									yaxis: { label: 'source/calibrator' },
+									grid: { hoverable: true, clickable: true, background: 'white' }
+								};
+								for(i = 0; i < data.data.length ; i++){
+									d = [];
+									for(c = 0; c < data.data[i].length ; c++){
+										if(data.data[i][c] > 0) d.push({x:data.timestamps[c]*1000,y:data.data[i][c]});
+									}
+									id = _obj.id+'-'+(i+1);
+									breakdown.append('<div class="user-calibrator"><div id="'+id+'" class="graph"><\/div><div class="included"><h4>'+(i+1)+': '+data.people[i]+'<\/h4><input type="checkbox" '+(data.include[i] ? 'checked="checked"' : '')+'/> Use<\/div><\/div>');
+		
+									// Attach to the DOM element with the ID 'lightcurve'
+									graph = $.graph(id, {
+										data:d,
+										color: '#1e77b4',
+										points: { show: true, radius: 2 },
+										lines: { show: false ,width: 1 },
+										clickable: false,
+										hoverable: true,
+										css: {
+										  'font-size': '0.9em',
+										  'background-color': '#1e77b4'
+										}
+									}, opts);
+								}
+			
+							});
+						}
+					}
+				});
 			}
 	
 		    include_cal = (cats[c].include == true) ? "checked=checked" : "";
@@ -141,42 +197,13 @@
 			// If there are dips we allow for drilling down into individual curves
 			if(cats[c].decisions['D'] > 0){
 
-				el.append('<br /><a href="{% url agentex.admin.allcalibrators_check planetid %}'+cats[c].sourceid+'/" class="breakdownlink fancybtngrey">See breakdown<\/a>');
-	
+				//el.append('<br /><a href="{% url agentex.admin.allcalibrators_check planetid %}'+cats[c].sourceid+'/" class="breakdownlink fancybtngrey fancybtngreydisabled">Save changes<\/a>');
+
 				// Attach click events to the decision images
-				el.find('a.breakdownlink').bind('click',{el:$('#'+id).parent()},function(e){
+				el.find('a.breakdownlink').bind('click',{el:$('#'+id).parent(),id:id},function(e){
 					e.preventDefault();
 					
-					// Do something
-					var _obj = { calibrator: e.data.el, a: $(this) };
 
-					$.getJSON($(this).attr('href'),function(data){
-						
-						var i,c,d,id,breakdown;
-						console.log(_obj,data);
-						// Remove any existing breakdown
-						if(_obj.calibrator.find('.breakdown').length==0) _obj.calibrator.append('<div class="breakdown"><\/div>');
-						breakdown = _obj.calibrator.find('.breakdown');
-						breakdown.html('<h3>Users measurements<\/h3>');
-						
-						for(i = 0; i < data.data.length ; i++){
-							d = [];
-							for(c = 0; c < data.data[i].length ; c++) d.push({x:data.timestamps[c]*1000,y:data.data[i][c]});
-							id = 'user-graph-'+(i+1);
-							breakdown.append('<div class="user-calibrator"><div id="'+id+'" class="graph"><\/div><div class="included"><h4>'+data.people[i]+'<\/h4><input type="checkbox" '+(data.include[i] ? 'checked="checked"' : '')+'/> Include in final lightcurve<\/div><\/div>');
-
-							// Attach to the DOM element with the ID 'lightcurve'
-							graph = $.graph(id, {
-								data:d,
-								color: '#d62728',
-								points: { show: false },
-								lines: { show: true ,width: 1 },
-								clickable: false,
-								hoverable: false
-							}, options);
-						}
-	
-					});
 	
 				});
 			}

@@ -650,6 +650,14 @@
 			}
 			if(typeof this.data[i].hover!="object") this.data[i].hover = {};
 		}
+		if(this.x.min==this.x.max){
+			this.x.min = this.x.min-1;
+			this.x.max = this.x.max+1;
+		}
+		if(this.y.min==this.y.max){
+			this.y.min = this.y.min-1;
+			this.y.max = this.y.max+1;
+		}
 		// Keep a record of the data min/max
 		this.x.datamin = this.x.min;
 		this.x.datamax = this.x.max;
