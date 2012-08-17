@@ -1294,7 +1294,7 @@ def averagecals(code,person):
                         callist.append(c.source.id)
     if callist:
         # Only proceed if we have calibrators in the list (i.e. arrays of numobs)
-        ds = DataSource.objects.filter(event__name=code).order_by('timestamp')
+        ds = DataSource.objects.filter(event=e).order_by('timestamp')
         users = DataCollection.objects.filter(id__in=dcall).values_list('person',flat=True).distinct()
         maxnum = ds.count()
         dsmax1 = ds.aggregate(Max('id'))
@@ -1302,13 +1302,17 @@ def averagecals(code,person):
         dsmin = dsmax - maxnum
         ds = ds.values_list('id',flat=True)
         if person == 0:
-            sc_my = ds.filter(datapoint__pointtype='S').annotate(value=Avg('datapoint__value')).values_list('id','value')
-            bg_my = ds.filter(datapoint__pointtype='B').annotate(value=Avg('datapoint__value')).values_list('id','value')
-            if sc_my.count() < maxnum:
-                return normcals,stamps,[int(i) for i in ids],cats
-            else:
-                tmp,sc=zip(*sc_my)
-                tmp,bg=zip(*bg_my)
+            norm = dict((key,0) for key in ids)
+            people = Decision.objects.filter(planet=e,value='D',current=True).values_list('person',flat=True).distinct('person')
+            dp = Datapoint.objects.filter(data__event=e,user__id__in=people).order_by('data__timestamp')
+            sc = []
+            bg = []
+            for d in ds:
+                sc_ave = dp.filter(pointtype='S',data__id=d).aggregate(val=Avg('value'))
+                bg_ave = dp.filter(pointtype='B',data__id=d).aggregate(val=Avg('value'))
+                sc.append(sc_ave['val'])
+                bg.append(bg_ave['val'])
+            print sc,bg
         else:
             sc_my = ds.filter(datapoint__pointtype='S',datapoint__user=person).annotate(value=Sum('datapoint__value')).values_list('id','value')
             bg_my = ds.filter(datapoint__pointtype='B',datapoint__user=person).annotate(value=Sum('datapoint__value')).values_list('id','value')
