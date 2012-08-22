@@ -22,7 +22,7 @@
 		$('#nextstep').addClass('fancybtndisable');
 
 	{% if numsuper %}
-		html = '<p>Measurements with {{numsuper}} calibrator{% if numsuper > 1 %}s were combined{%else%} was used{%endif%} to make this final lightcurve. With more calibrators the lightcurve should improve.'
+		html = '<p>Measurements with {{numsuper}} calibrator{% if numsuper > 1 %}s were combined{%else%} was used{%endif%} to make the final, combined, lightcurve. With more calibrators the lightcurve should improve.'
 		html += '<div id="mainplot" style="height:448px;width:100%;"><\/div>';
 	
 	{% endif %}		
@@ -132,7 +132,7 @@
 		<div id="relativesizes" class="accessible">
 			<br />
 			<h2>Relative sizes</h2>
-			<p>This cartoon shows the relative sizes of the star, planet and orbit based on the transit you've identified. It assumes that we are seeing <span class="objectspecific">{{event.title}}</span>'s orbit edge on. The dip in brightness happens when the planet blocks the star.</h2>
+			<p>This cartoon shows the relative sizes of the star, planet and orbit based on the transit above. It assumes that we are seeing <span class="objectspecific">{{event.title}}</span>'s orbit edge on. The dip in brightness happens when the planet blocks the star.</h2>
 			<div id="planetillustration"></div>
 			<div id="planetcomparison"></div>
 			<div id="planetillustration"></div>

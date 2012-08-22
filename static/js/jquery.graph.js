@@ -183,7 +183,7 @@
 		if (typeof window === 'undefined') return;
 		var style;
 		var el = document.getElementById(el);
-		if (el.currentStyle) style = el.currentStyle[styleProp];
+		if (el && el.currentStyle) style = el.currentStyle[styleProp];
 		else if (window.getComputedStyle) style = document.defaultView.getComputedStyle(el, null).getPropertyValue(styleProp);
 		if (style && style.length === 0) style = null;
 		return style;
@@ -314,12 +314,16 @@
 		if(o.length > 0) return o;
 	}
 	Canvas.prototype.copyToClipboard = function(){
-		this.clipboard = this.ctx.getImageData(0, 0, this.wide, this.tall);
-		this.clipboardData = this.clipboard.data;
+		try{
+			this.clipboard = this.ctx.getImageData(0, 0, this.wide, this.tall);
+			this.clipboardData = this.clipboard.data;
+		}catch(e){ this.clipboard = null; }
 	}
 	Canvas.prototype.pasteFromClipboard = function(){
-		this.clipboard.data = this.clipboardData;
-		this.ctx.putImageData(this.clipboard, 0, 0);
+		if(this.clipboardData && this.clipboard){
+			this.clipboard.data = this.clipboardData;
+			this.ctx.putImageData(this.clipboard, 0, 0);
+		}
 	}
 	// Will toggle the <canvas> as a full screen element if the browser supports it.
 	Canvas.prototype.toggleFullScreen = function(){
@@ -620,7 +624,7 @@
 	}
 
 	Graph.prototype.setGraphRange = function(){
-		var x,y,d,o;
+		var x,y,d,o,err;
 		o = this.options;
 		this.x = { min: 1e32, max: -1e32, isDate: o.xaxis.isDate, log: o.xaxis.log, label:{text:o.xaxis.label}, fit:o.xaxis.fit };
 		this.y = { min: 1e32, max: -1e32, log: o.yaxis.log, label:{text:o.yaxis.label}, fit:o.yaxis.fit };
@@ -631,7 +635,7 @@
 			if(typeof this.data[i].data!=="object") continue;
 			d = this.data[i].data;
 			max = d.length
-
+/*
 			if(this.data[0].data[0].err){
 				// Need to correct for different +/- errors
 				var errs = new Array();
@@ -639,14 +643,15 @@
 					if(d[j].err) errs.push(d[j].err);
 				}
 				m = G.stddev(errs);
-				var err = (m) ? [m,m] : [0,0];
-			}else var err = [0,0];
-
+				err = (m) ? [m,m] : [0,0];
+			}else err = [0,0];
+*/
 			for(var j = 0; j < max ; j++){
+				err = (typeof d[j].err==="number") ? d[j].err : 0.0;
 				if(d[j].x < this.x.min) this.x.min = d[j].x;
 				if(d[j].x > this.x.max) this.x.max = d[j].x;
-				if(d[j].y-err[1] < this.y.min) this.y.min = d[j].y-err[1];
-				if(d[j].y+err[1] > this.y.max) this.y.max = d[j].y+err[1];
+				if(d[j].y-err < this.y.min) this.y.min = d[j].y-err;
+				if(d[j].y+err > this.y.max) this.y.max = d[j].y+err;
 			}
 			if(typeof this.data[i].hover!="object") this.data[i].hover = {};
 		}
@@ -658,6 +663,7 @@
 			this.y.min = this.y.min-1;
 			this.y.max = this.y.max+1;
 		}
+
 		// Keep a record of the data min/max
 		this.x.datamin = this.x.min;
 		this.x.datamax = this.x.max;
@@ -754,6 +760,7 @@
 		var found = "";
 		// Define a search pattern moving out in pixels
 		search = [[0,0],[-1,0],[1,0],[0,-1],[0,1],[1,1],[1,-1],[-1,1],[-1,-1],[-2,0],[0,-2],[2,0],[0,2],[-1,-2],[1,-2],[2,-1],[2,1],[1,2],[-1,2],[-2,1],[-2,-1],[-2,-2],[-2,2],[2,2],[2,-2]];
+		
 		for(i = 0; i < search.length; i++){
 			dx = x+search[i][0];
 			dy = y+search[i][1];
@@ -1154,7 +1161,9 @@
 				ii = this.getPixPos(this.data[s].data[i].x,this.data[s].data[i].y);
 				x = Math.round(ii[0]);
 				y = Math.round(ii[1]);
-				if(this.data[s].hoverable && typeof ii[0]=="number" && typeof ii[1]=="number" && x < this.lookup.length && y < this.lookup[x].length && this.data[s].data[i].x >= this.x.min && this.data[s].data[i].x <= this.x.max && this.data[s].data[i].y >= this.y.min && this.data[s].data[i].y <= this.y.max) this.lookup[x][y] = s+":"+i;
+				// If we've rounded up to the edge we step back slightly
+				if(x == this.lookup.length) x--;
+				if(this.data[s].hoverable && typeof ii[0]=="number" && typeof ii[1]=="number" && x >= 0 && y >= 0 && x < this.lookup.length && y < this.lookup[x].length && this.data[s].data[i].x >= this.x.min && this.data[s].data[i].x <= this.x.max && this.data[s].data[i].y >= this.y.min && this.data[s].data[i].y <= this.y.max) this.lookup[x][y] = s+":"+i;
 				this.data[s].x[i] = ii[0];
 				this.data[s].y[i] = ii[1];
 			}

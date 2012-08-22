@@ -221,7 +221,7 @@ Lightcurve.prototype.data2plot = function(){
 			for(i=0;i<d.length;i++){
 				this.dmean[i] = ([Number(d[i].datestamp)*1000,Number(d[i].data.mean)]);
 				this.dm[i] = {x:Number(d[i].datestamp)*1000,y:Number(d[i].data.mean),err:Number(d[i].data.std)};
-				this.dmine[i] = {x:Number(d[i].datestamp)*1000,y:Number(d[i].data.mine),err:Number(d[i].data.std)};
+				this.dmine[i] = {x:Number(d[i].datestamp)*1000,y:Number(d[i].data.mine),err:Number(d[i].data.mine/100)};
 				this.dstd[i] = (Number(d[i].data.std));
 			}
 		}else{
@@ -405,11 +405,11 @@ Lightcurve.prototype.update = function(a){
 		t = (d[d.length-1].x-d[0].x)/25;
 
 		if(this.graph){
-			this.graph.updateData(dataset)
+			this.graph.updateData(dataset);
 		}else{
 			this.graph = $.graph('mainplot', dataset, {
 				xaxis: { label: this.options.xaxis.axisLabel, mode: 'time', min: d[0].x-t, max: d[d.length-1].x+t },
-				yaxis: { label: this.options.yaxis.axisLabel, min: this.dl, max: this.dh },
+				yaxis: { label: this.options.yaxis.axisLabel },
 				grid: { show: true, color:'rgb(150,150,150)', border: 2, clickable: true, hoverable: true }
 			});
 		}

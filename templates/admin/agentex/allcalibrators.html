@@ -24,11 +24,12 @@
 	.calibrator h3 { margin-top: 0px; }
 	.calibrator .graph {
 		width: 600px;
-		height: 180px;
+		height: 200px;
 		display: inline-block;
 	}
 	.breakdown { position: relative; }
 	.breakdown .user-calibrator { margin-top: 16px; position: relative; }
+	.calibrator .decisions { text-align: center; }
 	.calibrator .decisions, .breakdown .included {
 		width: 168px;
 		margin-left: 16px;
@@ -66,152 +67,225 @@
 	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/jquery.graph.js"></script>
 	<script type="text/javascript" charset="utf-8">
 	<!--
+	function Calibrators(){
+		this.data = {};
+		this.data.calibrators = {{calibrators}};
+		this.data.dates = {{ dates }};
+		this.data.cats = {{ cats|safe }};
+		
+		this.init();
+		
+		return this;
+	}
+	Calibrators.prototype.init = function(){
+		var c, cal, d;
+
+		this.cals = [];
+
+		for(c = 0; c < this.data.calibrators.length ; c++){
+			cal = this.data.calibrators[c];
+			d = [];
+			for(i = 0; i < cal.length ; i++) d.push({x:this.data.dates[i]*1000,y:cal[i]});
+			id = 'graph-'+(c+1);
+
+			this.cals[c] = new Calibrator({calibrator:c,parent:$('#lightcurves'),values:d,meta:this.data.cats[c]});
+
+
+		}
+	}
 	
-	$(document).ready(function(){
-		// First we'll build an array of data sets
-		var c,cal,i,id,d,data,dataset = [],el,n,include_cal;
+	function Calibrator(inp){
+		this.calibrator = (inp.calibrator) ? inp.calibrator : 0;
+		this.parent = (inp.parent) ? inp.parent : $('#lightcurves');
+		this.values = (inp.values) ? inp.values : [];
+		this.meta = (inp.meta) ? inp.meta : {};
 
-		// The data
-		var calibrators = {{calibrators}};
-		var dates = {{ dates }};
-		var cats = {{ cats|safe }};
-
-		// Define some options
-		var options = {
+		this.decs = ["D","N","O","B","P","R"];
+		this.id = this.calibrator+1;
+		this.options = {
 			xaxis:{ label:'Time', mode:'time' },
 			yaxis: { label: 'Relative magnitude' },
 			grid: { hoverable: true, clickable: true, background: 'white' }
 		};
 
+	
+		this.init();
+		return this;
+	}
+	Calibrator.prototype.init = function(){
+		var decisions,el,id,ds,n;
 
-		function decisionFull(d){
-			if(d == "D") return "dip";
-			if(d == "N") return "nodip";
-			if(d == "O") return "odd";
-			if(d == "B") return "blip";
-			if(d == "P") return "periodic";
-			if(d == "R") return "other";
-		}
-		function decisionShort(d){
-			if(d == "dip") return "D";
-			if(d == "nodip") return "N";
-			if(d == "odd") return "O";
-			if(d == "blip") return "B";
-			if(d == "periodic") return "P";
-			if(d == "other") return "R";
-		}
-		function decisionImage(d){
-			return '<img title="Classified as '+d+'" alt="'+d+'" src="/images/choice_'+d+'.png">';
-		}
+		this.parent.append('<div class="calibrator" id="calibrator-'+this.id+'"><h3>'+(this.id)+'. '+this.meta.catalogue+' '+this.meta.sourcename+'<\/h3><div id="graph-'+this.id+'" class="graph"><\/div><div class="decisions"><\/div><\/div>');
+		this.el = this.parent.find('#calibrator-'+this.id);
 
-		decs = ["D","N","O","B","P","R"];
+		decisions = '';
+		el = this.el.find('.decisions');
 
-		for(c = 0; c < calibrators.length ; c++){
-			cal = calibrators[c];
-			d = [];
-			for(i = 0; i < cal.length ; i++) d.push({x:dates[i]*1000,y:cal[i]});
-			id = 'graph-'+(c+1);
-			$('#lightcurves').append('<div class="calibrator"><h3>'+cats[c].catalogue+' '+cats[c].sourcename+'<\/h3><div id="'+id+'" class="graph"><\/div><div class="decisions"><\/div><\/div>');
+		// Loop over each decision and output the icon/number
+		for(ds = 0 ; ds < this.decs.length ; ds++){
 
-			decisions = '';
-			el = $('#'+id).parent().find('.decisions');
+			n = (this.meta.decisions[this.decs[ds]] ? this.meta.decisions[this.decs[ds]] : 0);
+			el.append('<div class="decision'+(n==0 ? " zero" : "")+'"><a href="{% url agentex.admin.allcalibrators_check planetid %}'+this.meta.sourceid+'/" class="'+this.decs[ds]+'" data="'+n+'">'+this.decisionImage(this.decisionFull(this.decs[ds]))+'<\/a>'+n+'<\/div>');
+			// Attach click events to the decision images
+			el.find('.decision a.'+this.decs[ds]).bind('click',{me:this,decision:this.decs[ds]},function(e){
 
-			// Attach to the DOM element with the ID 'lightcurve'
-			graph = $.graph(id, {
-				data:d,
-				color: '#d62728',
-				points: { show: true },
-				lines: { show: true ,width: 1.5 },
-				clickable: false,
-				hoverable: true,
-				css: {
-				  'font-size': '0.9em',
-				  'background-color': '#d62728'
+				e.preventDefault();
+
+				if(e.data.decision=="D"){
+
+					e.data.me.json = $(this).attr('href');
+					if(e.data.me.el.find('.breakdown').length > 0) e.data.me.el.find('.breakdown').remove();
+					else e.data.me.getUserGraphs();
+
 				}
-
-			}, options);
-
-			// Loop over each decision and output the icon/number
-			for(ds = 0 ; ds < decs.length ; ds++){
-				n = (cats[c].decisions[decs[ds]] ? cats[c].decisions[decs[ds]] : 0);
-				el.append('<div class="decision'+(n==0 ? " zero" : "")+'"><a href="{% url agentex.admin.allcalibrators_check planetid %}'+cats[c].sourceid+'/" class="'+decs[ds]+'" data="'+n+'">'+decisionImage(decisionFull(decs[ds]))+'<\/a>'+n+'<\/div>');
-				// Attach click events to the decision images
-				el.find('.decision a.'+decs[ds]).bind('click',{id:id,el:$('#'+id).parent(),decision:decs[ds]},function(e){
-					e.preventDefault();
-					if(e.data.decision=="D"){
-
-						var p = e.data.el.parent();
-
-						if(p.find('.breakdown').length > 0) p.find('.breakdown').remove();
-						else{
-							// Do something
-							var _obj = { calibrator: p, a: $(this), id:e.data.id };
-		
-							$.getJSON($(this).attr('href'),function(data){
-								
-								var i,c,d,id,breakdown;
-		
-								// Remove any existing breakdown
-								if(_obj.calibrator.find('.breakdown').length==0) _obj.calibrator.append('<div class="breakdown"><\/div>');
-								breakdown = _obj.calibrator.find('.breakdown');
-								breakdown.html('<h3>Measurements classified as &quot;dip&quot;<\/h3>');
-								
-								var opts = {
-									xaxis:{ label:'Time', mode:'time' },
-									yaxis: { label: 'source/calibrator' },
-									grid: { hoverable: true, clickable: true, background: 'white' }
-								};
-								for(i = 0; i < data.data.length ; i++){
-									d = [];
-									for(c = 0; c < data.data[i].length ; c++){
-										if(data.data[i][c] > 0) d.push({x:data.timestamps[c]*1000,y:data.data[i][c]});
-									}
-									id = _obj.id+'-'+(i+1);
-									breakdown.append('<div class="user-calibrator"><div id="'+id+'" class="graph"><\/div><div class="included"><h4>'+(i+1)+': '+data.people[i]+'<\/h4><input type="checkbox" '+(data.include[i] ? 'checked="checked"' : '')+'/> Use<\/div><\/div>');
-		
-									// Attach to the DOM element with the ID 'lightcurve'
-									graph = $.graph(id, {
-										data:d,
-										color: '#1e77b4',
-										points: { show: true, radius: 2 },
-										lines: { show: false ,width: 1 },
-										clickable: false,
-										hoverable: true,
-										css: {
-										  'font-size': '0.9em',
-										  'background-color': '#1e77b4'
-										}
-									}, opts);
-								}
-			
-							});
-						}
-					}
-				});
-			}
-	
-		    include_cal = (cats[c].include == true) ? "checked=checked" : "";
-			el.append('<br /><input type="checkbox" '+include_cal+' /> Use in final lightcurve');
-
-
-			// If there are dips we allow for drilling down into individual curves
-			if(cats[c].decisions['D'] > 0){
-
-				//el.append('<br /><a href="{% url agentex.admin.allcalibrators_check planetid %}'+cats[c].sourceid+'/" class="breakdownlink fancybtngrey fancybtngreydisabled">Save changes<\/a>');
-
-				// Attach click events to the decision images
-				el.find('a.breakdownlink').bind('click',{el:$('#'+id).parent(),id:id},function(e){
-					e.preventDefault();
-					
-
-	
-				});
-			}
-				
-
-
+			});
 		}
-		
+
+		el.append('<br /><input type="checkbox" '+((this.meta.include == true) ? "checked=checked" : "")+' /> Use in final lightcurve');
+
+		el.find('input').change({me:this},function(e){
+
+			e.preventDefault();
+			e.data.me.toggleCalibrator($(this));
+
+		});
+
+
+		// Attach to the DOM element with the ID 'lightcurve'
+		graph = $.graph('graph-'+this.id, {
+			data:this.values,
+			color: '#d62728',
+			points: { show: true },
+			lines: { show: true ,width: 1.5 },
+			clickable: false,
+			hoverable: true,
+			css: {
+			  'font-size': '0.9em',
+			  'background-color': '#d62728'
+			}
+
+		}, this.options);
+
+
+	}
+	Calibrator.prototype.getUserGraphs = function(){
+		// Do something
+		var _obj = this;
+
+		$.getJSON(this.json,function(data){
+			
+			var i,c,d,id,breakdown;
+
+			// Remove any existing breakdown
+			_obj.el.find('.breakdown').remove();
+			_obj.el.append('<div class="breakdown"><\/div>');
+			breakdown = _obj.el.find('.breakdown');
+			breakdown.html('<h3>Measurements classified as &quot;dip&quot;<\/h3>');
+			
+			var opts = {
+				xaxis:{ label:'Time', mode:'time' },
+				yaxis: { label: 'source/calibrator' },
+				grid: { hoverable: true, clickable: true, background: 'white' }
+			};
+
+			_obj.user = [];
+
+			for(i = 0; i < data.data.length ; i++){
+				d = [];
+				for(c = 0; c < data.data[i].length ; c++){
+					//if(data.data[i][c] != 0) 
+					d.push({x:data.timestamps[c]*1000,y:data.data[i][c]});
+				}
+				id = _obj.id+'-'+(i+1);
+				breakdown.append('<div class="user-calibrator" id="'+id+'-holder"><div id="'+id+'" class="graph"><\/div><div class="included"><h4>'+(i+1)+': '+data.people[i]+'<\/h4><input type="checkbox" '+(data.include[i] ? 'checked="checked"' : '')+'/> Use<\/div><\/div>');
+
+
+				// Attach to the DOM element with the ID 'lightcurve'
+				graph = $.graph(id, {
+					data:d,
+					color: '#1e77b4',
+					points: { show: true, radius: 2 },
+					lines: { show: false ,width: 1 },
+					clickable: false,
+					hoverable: true,
+					css: {
+					  'font-size': '0.9em',
+					  'background-color': '#1e77b4'
+					}
+				}, opts);
+				
+				_obj.user[i] = { id: id, name: data.people[i], input: breakdown.find('#'+id+'-holder .included input') };
+
+				_obj.user[i].input.bind('change',{me:_obj,i:i},function(e){
+
+					e.data.me.toggleUser(e.data.i);
+
+				});
+			}
+
+		});
+	}
+	Calibrator.prototype.toggleCalibrator = function(input){
+		var state = (input.is(":checked")) ? true : false;
+		var _obj = this;
+
+		$.ajax({
+			type: 'POST',
+			url: '{% url agentex.admin.allcalibrators_check planetid %}'+this.meta.sourceid+'/',
+			data: { include: input.is(":checked") },
+			success: function(data) {
+			},
+			dataType: 'json'
+		});
+	}
+
+	Calibrator.prototype.toggleUser = function(i){
+		var state = (this.user[i].input.is(":checked")) ? true : false;
+//		this.el.find('.savelink').removeClass('fancybtndisable');
+		this.saveUsers();
+	}
+	Calibrator.prototype.saveUsers = function(){
+		var u = [],checked;
+		var _obj = this;
+		for(var i = 0; i < this.user.length; i++){
+			checked = (this.user[i].input.is(":checked")) ? true : false;
+			if(checked) u.push(this.user[i].name);
+		}
+		$.ajax({
+			type: 'POST',
+			url: '{% url agentex.admin.allcalibrators_check planetid %}'+this.meta.sourceid+'/',
+			data: { 'user': u },
+			success: function(data) {
+			},
+			traditional: true,
+			dataType: 'json'
+		});	
+	}
+	Calibrator.prototype.decisionFull = function(d){
+		if(d == "D") return "dip";
+		if(d == "N") return "nodip";
+		if(d == "O") return "odd";
+		if(d == "B") return "blip";
+		if(d == "P") return "periodic";
+		if(d == "R") return "other";
+	}
+	Calibrator.prototype.decisionShort = function(d){
+		if(d == "dip") return "D";
+		if(d == "nodip") return "N";
+		if(d == "odd") return "O";
+		if(d == "blip") return "B";
+		if(d == "periodic") return "P";
+		if(d == "other") return "R";
+	}
+	Calibrator.prototype.decisionImage = function(d){
+		return '<img title="Classified as '+d+'" alt="'+d+'" src="/images/choice_'+d+'.png">';
+	}
+
+
+	$(document).ready(function(){
+
+		var calibrators = new Calibrators();
+
 	});
 		
 	// -->
