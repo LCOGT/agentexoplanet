@@ -16,13 +16,14 @@ class DatapointAd(admin.ModelAdmin):
     
 class DCAdmin(admin.ModelAdmin):
     list_display = ['planet','person','calid','display','complete']
-    list_filter = ['display','complete','planet']
+    list_filter = ['display','complete','planet','person']
 
 class DecAdmin(admin.ModelAdmin):
     list_display = ['value','person','planet','taken','source']
     list_filter = ['planet','value']
 class CatAdmin(admin.ModelAdmin):
     search_fields = ['name']
+    list_filter = ['final']
     list_display = ['name','data','get_planet','final']
     def get_planet(self,obj):
         return '%s' % obj.data.event.title
