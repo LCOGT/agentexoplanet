@@ -10,9 +10,10 @@
        	</thead>
        	{% for log in logs %}
            <tr>
-               <td>{{log.user.last_name}}</a></td><td>{{log.change_message}}</td>
+               <td>{{log.user.last_name}}</a></td><td style="white-space:normal">{{log.change_message}}</td>
            </tr>
            {% endfor %}
            </tbody>
     </table>
+    </fieldset>
 </div>

@@ -13,7 +13,6 @@
 {% block content %}
 <div id="content-main">
 {% agentex_info %}
-{% commentslist %}
 {% if app_list %}
     {% for app in app_list %}
         <div class="module">
@@ -50,7 +49,9 @@
 {% endblock %}
 
 {% block sidebar %}
+
 <div id="content-related">
+{% commentslist %}
     <div class="module" id="recent-actions-module">
         <h2>{% trans 'Recent Actions' %}</h2>
         <h3>{% trans 'My Actions' %}</h3>

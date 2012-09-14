@@ -8,6 +8,12 @@
 'title' - A title for the page
 {% endcomment %}
 
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url admin:index %}">Home</a> > <a href="{% url admin:agentex_event_changelist %}">Planets</a>
+</div>
+{% endblock %}
+
 {% block extrahead %}
 	<link rel="stylesheet" href="{{MEDIA_URL}}css2/agentex.css" type="text/css" media="screen,print" />
 	<style>
@@ -303,7 +309,7 @@
     {% endfor %}
 
     {% endcomment %}
-
+    <p>To include data points the "use in final lightcurve" checkbox for a calibrator AND the "Use" checkboxes need to be checked.</p>
 	<div id="lightcurves"></div>
 </div>
 {% endblock %}
