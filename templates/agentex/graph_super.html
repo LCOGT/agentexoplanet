@@ -73,7 +73,7 @@
 		});
 
 		$(window).scroll(function(){ if(solsystem) solsystem.disable(); });
-		
+		{% if user.is_authenticated and not nodata  %}
 		$('#mainplotholder').after('<button class="fancybtngrey btn-mine">Mine<\/button> <button class="fancybtngrey btn-every">Everyone<\/button>');
 		$('.btn-mine').bind('click',function(){
 			$('.btn-every').removeClass('fancybtngrey-active')
@@ -85,7 +85,7 @@
 			lcurve.update();
 			$(this).addClass('fancybtngrey-active');
 		}).addClass('fancybtngrey-active');
-		
+		{% endif %}
 		extra = "";
 		{% if messages %}extra = $('#message').html(){% endif %}
 		addHelpHint($('#mainplot'),'This lightcurve represents the combined measurements with many calibrators. We\'ve attempted to fit a mathematical model to the data to measure the dip in brightness and the length of the transit.');
