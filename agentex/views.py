@@ -1623,7 +1623,9 @@ def update_cat_sources(username,planetcode):
         dc = p.coorder
         if cats:
             dc.source=cats[0]
+            print dc.id,dc.source.data.event
         else:
             dc.source=None
+            print dc.id, 'No catsource found'
         dc.save()
-        print dc.id,dc.source.data.event
+        
