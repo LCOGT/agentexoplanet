@@ -458,9 +458,9 @@ def savemeasurement(person,pointsum,coords,dataid,entrymode):
             ## Find closest catalogue sources
             if i > 2:
                 # Add more datacollections if i is > 2 i.e. after basic 3 have been entered
-                cats = CatSource.objects.filter(xpos__lt=xpos-xmean+5,ypos__lt=ypos-ymean+5,xpos__gt=xpos-xmean-5,ypos__gt=ypos-ymean-5)
+                cats = CatSource.objects.filter(xpos__lt=xpos-xmean+5,ypos__lt=ypos-ymean+5,xpos__gt=xpos-xmean-5,ypos__gt=ypos-ymean-5,data__event=d[0].event)
             else:
-                cats = CatSource.objects.filter(xpos__lt=xpos+5,ypos__lt=ypos+5,xpos__gt=xpos-5,ypos__gt=ypos-5)
+                cats = CatSource.objects.filter(xpos__lt=xpos+5,ypos__lt=ypos+5,xpos__gt=xpos-5,ypos__gt=ypos-5,data__event=d[0].event)
             if cats:
                 dcoll = DataCollection(person=person,planet=d[0].event,complete=False,calid=i,source=cats[0])
             else:
@@ -1614,3 +1614,16 @@ def update_final_display():
         dc = DataCollection.objects.filter(person=d.person,source=d.source)
         dc.update(display=True)
         print d.planet, d.person
+        
+def update_cat_sources(username,planetcode):
+    event = Event.objects.get(name=planetcode)
+    points = Datapoint.objects.filter(user__username=username,data__id=event.finder,pointtype='C')
+    for p in points:
+        cats = CatSource.objects.filter(xpos__lt=p.xpos+5,ypos__lt=p.ypos+5,xpos__gt=p.xpos-5,ypos__gt=p.ypos-5,data__event=event)
+        dc = p.coorder
+        if cats:
+            dc.source=cats[0]
+        else:
+            dc.source=None
+        dc.save()
+        print dc.id,dc.source.data.event
