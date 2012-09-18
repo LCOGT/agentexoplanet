@@ -32,7 +32,7 @@ body.agentex #page { background: url('/images/new-header-agentex-bg.png') transp
 body.agentex #logo { margin-top: 8px; margin-bottom: 0px; }
 body.agentex #logo img { width: 247px; height: 104px;}
 #navbar {
-	margin: -21px;
+	margin: -23px;
 	padding: 0px 0px 0px 0px;
 }
 #navbar.primary a {
@@ -594,7 +594,7 @@ Helper information boxes
 */
 .tablink {
 	background-color:#ccc;
-	font-size:2em;
+	font-size: 1.5em;
 	padding:0.3em;
 	z-index:0;
 	font-family: serif;
@@ -611,11 +611,12 @@ Helper information boxes
 	-moz-box-shadow: inset 2px 0px 2px #777;
 	-webkit-box-shadow: inset 2px 0px 2px #777;
 	overflow: hidden;
-	height: 0.6em;
+	height: 1em;
 }
 .tablink img {
 	float: right;
 	width: 1em;
+	margin: 0.2em 0;
 }
 .tablink:hover {
 	background-color:#ddd;
@@ -1016,7 +1017,7 @@ ul.badges li.locked img {
 }
 
 ul.polaroids li.polaroid {
-	width: 205px;
+	width: 204px;
 	height: 248px;
 	border: 1px solid #cccccc;
 	-webkit-box-shadow: 0 3px 6px rgba(0,0,0,.25);
