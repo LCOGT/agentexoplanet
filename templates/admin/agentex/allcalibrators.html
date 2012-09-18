@@ -238,7 +238,7 @@
 		$.ajax({
 			type: 'POST',
 			url: '{% url agentex.admin.allcalibrators_check planetid %}'+this.meta.sourceid+'/',
-			data: { include: input.is(":checked") },
+			data: { include: input.is(":checked"),csrfmiddlewaretoken: '{{ csrf_token }}' },
 			success: function(data) {
 			},
 			dataType: 'json'
@@ -260,7 +260,7 @@
 		$.ajax({
 			type: 'POST',
 			url: '{% url agentex.admin.allcalibrators_check planetid %}'+this.meta.sourceid+'/',
-			data: { 'user': u },
+			data: { 'user': u,csrfmiddlewaretoken: '{{ csrf_token }}' },
 			success: function(data) {
 			},
 			traditional: true,
@@ -284,7 +284,7 @@
 		if(d == "other") return "R";
 	}
 	Calibrator.prototype.decisionImage = function(d){
-		return '<img title="Classified as '+d+'" alt="'+d+'" src="/images/choice_'+d+'.png">';
+		return '<img title="Classified as '+d+'" alt="'+d+'" src="{{MEDIA_URL}}images/choice_'+d+'.png">';
 	}
 
 
