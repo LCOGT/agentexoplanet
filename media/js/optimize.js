@@ -314,12 +314,12 @@ window.optimize = (function () {
         x = sim[0];
         fval = fsim[0];
 
-        if (iterations >= maxiter)
-            if(console && typeof console.log==="function") console.log("Too many interations.", iterations);
-        else
-            if(console && typeof console.log==="function") console.log("Converged in", iterations, "iterations.");
+        //if (iterations >= maxiter)
+        //    if(console && typeof console.log==="function") console.log("Too many interations.", iterations);
+        //else
+        //    if(console && typeof console.log==="function") console.log("Converged in", iterations, "iterations.");
 
-        if(console && typeof console.log==="function") console.log("Function value =", fval);
+        //if(console && typeof console.log==="function") console.log("Function value =", fval);
 
         return x;
     };
@@ -385,7 +385,7 @@ window.optimize = (function () {
                 break;
         }
 
-        if(console && typeof console.log==="function") console.log("Converged after", i, "iterations.");
+        //if(console && typeof console.log==="function") console.log("Converged after", i, "iterations.");
 
         return x0;
     };
@@ -418,11 +418,11 @@ window.optimize = (function () {
         p_newton = optimize.newton(chi, p0);
         p_fmin = optimize.fmin(chi2, p0);
 
-        if(console && typeof console.log==="function"){
+       /* if(console && typeof console.log==="function"){
         	console.log("truth:", truth);
         	console.log("p_newton:", p_newton);
         	console.log("p_fmin:", p_fmin);
-        }
+        }*/
     };
 
     optimize.vector = vector;
