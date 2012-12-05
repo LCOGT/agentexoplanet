@@ -28,6 +28,12 @@ Show Me Stars!
 		-moz-box-shadow:0px 0px 20px rgba(255,255,255,0.5);
 		-webkit-box-shadow:0px 0px 20px rgba(255,255,255,0.5);
 	}
+	.livestatic { width: 100%; }
+	ul.events { list-style: none; margin: 0px; padding: 0px; }
+	li.event-old { opacity: 0.6; filter: alpha(opacity=60); }
+	li.event-old:hover { opacity: 1.0; filter: alpha(opacity=100); }
+	ul.events li.event { margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid #808080; }
+	ul.events li.event:last-child { margin-bottom: 0px; border-bottom: 0px; }
 	#virtualskyinfobox img {
 		max-width:150px;	
 	}
@@ -67,10 +73,11 @@ Show Me Stars!
 {% endblock %}
 
 {% block script-content %}
-<!--[if lt IE 9]><script src="http://s3-eu-west-1.amazonaws.com/showmestars/excanvas.min.js"></script><![endif]-->
-<script src="http://s3-eu-west-1.amazonaws.com/showmestars/jquery-1.7.1.min.js" type="text/javascript"></script>
-<script src="http://s3-eu-west-1.amazonaws.com/showmestars/virtualsky-0.3.8.min.js" type="text/javascript"></script>
+	<!--[if lt IE 9]><script src="http://s3-eu-west-1.amazonaws.com/showmestars/excanvas.min.js"></script><![endif]-->
+	<script src="http://s3-eu-west-1.amazonaws.com/showmestars/jquery-1.7.1.min.js" type="text/javascript"></script>
+	<script src="http://s3-eu-west-1.amazonaws.com/showmestars/virtualsky.js" type="text/javascript"></script>
 	<script language="javascript" src="http://s3-eu-west-1.amazonaws.com/showmestars/jquery.tweet.js" type="text/javascript"></script>
+	<script type="text/javascript">var mediaurl = '{{MEDIA_URL}}js/';</script>
 	<script language="javascript" src="{{MEDIA_URL}}js/showmestars.js" type="text/javascript"></script>
 {% endblock %}
 
@@ -79,39 +86,20 @@ Show Me Stars!
         <h1>Show Me Stars! </h1>
     </div>
     <div class="row">
-		<div class="threecol">
-			<div id="starmap" style="width:100%;height:350px;margin-bottom:4px;"></div>
-			<p><a href="http://lcogt.net/virtualsky/embed/custom.html">Customise our Virtual Sky</a> for your own website</p>
-        </div>
-		<div class="threecol lastcol">
-		    {% ifequal event.0.details.site 'ogg' %}
-			<img height="350" src="http://lcogt.net/camera/data/ogg/sbigbw/lastsnap.jpg" class="livestatic">
-			<span>Live Sky over <a href="http://lcogt.net/en/network/2m/faulkes-telescope-north">Faulkes Telescope North</a> - <a href="http://lcogt.net/en/site/haleakala">Haleakala, Maui</a></span>
-			{% else %}
-			<img height="350" src="http://lcogt.net/camera/data/coj/viewtel/lastsnap.jpg" class="livestatic">
-			<span>Live Sky over <a href="http://lcogt.net/en/network/2m/faulkes-telescope-south">Faulkes Telescope South</a> - <a href="http://lcogt.net/en/site/siding-spring">Siding Spring, Australia</a></span>
-			{%endifequal%}
-		</div>
-    </div>
-    <div class="row">
-		<div class="twocol">
-			<!-- h3>Tweets from the hosts</h3>
-			<div class="hosttweet" ></div -->
-			<h3>Tweets from everyone on #showmestars</h3> 
-			<div class="tweet"></div>
-			<p style="font-size:0.8em;color: #999;">Tweets do not necessarily reflect or represent the views of Las Cumbres Observatory Global Telescope. All observations are monitored by Patrick Moore for quality and training purposes*.</p>
-			<p style="font-size:0.6em;color: #999;">* They aren't, but you never know.</p>
-		</div>
-        <div class="fourcol lastcol">
-        <p>See what happened during the first <a href="http://lcogt.net/en/blog/slowe/show-me-stars">Show Me Stars and find out what its all about</a>.</p>
-        <h3>Observations</h3>
-        <p>Below are thumbnails from each guest host's observations</p>
+		<div class="fourcol">
+			<p>See what happened during <a href="http://lcogt.net/blog/slowe/show-me-stars">the first Show Me Stars</a> and find out what its all about. Below are thumbnails from each guest host's observations</p>
+
+			<ul class="events">
             {% for e in event %}
+
+			<li class="event event-{% if e.details.current %}current{% else %}old{% endif %}">
+
                 {% if forloop.first %}
                 <h3>{% if e.details.start > stamp%}Next guest host {%endif%}{{e.details.name}} - {{ e.details.start|date:"jS F Y H:i" }} UT</h3>
                 {% else %}
                 <h3>{{e.details.name}}, guest host from {{ e.details.start|date:"jS F Y H:i" }} UT</h3>
                 {% endif %}
+                <p>Using {% ifequal e.details.site 'ogg' %}<a href="http://lcogt.net/network/2m/faulkes-telescope-north">Faulkes Telescope North</a> at <a href="http://lcogt.net/site/haleakala">Haleakala, Maui</a>{% else %}<a href="http://lcogt.net/network/2m/faulkes-telescope-south">Faulkes Telescope South</a> at <a href="http://lcogt.net/site/siding-spring">Siding Spring, Australia</a>{% endifequal %}</p>
                 <div class="recent-observation">
                     <ul class="{% if forloop.first %}observations-front{% endif %} observations block">
                     {% for o in e.obs %}
@@ -133,8 +121,32 @@ Show Me Stars!
                 {% if forloop.first %}
                 <span time="{{stamp|date:"YmdHis"}}" class="updatetime" >
                 {% endif %}
+			</li>
             {% endfor %}
+            </ul>
+
+        </div>
+		<div class="twocol lastcol">
+			<div id="starmap" style="width:100%;height:250px;margin-bottom:4px;"></div>
+			<p><a href="http://lcogt.net/virtualsky/embed/custom.html">Customise Virtual Sky</a> for your website</p>
+
+		    {% ifequal event.0.details.site 'ogg' %}
+			<img src="http://lcogt.net/camera/data/ogg/sbigbw/lastsnap.jpg" class="livestatic" class="fullwidth">
+			<span>Live sky over <a href="http://lcogt.net/site/haleakala">Haleakala, Maui</a></span>
+			{% else %}
+			<img src="http://lcogt.net/camera/data/coj/viewsite/lastsnap.jpg" class="livestatic" class="fullwidth">
+			<span>Live view of <a href="http://lcogt.net/site/siding-spring">Siding Spring, Australia</a></span>
+			{%endifequal%}
+
+
+			<!-- h3>Tweets from the hosts</h3>
+			<div class="hosttweet" ></div -->
+			<h3>Tweets from everyone on #showmestars</h3> 
+			<div class="tweet"></div>
+			<p style="font-size:0.8em;color: #999;">Tweets do not necessarily reflect or represent the views of Las Cumbres Observatory Global Telescope. All observations are monitored by Sir Patrick Moore for quality and training purposes*.</p>
+			<p style="font-size:0.6em;color: #999;">* They aren't, but you never know.</p>
+
         </div>
     </div>
-    <form action="" method=POST>{% csrf_token %}<input type="submit"></form>
+	<!--<form action="" method=POST>{% csrf_token %}<input type="submit"></form>-->
 {% endblock %}
