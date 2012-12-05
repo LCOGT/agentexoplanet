@@ -22,7 +22,7 @@
 	}
 	
     $(document).ready(function() {
-		planetarium = new $.virtualsky({id:'starmap',projection:'stereo',latitude:20.707500,longitude:-156.255800,az:180,live:true,constellations:true,gridlines_az:true,callback:{geo:geoIP,mouseenter:spinOff},base:mediaurl});
+		planetarium = new $.virtualsky({id:'starmap',projection:'stereo',latitude:20.707500,longitude:-156.255800,az:180,live:true,constellations:true,gridlines_az:true,callback:{geo:geoIP,mouseenter:spinOff},base:mediaurl,credit:false});
 		var objects = [['M1','The Crab Nebula - the remnant from a star which exploded in the year 1054',83.633125,22.014472],['M13','',250.4234750,36.4613194],['M27','Planetary Nebula',299.9015792,22.7210417],['M31','The Andromeda Galaxy',10.684708,41.26875],['M42','The Orion Nebula',83.8220833,-5.3911111],['M56','Globular cluster',289.1482083,30.1834722],['M57','Planetary nebula',283.3961625,33.0291750],['Omega Cen','Globular cluster',201.6970000,-47.4794722],['The Pleiades','Also known as the Seven Sisters',56.8500000,24.1166667],['M101','The Pinwheel Galaxy',210.8021250,54.3480833],['NGC2818','A planetary nebula',139.0069000,-36.6274333],['NGC 6946','Spiral galaxy',308.7180500,60.1536778],['NGC 7331','Spiral galaxy',339.2670917,34.4159194],['NGC 6826','Planetary nebula',296.2006250,50.5250722]];
 
 		for(i = 0 ; i < objects.length ; i++) planetarium.addPointer({ra:objects[i][2],dec:objects[i][3],label:objects[i][0],html:objects[i][1],colour:'rgba(150,150,255,0.5)'});
