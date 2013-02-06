@@ -742,14 +742,18 @@ def graphview(request,code,mode,calid):
             n = range(0,dc.count())
             cats = []
             for order in n:
-                dc0 = dc.filter(calid=order)[0]
-                c = points.filter(pointtype='C',coorder=dc0)[:1]
-                valid = c[0].coorder.display
-                coll = {'order' : order,
-                        'name'  : c[0].coorder.source,
-                        'valid' : valid,
-                        }
-                cats.append(coll)
+                try:
+                    ## Sometimes the sequence of calibrators is not continuous 0..n  -- BUG
+                    dc0 = dc.filter(calid=order)[0]
+                    c = points.filter(pointtype='C',coorder=dc0)[:1]
+                    valid = c[0].coorder.display
+                    coll = {'order' : order,
+                            'name'  : c[0].coorder.source,
+                            'valid' : valid,
+                            }
+                    cats.append(coll)
+                except:
+                    pass
         else:
             cats = None
         classif = classified(o,code)
