@@ -1356,6 +1356,7 @@ def supercaldata(request,planet):
     planet = Event.objects.get(name = planet)
     decs = Decision.objects.values_list('person','source').filter(value='D',current=True,planet=planet,source__datacollection__display=True).annotate(Count('source'))
     numsuper = decs.count()
+    print "Number of supercals: %s" % numsuper
     # Create a lists of sources  and people
     if decs:
         peoplelst,sourcelst,tmp = zip(*decs)
@@ -1382,6 +1383,7 @@ def supercaldata(request,planet):
                 if calpoints.count() == planet.numobs:
                     calslist.append(list(calpoints))
             if calslist:
+                print "\033[94mWe have calibrators\033[1;m"
                 calstack = vstack(calslist)
                 # This throws a wobbly sometimes
                 cc = (sc-bg)/(calstack-bg)
@@ -1389,16 +1391,21 @@ def supercaldata(request,planet):
                 if p == me:
                     # Calculate calibrated values for 'me'
                     mypoints = array(cc)
+            else:
+                print "\033[1;35mThere are no calibrators in the list!!\033[1;m"
             #print "%s %s - %s" % (ti, p, datetime.now()-now)
             ti += 1
         # Create normalisation function
         norm_a = lambda a: mean(r_[a[:3],a[-3:]])
         mycals = []
+        print calibs
         try:
             cala = vstack(calibs)
             norms = apply_along_axis(norm_a, 1, cala)
             dim = len(cala)
+            print dim
             norm1 = cala/norms.reshape(dim,1)
+            print norm1
             mynorm1=[]
             if mypoints != []:
                 #mynorms = apply_along_axis(norm_a, 1, mypoints)

@@ -96,7 +96,7 @@ class CatSource(models.Model):
     xpos = models.IntegerField('x position on finder image', blank=True)
     ypos = models.IntegerField('y position on finder image', blank=True)
     catalogue = models.CharField('catalogue name',blank=False,max_length=20)
-    final = models.BooleanField('include in final curve')
+    final = models.BooleanField('include in final curve',default=True)
     class Meta:
         verbose_name = "catalogue source"
         db_table = u'dataexplorer_catsource'
