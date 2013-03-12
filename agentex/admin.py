@@ -1,4 +1,4 @@
-from agentex.models import Target, Event, Datapoint, DataSource, Badge, Achievement, DataCollection,Decision,CatSource, Observer
+from agentex.models import Target, Event, Datapoint, DataSource, Badge, Achievement, DataCollection,Decision,CatSource, Observer, AverageSet
 from agentex.views import averagecals, calibrator_data
 from django.contrib import admin
 from django.shortcuts import render_to_response
@@ -38,6 +38,9 @@ class EventAdmin(admin.ModelAdmin):
     list_display = ['title','name','start','midpoint','end','numobs','xpos','ypos','enabled']    
 class TargetAdmin(admin.ModelAdmin):
     list_display = ['name','ra','dec','period','rstar','mass','ap','inclination']
+    
+class SetAdmin(admin.ModelAdmin):
+    list_display = ['planet','star']
     
 def allcalibrators_check(request,planetid):
     event = Event.objects.get(id=planetid)
@@ -85,3 +88,4 @@ admin.site.register(Achievement)
 admin.site.register(Observer)
 admin.site.register(CatSource,CatAdmin)
 admin.site.register(DataCollection,DCAdmin)
+admin.site.register(AverageSet,SetAdmin)

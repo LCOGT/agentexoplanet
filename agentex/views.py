@@ -25,7 +25,7 @@ from itertools import chain
 from numpy import array
 
 from django.contrib.auth.models import User
-from agentex.models import Target, Event, Datapoint, DataSource, DataCollection,CatSource, Decision, Achievement, Badge, Observer
+from agentex.models import Target, Event, Datapoint, DataSource, DataCollection,CatSource, Decision, Achievement, Badge, Observer, AverageSet
 from agentex.models import decisions
 from agentex.forms import DataEntryForm, RegisterForm, CommentForm,RegistrationEditForm
 
@@ -771,6 +771,7 @@ def graphview(request,code,mode,calid):
         now = datetime.now()
         cals,normcals,sb,bg,dates,stamps,ids,cats = averagecals(code, o.user)
         numcals = len(normcals)
+        print normcals
         for i,id in enumerate(ids):
             #mycalibs = []
             calibs = []
@@ -844,7 +845,7 @@ def graphview(request,code,mode,calid):
             if nunlock > 1 : msg = 'Achievements unlocked'+msg
             else : msg = 'Achievement unlocked'+msg
             messages.add_message(request, messages.SUCCESS, msg)
-
+        print classif
         return render_to_response('agentex/graph_average.html', {'event': planet,
                                                                 'data':data,
                                                                 'sources':cats,
@@ -1258,7 +1259,7 @@ def averagecals(code,person):
                 if c in cs:
                     people = Decision.objects.filter(source__id=c,current=True,value='D').values_list('person',flat=True)
                     if people:
-                        v = Datapoint.objects.filter(coorder__source=c,pointtype='C',user__id__in=people,coorder__display=True).order_by('data__timestamp').values_list('data__id').annotate(Avg('value'))
+                        v = Datapoint.objects.filter(coorder__source=c, pointtype='C',user__id__in=people,coorder__display=True).order_by('data__timestamp').values_list('data__id').annotate(Avg('value'))
                     else:
                         v = Datapoint.objects.filter(coorder__source=c,pointtype='C',coorder__display=True).order_by('data__timestamp').values_list('data__id').annotate(Avg('value'))
                     # Double check we have same number of obs and cals
@@ -1320,6 +1321,7 @@ def averagecals(code,person):
             sc_my = ds.filter(datapoint__pointtype='S',datapoint__user=person).annotate(value=Sum('datapoint__value')).values_list('id','value')
             bg_my = ds.filter(datapoint__pointtype='B',datapoint__user=person).annotate(value=Sum('datapoint__value')).values_list('id','value')
             if sc_my.count() < maxnum:
+                print sc_my.count(), maxnum
                 return cals,normcals,[],[],dates,stamps,[],cats
             else:
                 tmp,sc=zip(*sc_my)
@@ -1345,6 +1347,23 @@ def averagecals(code,person):
     if person == 0:
         return normcals,stamps,[],[]
     return cals,normcals,[],[],dates,stamps,[],cats
+    
+def averagecals_async(code):
+    # Uses and SQL statement to try to speed up the query for averaging data points
+    e = Event.objects.get(name=code)
+    catsource = DataCollection.objects.values_list('source').filter(planet=e).annotate(Count('source'))
+    for cat in catsource:
+        if cat[0] != None:
+            dps = Datapoint.objects.filter(data__event=e, coorder__source__id=cat[0],pointtype='C').order_by('data__timestamp').values_list('data').annotate(Avg('value'))
+            # Only use ones where we have more than numobs
+                # Double check we have same number of obs and cals
+            if dps.count() == e.numobs:
+                ids,values = zip(*dps)
+                a = AverageSet.objects.get_or_create(star=CatSource.objects.get(id=cat[0]),planet=e)
+                a[0].values =simplejson.dumps(values)
+                a[0].save()
+                print "Updated average sets on planet %s for %s" % (e.title,cat[0])
+    return
 
 def supercaldata(request,planet):
     calibs = []

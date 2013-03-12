@@ -81,6 +81,7 @@
 			cal:{ order:calorder, name:"{{calid.sourcename}}" },
 			authenticated: {% if user.is_authenticated %}true{% else %}false{% endif %}
 		});
+		console.log(lcurve.data);
 		var posturl = "{% url agentex.views.classifyupdate event.name %}";
 
 		$(".choice1 .radio a").bind("click",function(e,nosubmit){
@@ -178,6 +179,7 @@
 
 			// Update the name in the lightcurve
 			lcurve.cal.name = sources[lcurve.cal.order].sourcename;
+			
 
 			// Now update the plot
 			lcurve.update();
