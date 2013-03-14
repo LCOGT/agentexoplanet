@@ -2,6 +2,7 @@ from django.db import models
 from datetime import datetime
 from django.contrib.auth.models import User
 from calendar import timegm
+from json import dumps,loads
 TYPECHOICE = (
 ('S','Source'),
 ('C','Calibration'),
@@ -155,13 +156,14 @@ class AverageSet(models.Model):
     planet = models.ForeignKey(Event)
     star = models.ForeignKey(CatSource,blank=True,null=True)
     values = models.TextField(null=True,blank=True)
+    settype = models.CharField(blank=False,max_length=1,choices=TYPECHOICE)
     class Meta:
         verbose_name = u'combined lightcurve values'
-    # @property 
-    # def jsonData(self):
-    #     return dumps(loads(self.values),indent=2)
-    # def __unicode__(self):
-    #     return u"%s" % (self.planet.title)
+    @property 
+    def data(self):
+        return [float(x) for x in self.values.split(';')]
+    def __unicode__(self):
+        return u"%s" % (self.planet.title)
         
 class Badge(models.Model):
     name = models.CharField(blank=False, max_length=20, help_text='code, no spaces')

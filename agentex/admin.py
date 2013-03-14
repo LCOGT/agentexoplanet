@@ -1,5 +1,5 @@
 from agentex.models import Target, Event, Datapoint, DataSource, Badge, Achievement, DataCollection,Decision,CatSource, Observer, AverageSet
-from agentex.views import averagecals, calibrator_data
+from agentex.views import photometry, calibrator_data
 from django.contrib import admin
 from django.shortcuts import render_to_response
 from django.http import HttpResponse
@@ -44,7 +44,7 @@ class SetAdmin(admin.ModelAdmin):
     
 def allcalibrators_check(request,planetid):
     event = Event.objects.get(id=planetid)
-    normcals,dates,ids,cats = averagecals(event.name,0)
+    normcals,dates,ids,cats = photometry(event.name,0)
     title = 'Check calibrators for %s' % event.title
     c = simplejson.dumps(cats)
     return render_to_response('admin/agentex/allcalibrators.html',{'calibrators':normcals,

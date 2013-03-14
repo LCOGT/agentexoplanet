@@ -13,6 +13,7 @@ from django.db.models import Count,Avg,Min,Max,Variance, Q, Sum
 from django.contrib import messages
 from django.db import connection
 import urllib2
+import pickle
 from xml.dom.minidom import parse
 from math import sin,acos,fabs,sqrt
 from numpy import *
@@ -22,7 +23,7 @@ from calendar import timegm
 from time import mktime
 from math import floor,pi,pow
 from itertools import chain
-from numpy import array
+from numpy import array,nan_to_num
 
 from django.contrib.auth.models import User
 from agentex.models import Target, Event, Datapoint, DataSource, DataCollection,CatSource, Decision, Achievement, Badge, Observer, AverageSet
@@ -769,7 +770,7 @@ def graphview(request,code,mode,calid):
         data = []
         # get and restructure the average data JS can read it nicely
         now = datetime.now()
-        cals,normcals,sb,bg,dates,stamps,ids,cats = averagecals(code, o.user)
+        cals,normcals,sb,bg,dates,stamps,ids,cats = photometry(code,o.user) #averagecals(code, o.user)
         numcals = len(normcals)
         print normcals
         for i,id in enumerate(ids):
@@ -1180,7 +1181,6 @@ def calibratemydata(code,user):
         maxval = max(vals)
         #nz = maxvals.nonzero()
         #maxval = mean(maxvals)
-        print vals
         cals.append(list(vals/maxval)) 
         #mycals.append(list(myvals/maxval))
     return mycals
@@ -1224,14 +1224,15 @@ def myaverages(code,person):
                 bg = array(bg)
                 for cal in cals:
                     val = (sc - bg)/(array(dictconv(cal,ds))-bg)
+                    val = nan_to_num(val)
                     normcals.append(val)
                 normmean = mean(normcals,axis=0)
                 return list(normmean/max(normmean))
     # If they have no 'D' decisions
     return [0.]*ds.count()
 
-
-def averagecals(code,person):
+def averagecals_old(code,person):
+    # Calculates average lightcurves for a given planet for each of the given user's calibration star
     # Uses and SQL statement to try to speed up the query for averaging data points
     # If person == 0 this will return all calibrator values individually - for problem solving
     now = datetime.now()
@@ -1321,7 +1322,6 @@ def averagecals(code,person):
             sc_my = ds.filter(datapoint__pointtype='S',datapoint__user=person).annotate(value=Sum('datapoint__value')).values_list('id','value')
             bg_my = ds.filter(datapoint__pointtype='B',datapoint__user=person).annotate(value=Sum('datapoint__value')).values_list('id','value')
             if sc_my.count() < maxnum:
-                print sc_my.count(), maxnum
                 return cals,normcals,[],[],dates,stamps,[],cats
             else:
                 tmp,sc=zip(*sc_my)
@@ -1348,21 +1348,104 @@ def averagecals(code,person):
         return normcals,stamps,[],[]
     return cals,normcals,[],[],dates,stamps,[],cats
     
-def averagecals_async(code):
-    # Uses and SQL statement to try to speed up the query for averaging data points
-    e = Event.objects.get(name=code)
+def calibrator_averages(code,person):
+    cals = []
+    cats = []
+    planet = Event.objects.get(name=code)
+    sources = list(DataSource.objects.filter(event=planet).order_by('timestamp').values_list('id','timestamp'))
+    ids,stamps = zip(*sources)
+    ## select calibrator stars used, excluding ones where ID == None
+    dc = DataCollection.objects.filter(~Q(source=None),person=person,planet=planet).order_by('calid')
+    ## Measurement values only for selected 'person'
+    dps = Datapoint.objects.filter(data__event=planet,user=person).order_by('data__timestamp')
+    averages = AverageSet.objects.filter(planet=planet)
+    # Make a combined list of all calibration stars used by 'person'
+    for calibrator in dc:
+        measurements = dps.filter(pointtype='C',coorder=calibrator)
+        ave = average_combine(measurements,averages,ids,calibrator.source,'C',planet.numobs)
+        if ave.size > 0:
+            cals.append(ave)
+            try:
+                decvalue = Decision.objects.filter(source=calibrator.source,person=person,planet=planet,current=True)[0].value
+            except:
+                decvalue ='X'
+            cat_item = {'sourcename':calibrator.source.name,'catalogue':calibrator.source.catalogue}
+            cat_item['decsion'] = decvalue
+            cat_item['order'] = str(calibrator.calid)
+            cats.append(cat_item)
+    # Make a combined list of source values
+    measurements = dps.filter(pointtype='S')
+    sc = average_combine(measurements,averages,ids,None,'S',planet.numobs)
+    # Make a combined list of background values
+    measurements = dps.filter(pointtype='B')
+    bg = average_combine(measurements,averages,ids,None,'B',planet.numobs)
+    return cals,sc,bg,stamps,ids,cats
+    
+def average_combine(measurements,averages,ids,star,category,numobs):
+    if measurements.count() < numobs:
+        ave_measurement = averages.filter(star=star,settype=category)
+        if ave_measurement.count() > 0:
+            ## Find the array indeces of my values and replace these averages
+            ave = array(ave_measurement[0].data)
+            mine = zip(*measurements.values_list('data','value'))
+            my_ids = [ids.index(x) for x in mine[0]]
+            ave[my_ids] = mine[1]
+            return ave
+        else:
+            return array([])
+    elif measurements.count() == numobs:
+        mine = array(measurements.values_list('value',flat=True))
+        return mine
+    else:
+        print "Error - too many measurements"
+        return array([])
+    
+def photometry(code,person):
+    normcals = []
+    maxvals = []
+    cals,sc,bg,times,ids,cats = calibrator_averages(code,person)
+    indexes = [int(i) for i in ids]
+    #sc = array(sc)
+    #bg = array(bg)     
+    for cal in cals:
+        val = (sc - bg)/(cal-bg)
+        maxval = mean(r_[val[:3],val[-3:]])
+        maxvals.append(maxval)
+        norm = val/maxval
+        normcals.append(list(norm))
+        # Find my data and create unix timestamps
+    unixt = lambda x: timegm(x.timetuple())+1e-6*x.microsecond
+    iso = lambda x: x.isoformat(" ")
+    stamps = map(unixt,times)
+    dates = map(iso,times)
+    if person == 0:
+        return normcals,stamps,indexes,cats
+    return cals,normcals,list(sc),list(bg),dates,stamps,indexes,cats
+
+    
+def averagecals_async(e):
+    #e = Event.objects.get(name=code)
     catsource = DataCollection.objects.values_list('source').filter(planet=e).annotate(Count('source'))
     for cat in catsource:
         if cat[0] != None:
-            dps = Datapoint.objects.filter(data__event=e, coorder__source__id=cat[0],pointtype='C').order_by('data__timestamp').values_list('data').annotate(Avg('value'))
-            # Only use ones where we have more than numobs
-                # Double check we have same number of obs and cals
+            dps = Datapoint.objects.filter(data__event=e, coorder__source__id=cat[0], pointtype='C').order_by('data__timestamp').values_list('data').annotate(Avg('value'))
+            # Double check we have same number of obs and cals
             if dps.count() == e.numobs:
                 ids,values = zip(*dps)
-                a = AverageSet.objects.get_or_create(star=CatSource.objects.get(id=cat[0]),planet=e)
-                a[0].values =simplejson.dumps(values)
+                a = AverageSet.objects.get_or_create(star=CatSource.objects.get(id=cat[0]),planet=e,settype='C')
+                a[0].values = ";".join([str(i) for i in values])
                 a[0].save()
-                print "Updated average sets on planet %s for %s" % (e.title,cat[0])
+                print "Updated average sets on planet %s for %s" % (e.title,CatSource.objects.get(id=cat[0]))
+    # Make averages for Source star and Background
+    for category in ['S','B']:
+        dps = Datapoint.objects.filter(data__event=e, pointtype=category).order_by('data__timestamp').values_list('data').annotate(Avg('value'))
+        # Double check we have same number of obs and cals
+        if dps.count() == e.numobs:
+            ids,values = zip(*dps)
+            a = AverageSet.objects.get_or_create(planet=e,settype=category)
+            a[0].values = ";".join([str(i) for i in values])
+            a[0].save()
+            print "Updated average sets on planet %s for %s" % (e.title,category)
     return
 
 def supercaldata(request,planet):
@@ -1375,7 +1458,7 @@ def supercaldata(request,planet):
     planet = Event.objects.get(name = planet)
     decs = Decision.objects.values_list('person','source').filter(value='D',current=True,planet=planet,source__datacollection__display=True).annotate(Count('source'))
     numsuper = decs.count()
-    print "Number of supercals: %s" % numsuper
+    if settings.LOCAL_DEVELOPMENT: print "Number of supercals: %s" % numsuper
     # Create a lists of sources  and people
     if decs:
         peoplelst,sourcelst,tmp = zip(*decs)
@@ -1402,7 +1485,7 @@ def supercaldata(request,planet):
                 if calpoints.count() == planet.numobs:
                     calslist.append(list(calpoints))
             if calslist:
-                print "\033[94mWe have calibrators\033[1;m"
+                if settings.LOCAL_DEVELOPMENT: print "\033[94mWe have calibrators\033[1;m"
                 calstack = vstack(calslist)
                 # This throws a wobbly sometimes
                 cc = (sc-bg)/(calstack-bg)
@@ -1411,20 +1494,17 @@ def supercaldata(request,planet):
                     # Calculate calibrated values for 'me'
                     mypoints = array(cc)
             else:
-                print "\033[1;35mThere are no calibrators in the list!!\033[1;m"
+                if settings.LOCAL_DEVELOPMENT: print "\033[1;35mThere are no calibrators in the list!!\033[1;m"
             #print "%s %s - %s" % (ti, p, datetime.now()-now)
             ti += 1
         # Create normalisation function
         norm_a = lambda a: mean(r_[a[:3],a[-3:]])
         mycals = []
-        print calibs
         try:
             cala = vstack(calibs)
             norms = apply_along_axis(norm_a, 1, cala)
             dim = len(cala)
-            print dim
             norm1 = cala/norms.reshape(dim,1)
-            print norm1
             mynorm1=[]
             if mypoints != []:
                 #mynorms = apply_along_axis(norm_a, 1, mypoints)
@@ -1445,7 +1525,6 @@ def supercaldata(request,planet):
         if mycals == []:
             mycals = myaverages(planet,request.user)
             nodata = True
-        print nodata
         return numsuper,fz,mycals,list(std),nodata
     else:
         return None,[],[],[],None
