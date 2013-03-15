@@ -752,7 +752,7 @@ ul.list-papers li.paper-item, .view-display-id-bk_papers .views-row, .publicatio
 
 .success { background-color: #DDEBDF!important; border: 1px solid #339933!important; }
 .error { background-color: #FFD3D2!important; border: 1px solid #C00000!important; }
-.warning { background-color: #FFFFCC!important; border: 1px solid #C3C39E!important; }
+.warning { background-color: #FFFFCC!important; border: 1px solid #C3C39E!important;}
 
 .fourcol iframe { max-width: 624px; }
 

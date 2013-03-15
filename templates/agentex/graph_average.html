@@ -238,7 +238,8 @@
 		<div id="sulink" style="display:none;"><a href="{%url super-graph event.name%}"><img src="{{ MEDIA_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" /></a></div>
 		
 		<p>Here are complete lightcurves made by combining your measurements with those of volunteers who used the same calibrators. The graphs below show the average values per calibrator and may look different from the previous graph, which contained only your values.</p>
-		<p id="progress">{% if progress.done < progress.total %}You have analyzed {{progress.percent}}% of the images for <span class="objectspecific">{{event.title}}</span>. <a href="{% url agentex.views.addvalue event.name %}">Continue analysing?</a>.{%endif%} You have classified <span id="classifiedprogress">{{calid.progress}} out of {{calid.total}}</span> calibrators which have full datasets that you have contributed to.</p>
+		{% if progress.done < progress.total %}<p class="warning" style="padding:4px;">You have only analyzed {{progress.percent}}% of the images for <span class="objectspecific">{{event.title}}</span>. The graphs below might look a bit strange - <a href="{% url agentex.views.addvalue event.name %}">Continue analysing?</a></p>{%endif%}
+		<p> You have classified <span id="classifiedprogress">{{calid.progress}} out of {{calid.total}}</span> calibrators which have full datasets that you have contributed to.</p>
 		<p class="accessible">Without Javascript enabled we can't show you your contribution to the average lightcurve for each calibrator. However, you can make your own lightcurves using the data in the table below and then classify the lightcurve for {{calid.sourcename}}.</p>
 
 		<div class="decisiontree">
