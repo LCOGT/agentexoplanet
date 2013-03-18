@@ -1,4 +1,4 @@
-{% extends 'agentex/base.html' %}
+{{MEDIA_URL}}images{% extends 'agentex/base.html' %}
 {% load observing_extras %}
 
 {% block body-class %}full agentex dossier {%endblock%}
@@ -201,7 +201,7 @@
 			if(d == "other") return "R";
 		}
 		function decisionImage(d){
-			return '<img title="Classified as '+d+'" alt="'+d+'" src="/images/choice_'+d+'.png">';
+			return '<img title="Classified as '+d+'" alt="'+d+'" src="{{MEDIA_URL}}images/choice_'+d+'.png">';
 		}
 
 		if(prevchoice){
@@ -311,7 +311,7 @@
 {% if classified.total > 0%}
 		<p>Bad news! Combining your measurements for {{event.title}} with everyone else's does not produce a complete lightcurve</p>
 		<p>If you come back here when you have <a href="{% url agentex.views.addvalue event.name %}">made more measurements</a>, it will be much more exciting.</p>
-		<div> <a href="{%url my-graph event.name%}" class="fancybtngrey btn"><img src="/images/graph_my.png" alt="my measurements" title="My measurements" /></a> <a href="{%url super-graph event.name%}" class="fancybtngrey btn"><img src="/images/graph_super.png" alt="super-calibrator" title="Final lightucurve" /></a></div>
+		<div> <a href="{%url my-graph event.name%}" class="fancybtngrey btn"><img src="{{MEDIA_URL}}images/graph_my.png" alt="my measurements" title="My measurements" /></a> <a href="{%url super-graph event.name%}" class="fancybtngrey btn"><img src="{{MEDIA_URL}}images/graph_super.png" alt="super-calibrator" title="Final lightucurve" /></a></div>
 {% else %}
 		<p>You have not made any measurements of {{event.title}} yet.</p>
 		<p>If you come back here when you have <a href="{% url agentex.views.addvalue event.name %}">made some measurements</a>, it will be much more exciting.</p>

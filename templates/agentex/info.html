@@ -1,4 +1,4 @@
-{% extends 'agentex/base.html' %}
+{{MEDIA_URL}}images{% extends 'agentex/base.html' %}
 {% load observing_extras %}
 {% block body-class %}full agentex dossier {%endblock%}
 
@@ -10,7 +10,7 @@
 
 		<div class="eventimage">
 			<a href="http://server1.wikisky.org/v2?ra={{object.target.ra|hexangletodec}}&de={{object.target.dec|hexangletodec}}&zoom=10&img_source=DSS2"><img src="{{MEDIA_URL}}{{object.event.illustration}}" class="bio" alt="Illustration of {{event.title}}" style="width:200px" ></a>
-			<img src="/images/paperclip.png" class="paperclip" alt="." />
+			<img src="{{MEDIA_URL}}images/paperclip.png" class="paperclip" alt="." />
 			<p class="objectspecific">Digital Sky Survey 2</p>
 		</div>	
 		<div id="mylink" style="display:none;"><a href="{% url my-graph object.event.name %}"><img src="{{ MEDIA_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" /></a></div>
@@ -51,7 +51,7 @@
 			</table>
 		</div>
 		<div class="furtherinfo">
-			<img src="/images/tape.png" class="tape" alt="." />
+			<img src="{{MEDIA_URL}}images/tape.png" class="tape" alt="." />
 			<table>
 			<tr>
 				<th colspan=3>Further information on the web</th>
