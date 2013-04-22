@@ -885,11 +885,12 @@ def graphsuper(request,code):
     # Construct the supercalibrator lightcurve
     ds1 = ds.Dataset(planetid=code,userid=request.user.username)
     data = ds1.final()
+    ###### Setting nodata to True and not showing each person their own data
     return render_to_response('agentex/graph_super.html', {'event':ds1.planet,
                                                                 'data':data,
                                                                 'numsuper':13,
                                                                 'target':ds1.target,
-                                                                'nodata' : False}, context_instance=RequestContext(request))
+                                                                'nodata' : True}, context_instance=RequestContext(request))
 
 def infoview(request,code):
     ds = DataSource.objects.filter(event__name=code)[:1]
