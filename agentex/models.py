@@ -7,7 +7,9 @@ TYPECHOICE = (
 ('S','Source'),
 ('C','Calibration'),
 ('B','Background'),
-('R','Reduced')
+('R','Reduced'),
+('F','Final'),
+('E','Error bar')
 )
 ENTRYCHOICE = (
 ('W','Web'),

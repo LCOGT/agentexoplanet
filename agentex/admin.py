@@ -40,18 +40,18 @@ class TargetAdmin(admin.ModelAdmin):
     list_display = ['name','ra','dec','period','rstar','mass','ap','inclination']
     
 class SetAdmin(admin.ModelAdmin):
-    list_display = ['planet','star']
+    list_display = ['planet','star','settype']
     
 def allcalibrators_check(request,planetid):
     event = Event.objects.get(id=planetid)
-    normcals,dates,ids,cats = photometry(event.name,0)
+    data = photometry(event.name,None,admin=True)
     title = 'Check calibrators for %s' % event.title
-    c = simplejson.dumps(cats)
-    return render_to_response('admin/agentex/allcalibrators.html',{'calibrators':normcals,
+    c = simplejson.dumps(data[7])
+    return render_to_response('admin/agentex/allcalibrators.html',{'calibrators':data[1],
                                                                     'title':title,
                                                                     'planetid':planetid,
-                                                                    'dates':dates,
-                                                                    'calids':ids,
+                                                                    'dates':data[4],
+                                                                    'calids':data[6],
                                                                     'cats':c},context_instance=RequestContext(request))
     
 def calibrator_check(request,planetid,calid):

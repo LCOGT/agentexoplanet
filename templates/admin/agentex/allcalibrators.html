@@ -76,7 +76,7 @@
 	function Calibrators(){
 		this.data = {};
 		this.data.calibrators = {{calibrators}};
-		this.data.dates = {{ dates }};
+		this.data.dates = {{ dates|safe }};
 		this.data.cats = {{ cats|safe }};
 		
 		this.init();
@@ -129,7 +129,7 @@
 
 		// Loop over each decision and output the icon/number
 		for(ds = 0 ; ds < this.decs.length ; ds++){
-
+		    
 			n = (this.meta.decisions[this.decs[ds]] ? this.meta.decisions[this.decs[ds]] : 0);
 			el.append('<div class="decision'+(n==0 ? " zero" : "")+'"><a href="{% url agentex.admin.allcalibrators_check planetid %}'+this.meta.sourceid+'/" class="'+this.decs[ds]+'" data="'+n+'">'+this.decisionImage(this.decisionFull(this.decs[ds]))+'<\/a>'+n+'<\/div>');
 			// Attach click events to the decision images
