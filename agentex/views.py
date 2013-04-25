@@ -312,11 +312,11 @@ def addvalue(request,code):
                                         'numplanets':numplanets,},
                                         context_instance=RequestContext(request))            
             else:
-                mylist = Datapoint.objects.filter(user=person,pointtype='S').values_list('data',flat=True)
+                planet = Event.objects.get(name=code)
+                mylist = Datapoint.objects.filter(user=person,pointtype='S',data__event=planet).values_list('data',flat=True)
                 ### if person does not have a DataCollection it is their first measurement
-                if (DataCollection.objects.filter(planet__name = code,person=person).count() == 0):
-                    e = Event.objects.get(name=code)
-                    d = DataSource.objects.filter(event__name=code,id=e.finder)[0]
+                if (DataCollection.objects.filter(planet=planet,person=person).count() == 0):
+                    d = DataSource.objects.filter(event=planet,id=e.finder)[0]
                     try:
                         dold = d.id
                         first = True   
@@ -324,17 +324,19 @@ def addvalue(request,code):
                         messages.error(request,"Finderchart cannot be found")
                         raise Http404    
                 elif  person == guestuser:
-                    d = DataSource.objects.filter(event__name=code).annotate(count=Count('datapoint')).order_by('-count')[0]
+                    d = DataSource.objects.filter(event=planet).annotate(count=Count('datapoint')).order_by('-count')[0]
                     dold = d.id
                     first = True
                 else:
                     try:
-                        available = DataSource.objects.filter(event__name=code).exclude(id__in=[p for p in mylist]).annotate(count=Count('datapoint')).order_by('-count')  
-                        dold = Datapoint.objects.values_list('data__id',flat=True).filter(user=person,data__event__name=code,pointtype='C').annotate(max =Max('coorder__calid')).order_by('-max','-taken')[0]
+                        source_rank = DataSource.objects.filter(event=planet ).annotate(count=Count('datapoint') ).values_list('id','count').order_by('-count')  
+                        available = [x for x in source_rank if x not in list(mylist)]
+                        dold = Datapoint.objects.values_list('data__id',flat=True).filter(user=person,data__event=planet,pointtype='C').annotate(max =Max('coorder__calid')).order_by('-max','-taken')[0]
                     # Find position in set of DataSources
                         d = available[0]
                         first = False
-                    except:
+                    except Exception,e:
+                        print e
                         messages.error(request,"User has a data collection but no points!")
                         raise Http404
                 cals = Datapoint.objects.values_list('xpos','ypos').filter(data=dold,pointtype='C',user=person).order_by('coorder__calid')
@@ -342,7 +344,7 @@ def addvalue(request,code):
                 if cals:
                     for c in cals:
                         calibs.append({'x' : int(c[0]) , 'y' : int(c[1])})
-                otherpoints = Datapoint.objects.filter(~Q(user=person),pointtype='C',data=d.id)
+                otherpoints = Datapoint.objects.filter(~Q(user=person),pointtype='C',data__id=d[0])
                 othercals = []
                 if otherpoints:
                     for c in otherpoints:
@@ -353,7 +355,7 @@ def addvalue(request,code):
                              'bg'  : {'x' :prev.filter(pointtype='B')[0].xpos,'y' : prev.filter(pointtype='B')[0].ypos},
                              'cal'  : calibs ,
                              'id'  : dold,
-                             'radius' : d.event.radius
+                             'radius' : planet.radius
                              }
                 else:
                     coords = False
@@ -362,7 +364,7 @@ def addvalue(request,code):
                                 'done'      : 0,
                                 'total'     : n_sources,}
                 return render_to_response('agentex/dataentry.html',
-                                        {'data':d,
+                                        {'data':DataSource.objects.get(id=d[0]),
                                         'complete':complete,
                                         'update':False,
                                         'webinput':webin,
