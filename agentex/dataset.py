@@ -54,6 +54,38 @@ class Dataset(object):
         else:
             data = None
         return data
+    def my_data(self):
+        if self.user:
+            data = []
+            sources = DataSource.objects.filter(event=self.planet).values_list('id','timestamp').order_by('timestamp')
+            points  = Datapoint.objects.filter(data__event=self.planet,user=self.user)
+            sc = dict(points.filter(pointtype='S').values_list('data__id','value'))
+            bg = dict(points.filter(pointtype='B').values_list('data__id','value'))
+            cals = points.filter(pointtype='C').values_list('data__id','value').order_by('coorder')
+            for d in sources:
+                cal = [c[1] for c in cals if int(c[0]) == d[0]]
+                line = {
+                        'id'        : "%i" % d[0],
+                        'date'      : d[1].isoformat(" "),
+                        'datestamp' : timegm(d[1].timetuple())+1e-6*d[1].microsecond,
+                        'data'      : { 'source' : None,
+                                        'background' :  None,
+                                        'calibrator' :  cal,
+                                    },
+                        }
+                try:
+                    line['data']['source'] = [sc[d[0]]]
+                except:
+                    line['data']['source'] = 'null'
+                try:
+                    line['data']['background'] = [bg[d[0]]]
+                except:
+                    line['data']['background'] = 'null' 
+                data.append(line)
+            return data,points
+        else:
+            self.error = "No user specified"
+            return False
         # Produce final lightcurve from the average data sets
         # calibs = []
         # mypoints = []

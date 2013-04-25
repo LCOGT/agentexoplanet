@@ -702,7 +702,7 @@ def my_data(o,code):
                             },
                 }
         data.append(line)
-    return data,points,sources
+    return data,points
     
 def calibrator_data(calid,code):
     data = []
@@ -734,11 +734,11 @@ def graphview(request,code,mode,calid):
     #calibrate(measurement)
     o = personcheck(request)
     progress = checkprogress(o.user,code)
-    planet = Event.objects.filter(name=code)[0]
     n = 0
     if mode == 'simple':
-        data,points,sources = my_data(o,code)
-        dc = DataCollection.objects.filter(person=o.user,planet=planet)
+        d1 = ds.Dataset(code,o.user.username)
+        data,points = d1.my_data()#my_data(o,code)
+        dc = DataCollection.objects.filter(person=o.user,planet=d1.planet)
         if dc.count() > n:
             n = range(0,dc.count())
             cats = []
@@ -758,7 +758,7 @@ def graphview(request,code,mode,calid):
         else:
             cats = None
         classif = classified(o,code)
-        return render_to_response('agentex/graph_flot.html', {'event':planet,
+        return render_to_response('agentex/graph_flot.html', {'event':d1.planet,
                                                                 'data':data,
                                                                 'n':n,
                                                                 'sources':cats,
@@ -885,7 +885,7 @@ def graphsuper(request,code):
     # Construct the supercalibrator lightcurve
     ds1 = ds.Dataset(planetid=code,userid=request.user.username)
     data = ds1.final()
-    ###### Setting nodata to True and not showing each person their own data
+    ###### Setting nodata to True and not showing each person their own data, but just for now
     return render_to_response('agentex/graph_super.html', {'event':ds1.planet,
                                                                 'data':data,
                                                                 'numsuper':13,
