@@ -317,7 +317,7 @@ def addvalue(request,code):
                 print mylist
                 ### if person does not have a DataCollection it is their first measurement
                 if (DataCollection.objects.filter(planet=planet,person=person).count() == 0):
-                    d = DataSource.objects.filter(event=planet,id=e.finder)[0]
+                    d = DataSource.objects.filter(event=planet,id=planet.finder)[0]
                     try:
                         dold = d.id
                         first = True   
