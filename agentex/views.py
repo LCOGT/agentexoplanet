@@ -318,6 +318,7 @@ def addvalue(request,code):
                 ### if person does not have a DataCollection it is their first measurement
                 if (DataCollection.objects.filter(planet=planet,person=person).count() == 0):
                     d = DataSource.objects.filter(event=planet,id=planet.finder)[0]
+                    did = d.id
                     try:
                         dold = d.id
                         first = True   
@@ -326,17 +327,17 @@ def addvalue(request,code):
                         raise Http404    
                 elif  person == guestuser:
                     d = DataSource.objects.filter(event=planet).annotate(count=Count('datapoint')).order_by('-count')[0]
+                    did = d.id
                     dold = d.id
                     first = True
                 else:
                     try:
                         source_rank = DataSource.objects.filter(event=planet ).annotate(count=Count('datapoint') ).values_list('id','count').order_by('-count')  
                         available = [x for x in source_rank if x[0] not in list(mylist)]
-                        print available
                         dold = Datapoint.objects.values_list('data__id',flat=True).filter(user=person,data__event=planet,pointtype='C').annotate(max =Max('coorder__calid')).order_by('-max','-taken')[0]
                     # Find position in set of DataSources
                         d = available[0]
-                        print d
+                        did = d[0]
                         first = False
                     except Exception,e:
                         print e
@@ -347,7 +348,7 @@ def addvalue(request,code):
                 if cals:
                     for c in cals:
                         calibs.append({'x' : int(c[0]) , 'y' : int(c[1])})
-                otherpoints = Datapoint.objects.filter(~Q(user=person),pointtype='C',data__id=d[0])
+                otherpoints = Datapoint.objects.filter(~Q(user=person),pointtype='C',data__id=did)
                 othercals = []
                 if otherpoints:
                     for c in otherpoints:
@@ -367,7 +368,7 @@ def addvalue(request,code):
                                 'done'      : 0,
                                 'total'     : n_sources,}
                 return render_to_response('agentex/dataentry.html',
-                                        {'data':DataSource.objects.get(id=d[0]),
+                                        {'data':DataSource.objects.get(id=did),
                                         'complete':complete,
                                         'update':False,
                                         'webinput':webin,
