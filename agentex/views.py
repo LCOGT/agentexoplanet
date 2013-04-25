@@ -314,6 +314,7 @@ def addvalue(request,code):
             else:
                 planet = Event.objects.get(name=code)
                 mylist = Datapoint.objects.filter(user=person,pointtype='S',data__event=planet).values_list('data',flat=True)
+                print mylist
                 ### if person does not have a DataCollection it is their first measurement
                 if (DataCollection.objects.filter(planet=planet,person=person).count() == 0):
                     d = DataSource.objects.filter(event=planet,id=e.finder)[0]
@@ -330,10 +331,12 @@ def addvalue(request,code):
                 else:
                     try:
                         source_rank = DataSource.objects.filter(event=planet ).annotate(count=Count('datapoint') ).values_list('id','count').order_by('-count')  
-                        available = [x for x in source_rank if x not in list(mylist)]
+                        available = [x for x in source_rank if x[0] not in list(mylist)]
+                        print available
                         dold = Datapoint.objects.values_list('data__id',flat=True).filter(user=person,data__event=planet,pointtype='C').annotate(max =Max('coorder__calid')).order_by('-max','-taken')[0]
                     # Find position in set of DataSources
                         d = available[0]
+                        print d
                         first = False
                     except Exception,e:
                         print e
