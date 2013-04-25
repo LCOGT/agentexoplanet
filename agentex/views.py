@@ -770,7 +770,7 @@ def graphview(request,code,mode,calid):
         data = []
         # get and restructure the average data JS can read it nicely
         now = datetime.now()
-        cals,normcals,sb,bg,dates,stamps,ids,cats = photometry(code,o.user) #averagecals(code, o.user)
+        cals,normcals,sb,bg,dates,stamps,ids,cats = photometry(code,o.user,progress) 
         numcals = len(normcals)
         print normcals
         for i,id in enumerate(ids):
@@ -1216,7 +1216,7 @@ def myaverages(code,person):
     # If they have no 'D' decisions
     return [0.]*ds.count()
     
-def calibrator_averages(code,person=None):
+def calibrator_averages(code,person=None,progress=False):
     cals = []
     cats = []
     planet = Event.objects.get(name=code)
@@ -1233,25 +1233,27 @@ def calibrator_averages(code,person=None):
         ## Measurement values only for selected 'person'
         dps = Datapoint.objects.filter(data__event=planet).order_by('data__timestamp')
     averages = AverageSet.objects.filter(planet=planet)
+    if person:
+        # Make a combined list of source values
+        measurements = dps.filter(pointtype='S')
+        sc = average_combine(measurements,averages,ids,None,'S',progress)
+        # Make a combined list of background values
+        measurements = dps.filter(pointtype='B')
+        bg = average_combine(measurements,averages,ids,None,'B',progress)
+    else:
+        sc = array(averages.filter(star=None,settype='S')[0].data)
+        bg = array(averages.filter(star=None,settype='B')[0].data)
     # Make a combined list of all calibration stars used by 'person'
     for calibrator in dc:
         if person:
             measurements = dps.filter(pointtype='C',coorder=calibrator)
-            ave = average_combine(measurements,averages,ids,calibrator.source,'C',planet.numobs)
-            # Make a combined list of source values
-            measurements = dps.filter(pointtype='S')
-            sc = average_combine(measurements,averages,ids,None,'S',planet.numobs)
-            # Make a combined list of background values
-            measurements = dps.filter(pointtype='B')
-            bg = average_combine(measurements,averages,ids,None,'B',planet.numobs)
+            ave = average_combine(measurements,averages,ids,calibrator.source,'C',progress)
         else:
             ave_cal = averages.filter(star=calibrator,settype='C')
             if ave_cal.count() > 0:
                 ave = array(ave_cal[0].data)
             else:
                 ave = array([])
-            sc = array(averages.filter(star=None,settype='S')[0].data)
-            bg = array(averages.filter(star=None,settype='B')[0].data)
         if ave.size > 0:
             cals.append(ave)
             try:
@@ -1267,8 +1269,8 @@ def calibrator_averages(code,person=None):
             cats.append(cat_item)
     return cals,sc,bg,stamps,ids,cats
     
-def average_combine(measurements,averages,ids,star,category,numobs,admin=False):
-    if measurements.count() < numobs:
+def average_combine(measurements,averages,ids,star,category,progress,admin=False):
+    if progress['done'] < progress['total']:
         ave_measurement = averages.filter(star=star,settype=category)
         if ave_measurement.count() > 0:
             ## Find the array indices of my values and replace these averages
@@ -1282,17 +1284,20 @@ def average_combine(measurements,averages,ids,star,category,numobs,admin=False):
             return ave
         else:
             return array([])
-    elif measurements.count() == numobs:
+    elif progress['done'] == progress['total']:
         mine = array(measurements.values_list('value',flat=True))
         return mine
+    elif not progress:
+        print "No progress was passed"
+        return array([])
     else:
         print "Error - too many measurements: %s %s" % (measurements.count() , numobs)
         return array([])
     
-def photometry(code,person,admin=False):
+def photometry(code,person,progress=False,admin=False):
     normcals = []
     maxvals = []
-    cals,sc,bg,times,ids,cats = calibrator_averages(code,person)
+    cals,sc,bg,times,ids,cats = calibrator_averages(code,person,progress)
     indexes = [int(i) for i in ids]
     #sc = array(sc)
     #bg = array(bg)     
