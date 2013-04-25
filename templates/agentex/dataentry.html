@@ -186,7 +186,7 @@
 		var dataid;
 
 		// Add the interactive buttons that only make sense if there is CSS and Javascript
-		$('#toolbar').append('<div class="fbtn"><a class="fancybtngrey btns" id="btn-add"><img src="/{{MEDIA_URL}}imagesimages/round_plus_icon&16.png" style="width:16px;height:16px;" alt="Add" title="Add a calibration ring" /> Add calibrator<\/a><\/div><div class="fbtn"><a class="fancybtngrey btns" id="btn-remove" style="display:none;"><img src="{{MEDIA_URL}}images/round_minus_icon&16.png" style="width:16px;height:16px;" alt="Remove" title="Remove a calibration ring" /> Zap calibrator<\/a><\/div><div class="fbtn"><a class="fancybtngrey btns" id="btn-finetune"><img src="{{MEDIA_URL}}images/round_plus_icon&16.png" style="width:16px;height:16px;" alt="Add" title="Fine tune positions" /> Fine Tune<\/a><\/div>');
+		$('#toolbar').append('<div class="fbtn"><a class="fancybtngrey btns" id="btn-add"><img src="{{MEDIA_URL}}images/round_plus_icon&16.png" style="width:16px;height:16px;" alt="Add" title="Add a calibration ring" /> Add calibrator<\/a><\/div><div class="fbtn"><a class="fancybtngrey btns" id="btn-remove" style="display:none;"><img src="{{MEDIA_URL}}images/round_minus_icon&16.png" style="width:16px;height:16px;" alt="Remove" title="Remove a calibration ring" /> Zap calibrator<\/a><\/div><div class="fbtn"><a class="fancybtngrey btns" id="btn-finetune"><img src="{{MEDIA_URL}}images/round_plus_icon&16.png" style="width:16px;height:16px;" alt="Add" title="Fine tune positions" /> Fine Tune<\/a><\/div>');
 		$('#btn-add').bind('click',function(e){
 			photo.addCalibrator();
 			dataQualityFlag();
