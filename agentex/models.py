@@ -160,7 +160,7 @@ class AverageSet(models.Model):
     values = models.TextField(null=True,blank=True)
     settype = models.CharField(blank=False,max_length=1,choices=TYPECHOICE)
     class Meta:
-        verbose_name = u'combined lightcurve values'
+        verbose_name = u'combined lightcurve set'
     @property 
     def data(self):
         return [float(x) for x in self.values.split(';')]
