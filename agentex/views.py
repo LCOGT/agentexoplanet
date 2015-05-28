@@ -16,7 +16,7 @@ import urllib2
 from xml.dom.minidom import parse
 from math import sin,acos,fabs,sqrt
 from numpy import *
-from astropy.io import fits
+import pyfits
 from datetime import datetime,timedelta
 from calendar import timegm
 from time import mktime
@@ -959,7 +959,7 @@ def fitsanalyse(request):
     # Grab a fits file
     dfile = "%s%s" % (DATA_LOCATION,d[0].fits)
     #print dfile
-    dc = fits.getdata(dfile,header=False)
+    dc = pyfits.getdata(dfile,header=False)
     #print datetime.now() - now
     
     # Find all the pixels a radial distance r from x0,y0
@@ -1424,11 +1424,13 @@ def photometry(code,person,progress=False,admin=False):
     #sc = array(sc)
     #bg = array(bg)     
     for cal in cals:
-        val = (sc - bg)/(cal-bg)
-        maxval = mean(r_[val[:3],val[-3:]])
-        maxvals.append(maxval)
-        norm = val/maxval
-        normcals.append(list(norm))
+	if len(cal) == progress['total']:
+        #### Do not attempt to do the photmetry where the number of calibrators does not match the total        
+            val = (sc - bg)/(cal-bg)
+            maxval = mean(r_[val[:3],val[-3:]])
+            maxvals.append(maxval)
+            norm = val/maxval
+            normcals.append(list(norm))
         # Find my data and create unix timestamps
     unixt = lambda x: timegm(x.timetuple())+1e-6*x.microsecond
     iso = lambda x: x.isoformat(" ")

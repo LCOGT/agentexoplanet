@@ -93,7 +93,7 @@
                     // Work	around for error function reporting of file load failure
                     this.src = this.src;
                     $(this).bind('error',function() {
-                     	this.src = "/images/thumb_missing.png";
+                     	this.src = "/agentexoplanet/media/images/thumb_missing.png";
                      	this.alt = "Image unavailable";
                             this.onerror = "";
                             return true;
