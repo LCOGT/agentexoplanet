@@ -2,4 +2,4 @@
 .svn
 *.pyc
 *.pyo
-media/data
+media/data/*
