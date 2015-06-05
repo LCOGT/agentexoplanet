@@ -1,6 +1,5 @@
 from django.conf.urls.defaults import *
 
-
 urlpatterns = patterns('agentex.views',
     (r'^$','index'),
     (r'^planets/$','target'),

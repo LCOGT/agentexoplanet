@@ -31,7 +31,7 @@ from agentex.forms import DataEntryForm, RegisterForm, CommentForm,RegistrationE
 import agentex.dataset as ds
 
 from django.conf import settings
-from settings import DATA_LOCATION,DATA_URL,MEDIA_URL
+from settings import DATA_LOCATION,DATA_URL,STATIC_URL
 from agentex.agentex_settings import planet_level
 
 guestuser = 2
@@ -235,6 +235,7 @@ def addvalue(request,code):
             ##### The page is being displayed with data for editing
             points = Datapoint.objects.filter(data__id=id,user=person)
             if nextcal=='cal':
+                print "*******"
                 dp = Datapoint.objects.filter(pointtype='S',user=person,data__id=id)
                 dd = dp[0].data.timestamp
                 ds = Datapoint.objects.filter(pointtype='S',user=person,data__timestamp__gt=dd).order_by('data__timestamp')
@@ -298,7 +299,7 @@ def addvalue(request,code):
                 msg = '<br />'
                 for item in resp:
                     if messages.SUCCESS == item['code'] :
-                        msg += "<img src=\""+MEDIA_URL+item['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />"
+                        msg += "<img src=\""+STATIC_URL+item['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />"
                         messages.success(request,msg)
                 
                 return HttpResponseRedirect(reverse('my-graph',args=[code]))
@@ -314,9 +315,11 @@ def addvalue(request,code):
             else:
                 planet = Event.objects.get(name=code)
                 mylist = Datapoint.objects.filter(user=person,pointtype='S',data__event=planet).values_list('data',flat=True)
+                print mylist
                 ### if person does not have a DataCollection it is their first measurement
                 if (DataCollection.objects.filter(planet=planet,person=person).count() == 0):
-                    d = DataSource.objects.filter(event=planet,id=e.finder)[0]
+                    d = DataSource.objects.filter(event=planet,id=planet.finder)[0]
+                    did = d.id
                     try:
                         dold = d.id
                         first = True   
@@ -325,15 +328,17 @@ def addvalue(request,code):
                         raise Http404    
                 elif  person == guestuser:
                     d = DataSource.objects.filter(event=planet).annotate(count=Count('datapoint')).order_by('-count')[0]
+                    did = d.id
                     dold = d.id
                     first = True
                 else:
                     try:
                         source_rank = DataSource.objects.filter(event=planet ).annotate(count=Count('datapoint') ).values_list('id','count').order_by('-count')  
-                        available = [x for x in source_rank if x not in list(mylist)]
+                        available = [x for x in source_rank if x[0] not in list(mylist)]
                         dold = Datapoint.objects.values_list('data__id',flat=True).filter(user=person,data__event=planet,pointtype='C').annotate(max =Max('coorder__calid')).order_by('-max','-taken')[0]
                     # Find position in set of DataSources
                         d = available[0]
+                        did = d[0]
                         first = False
                     except Exception,e:
                         print e
@@ -344,7 +349,7 @@ def addvalue(request,code):
                 if cals:
                     for c in cals:
                         calibs.append({'x' : int(c[0]) , 'y' : int(c[1])})
-                otherpoints = Datapoint.objects.filter(~Q(user=person),pointtype='C',data__id=d[0])
+                otherpoints = Datapoint.objects.filter(~Q(user=person),pointtype='C',data__id=did)
                 othercals = []
                 if otherpoints:
                     for c in otherpoints:
@@ -364,7 +369,7 @@ def addvalue(request,code):
                                 'done'      : 0,
                                 'total'     : n_sources,}
                 return render_to_response('agentex/dataentry.html',
-                                        {'data':DataSource.objects.get(id=d[0]),
+                                        {'data':DataSource.objects.get(id=did),
                                         'complete':complete,
                                         'update':False,
                                         'webinput':webin,
@@ -500,7 +505,7 @@ def savemeasurement(person,pointsum,coords,dataid,entrymode):
         msg = '<br />'
         for item in resp:
             if messages.SUCCESS == item['code'] :
-                msg += "<img src=\""+MEDIA_URL+item['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />"
+                msg += "<img src=\""+STATIC_URL+item['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />"
                 unlock = True
                 nunlock += 1
 
@@ -526,7 +531,7 @@ def read_manual_check(request):
 		o = personcheck(request)
 		resp = achievementunlock(o.user,None,'manual')
 		if messages.SUCCESS == resp['code'] :
-			messages.add_message(request, messages.SUCCESS, "Achievement unlocked<br /><img src=\""+MEDIA_URL+resp['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />")
+			messages.add_message(request, messages.SUCCESS, "Achievement unlocked<br /><img src=\""+STATIC_URL+resp['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />")
 		
 	return HttpResponseRedirect(reverse('agentex.views.target'))
 		
@@ -840,7 +845,7 @@ def graphview(request,code,mode,calid):
         
         for item in resp:
             if messages.SUCCESS == item['code'] :
-                msg += "<img src=\""+MEDIA_URL+item['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />"
+                msg += "<img src=\""+STATIC_URL+item['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />"
                 unlock = True
                 nunlock += 1
 
@@ -1295,6 +1300,121 @@ def average_combine(measurements,averages,ids,star,category,progress,admin=False
     else:
         print "Error - too many measurements: %s %s" % (measurements.count() , numobs)
         return array([])
+        
+def admin_averagecals(code,person):
+    # Uses and SQL statement to try to speed up the query for averaging data points
+    # If person == 0 this will return all calibrator values individually - for problem solving
+    now = datetime.now()
+    cals = []
+    mycals = []
+    dates = []
+    stamps = []
+    timestamps = []
+    normcals = []
+    maxvals = []
+    callist = []
+    cats = []
+    # Find which Cat Sources I have observed and there is a complete set of (including other people's data)
+    # Unlike CalibrateMyData it only includes set where there are full sets
+    e = Event.objects.filter(name=code)[0]
+    if person == 0:
+        dc = DataCollection.objects.filter(~Q(source=None),planet__name=code).values_list('source__id',flat=True).distinct()
+        cs = CatSource.objects.filter(id__in=[c for c in dc]).annotate(count=Count('datacollection__datapoint')).filter(count__gte=e.numobs).values_list('id',flat=True).distinct()
+        dcall = DataCollection.objects.filter(planet=e,source__in=cs).values_list('id',flat=True)
+        # print "** Collections %s" % dcall.count()
+        if cs.count() > 0:
+            # Only use ones where we have more than numobs
+            for c in dc:
+                # make sure these are in the CatSource list (can't use cs because the order isn't right)
+                if c in cs:
+                    people = Decision.objects.filter(source__id=c,current=True,value='D').values_list('person',flat=True)
+                    if people:
+                        v = Datapoint.objects.filter(coorder__source=c,pointtype='C',user__id__in=people).order_by('data__timestamp').values_list('data__id').annotate(Avg('value'))
+                    else:
+                        v = Datapoint.objects.filter(coorder__source=c,pointtype='C').order_by('data__timestamp').values_list('data__id').annotate(Avg('value'))
+                    # Double check we have same number of obs and cals
+                    if v.count() == e.numobs:
+                        ids,b = zip(*v)
+                        cals.append(list(b))
+                        decvalue_full = Decision.objects.filter(source=c,planet__name=code,current=True).values_list('value').annotate(total=Count('id')) 
+                        decvalue = dict((str(key),value) for key,value in decvalue_full)                          
+                        source = CatSource.objects.get(id=c)
+                        cat_item = {'sourcename':str(source.name),'catalogue':str(source.catalogue),'sourceid': str(c),'include':source.final}
+                        cat_item['decisions'] = decvalue
+                        cats.append(cat_item)
+                        callist.append(c)
+    else:
+        dc = DataCollection.objects.filter(~Q(source=None),person=person,planet__name=code).order_by('calid')
+        cs = CatSource.objects.filter(id__in=[c.source.id for c in dc]).annotate(count=Count('datacollection__datapoint')).filter(count__gte=e.numobs).values_list('id',flat=True).distinct()
+        dcall = DataCollection.objects.filter(planet=e,source__in=cs).values_list('id',flat=True)
+        # print "** Collections %s" % dcall.count()
+        if cs.count() > 0:
+            # Only use ones where we have more than numobs
+            for c in dc:
+                # make sure these are in the CatSource list (can't use cs because the order isn't right)
+                if c.source.id in cs:
+                    v = Datapoint.objects.filter(coorder__source=c.source.id,pointtype='C').order_by('data__timestamp').values_list('data__id').annotate(Avg('value'))
+                    # Double check we have same number of obs and cals
+                    if v.count() == e.numobs:
+                        ids,b = zip(*v)
+                        cals.append(list(b))
+                        try:
+                            decvalue = Decision.objects.filter(source=c.source,person=person,planet__name=code,current=True)[0].value
+                        except:
+                            decvalue ='X'
+                        cat_item = {'sourcename':c.source.name,'catalogue':c.source.catalogue}
+                        cat_item['decsion'] = decvalue
+                        cat_item['order'] = str(c.calid)
+                        cats.append(cat_item)
+                        callist.append(c.source.id)
+    if callist:
+        # Only proceed if we have calibrators in the list (i.e. arrays of numobs)
+        ds = DataSource.objects.filter(event=e).order_by('timestamp')
+        users = DataCollection.objects.filter(id__in=dcall).values_list('person',flat=True).distinct()
+        maxnum = ds.count()
+        dsmax1 = ds.aggregate(Max('id'))
+        dsmax = dsmax1['id__max']
+        dsmin = dsmax - maxnum
+        ds = ds.values_list('id',flat=True)
+        if person == 0:
+            people = Decision.objects.filter(planet=e,value='D',current=True).values_list('person',flat=True).distinct()
+            dp = Datapoint.objects.filter(data__event=e,user__id__in=people)
+            sc = []
+            bg = []
+            for d in ds:
+                sc_ave = dp.filter(pointtype='S',data__id=d).aggregate(val=Avg('value'))
+                bg_ave = dp.filter(pointtype='B',data__id=d).aggregate(val=Avg('value'))
+                sc.append(sc_ave['val'])
+                bg.append(bg_ave['val'])
+        else:
+            sc_my = ds.filter(datapoint__pointtype='S',datapoint__user=person).annotate(value=Sum('datapoint__value')).values_list('id','value')
+            bg_my = ds.filter(datapoint__pointtype='B',datapoint__user=person).annotate(value=Sum('datapoint__value')).values_list('id','value')
+            if sc_my.count() < maxnum:
+                return cals,normcals,[],[],dates,stamps,[],cats
+            else:
+                tmp,sc=zip(*sc_my)
+                tmp,bg=zip(*bg_my)
+        # Convert to numpy arrays to allow simple calibrations
+        sc = array(sc)
+        bg = array(bg)     
+        for cal in cals:
+            val = (sc - bg)/(array(cal)-bg)
+            maxval = mean(r_[val[:3],val[-3:]])
+            maxvals.append(maxval)
+            norm = val/maxval
+            normcals.append(list(norm))
+        # Find my data and create unix timestamps
+        unixt = lambda x: timegm(x.timetuple())+1e-6*x.microsecond
+        iso = lambda x: x.isoformat(" ")
+        times = ds.values_list('timestamp',flat=True)
+        stamps = map(unixt,times)
+        dates = map(iso,times)
+        if person == 0:
+            return normcals,stamps,[int(i) for i in ids],cats
+        return cals,normcals,list(sc),list(bg),dates,stamps,[int(i) for i in ids],cats
+    if person == 0:
+        return normcals,stamps,[],[]
+    return cals,normcals,[],[],dates,stamps,[],cats
     
 def photometry(code,person,progress=False,admin=False):
     normcals = []
@@ -1304,17 +1424,19 @@ def photometry(code,person,progress=False,admin=False):
     #sc = array(sc)
     #bg = array(bg)     
     for cal in cals:
-        val = (sc - bg)/(cal-bg)
-        maxval = mean(r_[val[:3],val[-3:]])
-        maxvals.append(maxval)
-        norm = val/maxval
-        normcals.append(list(norm))
+	if len(cal) == progress['total']:
+        #### Do not attempt to do the photmetry where the number of calibrators does not match the total        
+            val = (sc - bg)/(cal-bg)
+            maxval = mean(r_[val[:3],val[-3:]])
+            maxvals.append(maxval)
+            norm = val/maxval
+            normcals.append(list(norm))
         # Find my data and create unix timestamps
     unixt = lambda x: timegm(x.timetuple())+1e-6*x.microsecond
     iso = lambda x: x.isoformat(" ")
     stamps = map(unixt,times)
     dates = map(iso,times)
-    if person == 0:
+    if admin:
         return normcals,stamps,indexes,cats
     return cals,normcals,list(sc),list(bg),dates,stamps,indexes,cats
         

@@ -25,10 +25,10 @@
 	// -->
     </script>
     <style type="text/css">
-		dd.observations{ background: url('{{MEDIAURL}}/images/observations.png') no-repeat left center; }
-		dd.vsky{ background: url('{{MEDIAURL}}/images/vsky.png') no-repeat left center; }
-		dd.activities{ background: url('{{MEDIAURL}}/images/activities.png') no-repeat left center; }
-		dd.forum{ background: url('{{MEDIAURL}}/images/forum.png') no-repeat left center; }
+		dd.observations{ background: url('{{MEDIA_URL}}/images/observations.png') no-repeat left center; }
+		dd.vsky{ background: url('{{MEDIA_URL}}/images/vsky.png') no-repeat left center; }
+		dd.activities{ background: url('{{MEDIA_URL}}/images/activities.png') no-repeat left center; }
+		dd.forum{ background: url('{{MEDIA_URL}}/images/forum.png') no-repeat left center; }
     </style>
 </head>
 <body class="{% block body-class %}{% endblock %}{% if user.is_authenticated %}{% else %}not-{% endif %}logged-in">

@@ -1,5 +1,5 @@
 from agentex.models import Target, Event, Datapoint, DataSource, Badge, Achievement, DataCollection,Decision,CatSource, Observer, AverageSet
-from agentex.views import photometry, calibrator_data
+from agentex.views import photometry, calibrator_data, admin_averagecals
 from django.contrib import admin
 from django.shortcuts import render_to_response
 from django.http import HttpResponse
@@ -43,15 +43,17 @@ class SetAdmin(admin.ModelAdmin):
     list_display = ['planet','star','settype']
     
 def allcalibrators_check(request,planetid):
-    event = Event.objects.get(id=planetid)
-    data = photometry(event.name,None,admin=True)
-    title = 'Check calibrators for %s' % event.title
-    c = simplejson.dumps(data[7])
-    return render_to_response('admin/agentex/allcalibrators.html',{'calibrators':data[1],
+    # Uses and SQL statement to try to speed up the query for averaging data points
+    e = Event.objects.filter(id=planetid)[0]
+    normcals,dates,ids,cats = admin_averagecals(e.name,0)
+    c = simplejson.dumps(cats)
+    # return normcals,stamps,[int(i) for i in ids],cats
+    title = 'Check calibrators for %s' % e.title
+    return render_to_response('admin/agentex/allcalibrators.html',{'calibrators':normcals,
                                                                     'title':title,
                                                                     'planetid':planetid,
-                                                                    'dates':data[4],
-                                                                    'calids':data[6],
+                                                                    'dates':dates,
+                                                                    'calids':[int(i) for i in ids],
                                                                     'cats':c},context_instance=RequestContext(request))
     
 def calibrator_check(request,planetid,calid):
