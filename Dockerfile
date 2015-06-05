@@ -1,3 +1,19 @@
+######################################
+#
+# LCOGT docker build file for CitSci portal
+# This contains NGINx and uWSGI components in 1 container
+#
+# To build
+# docker build -t docker.lcogt.net/citsciportal:latest .
+#
+# To push to repo
+# docker push docker.lcogt.net/citsciportal:latest
+#
+# To start docker container
+# docker run -d -p 8900:80 --name=agentex  -m="128m" --restart=always -v /net/mfs/data4/agentexoplanet:/var/www/agentexoplanet/media/data docker.lcogt.net/citsciportal:latest
+#
+######################################
+
 FROM centos:centos7
 MAINTAINER Ira W. Snyder <isnyder@lcogt.net>
 
