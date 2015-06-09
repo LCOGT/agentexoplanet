@@ -1,0 +1,200 @@
+{% extends 'agentex/base.html' %}
+
+{% block body-class %}agentex dossier {%endblock%}
+
+{%block header %}Graph of {{event.title}}{%endblock%}
+
+{% block script-content %}
+<!--[if lt IE 9]><script language="javascript" type="text/javascript" src="excanvas.js"></script><![endif]-->
+<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jquery.min.js"></script>
+<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jquery.jqplot.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/plugins/jqplot.dateAxisRenderer.min.js"></script>
+<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/plugins/jqplot.categoryAxisRenderer.min.js"></script>
+<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/plugins/jqplot.canvasOverlay.min.js"></script>
+<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/plugins/jqplot.highlighter.min.js"></script>
+<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/plugins/jqplot.cursor.min.js"></script>
+<script src="{{ STATIC_URL }}js/raphael.js" type="text/javascript" charset="utf-8"></script>
+<script src="{{ STATIC_URL }}js/g.raphael.js" type="text/javascript" charset="utf-8"></script>
+<script src="{{ STATIC_URL }}js/g.line.js" type="text/javascript" charset="utf-8"></script>
+<script src="{{ STATIC_URL }}js/raphael.sizer.js" type="text/javascript" charset="utf-8"></script>
+<script src="{{ STATIC_URL }}js/raphael.rangelimiter.js" type="text/javascript"></script>
+
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/jquery.jqplot.css" />
+<script type="text/javascript" charset="utf-8">
+$.jqplot.config.enablePlugins = true;
+$(document).ready(function(){
+	var src = document.getElementById("finderthumbimage").src;
+    var d1 = [];
+	var d2 = [];
+	var dcal = [];
+	var fullcal = [];
+	var dsource = [];
+	var mypoints = false;
+	var caldata = jQuery.parseJSON('{{cal|safe}}');
+	var highest = Math.max.apply(this,$.map(caldata, function(o){ return o[1]; }));
+	for (var i in caldata){
+		fullcal.push([caldata[i][0],Number(caldata[i][1]/highest)]);
+	}
+	var plotoptions = {
+	  seriesColors: [ "#4bb2c5", "#c5b47f"],
+	  title: 'Full transit dataset',
+	  series: [{showLine:false, markerOptions:{size: 7, style:'x'}},
+				{showLine:false, markerOptions:{size: 7, style:'circle'}}],
+	  axesDefaults:{pad:1.2},
+	  axes: {
+	      xaxis: {
+	          renderer:$.jqplot.DateAxisRenderer,
+	          tickOptions:{formatString:'%H:%M'}
+	      },
+	      yaxis: {
+	          tickOptions:{formatString:'%.2f'}
+	      }
+	  },
+		cursor: {show: false}
+	};
+	var myplotoptions = {
+	  seriesColors: [ "#c5b47f"],
+	  title: 'My transit points',
+	  series: [	{showLine:false, markerOptions:{size: 7, style:'circle'}}],
+	  axesDefaults:{},
+	  axes: {
+	      xaxis: {
+	          renderer:$.jqplot.DateAxisRenderer,
+	          tickOptions:{formatString:'%H:%M'}
+	      },
+	      yaxis: {
+	          tickOptions:{formatString:'%.2f'}
+	      }
+	  },
+  	cursor: {show: true,style: 'pointer'},
+	highlighter:{tooltipLocation: 'n',tooltipAxes: 'x',useAxesFormatters: false, tooltipFormatString: "click point to edit"}
+	};
+    $("#chart1").bind("jqplotClick", function(ev, gridpos, datapos, neighbor) {
+	    if (neighbor) {
+		    //console.log(d1[neighbor.pointIndex][2])
+	        //alert('Point ID' + neighbor.pointIndex);
+			url = "{% url agentex.views.addvalue event.name %}?dataid="+d2[neighbor.pointIndex][2];
+			//console.log(url);
+			window.location = url;
+	    }
+	});
+	plot2 = $.jqplot('calibrators',[fullcal],{title:'Super Calibrator',series :[{showLine:false, markerOptions:{size: 7, style:'x'}}],axes: {
+	      xaxis: {
+	          renderer:$.jqplot.DateAxisRenderer,
+	          tickOptions:{formatString:'%H:%M'}
+	      },
+	      yaxis: {
+	          tickOptions:{formatString:'%.2f'}
+	      }
+		}
+	  });
+	
+	$('a#restrictdata').addClass('fancybtndisable').hide();
+	
+    $.getJSON("{% url agentex.views.index %}{{event.name}}/data.json",function(data){
+		$.each(data, function(key,val){
+			d1.push([val.date, Number(val.values.aggregate.mean)]);
+			if (val.values.mine != "null") {
+				d2.push([val.date, Number(val.values.mine),val.id]);
+			}
+		});
+		if (d2.length == 0){
+			$("#chart1").html("<h3>You have no data points yet</h3><p><a href='{% url agentex.views.addvalue event.name %}'>Why not make some measurements of this transit event</a></p>");
+		}else{
+			$.jqplot('chart1',[d2],myplotoptions);
+		}
+	});
+	$("a.mypoints").click(function(){
+		if (mypoints == false){
+			//plot1 = $.jqplot('chart1',[d1],plotoptions);
+			$.jqplot('chart1',[d1,d2],plotoptions).redraw();
+			mypoints = true;
+			$(".showmypoints").css('display', 'block');
+			$(".hidemypoints").css('display', 'none');
+			$('a#restrictdata').removeClass('fancybtndisable').show();
+			limit.show();
+		//	$('a#restrictdata').addClass('fancybtngrey');
+		}else if (mypoints == true){
+			$.jqplot('chart1',[d2],myplotoptions).redraw();
+			mypoints = false;
+			$(".showmypoints").css('display', 'none');
+			$(".hidemypoints").css('display', 'block');
+			$('a#restrictdata').addClass('fancybtndisable').hide();
+			limit.hide();
+			//$('a#restrictdata').removeClass('fancybtngrey');
+		}
+    });
+	$("a#restrictdata").click(function(){
+		calibrate_data(plotoptions,d2);
+	});
+	
+	limit = new RangeLimiter({id:'finderthumb','stroke':'#ff0000',opacity:0.3,'strokewidth':1.5,limits:[{x:0.1,y:0.2,w:0.1,h:0.4,opacity:0.1,stroke:'#66ff99',visible:false}]})
+})
+
+function calibrate_data(options,d2){
+// Send a server side request to exclude calibrators from a certain region and redisplay transit graph based on result	
+	var value;
+	var xs;
+	var yx;
+	var box0 = limit.getCoords(0);
+	var box1 = limit.getCoords(1);
+	var box2 = limit.getCoords(2);
+	var querystr;
+	querystr = "x="+box0[0]+","+box0[1]+"&y="+box0[2]+","+box0[3]
+	dcal = [];
+	xs = $("input[name='xrestrict']").val();
+	ys = $("input[name='yrestrict']").val();
+	$.getJSON("{% url agentex.views.index %}{{event.name}}/data.xhr?"+querystr,function(data){
+		for (i=0;i<data.dates.length;i++){
+			if (typeof data.calibration[i] !='undefined'){
+				//console.log("s "+data.source[i]+" "+data.background[i]+" "+data.calibration[i]);
+				value = (Number(data.source[i]) - Number(data.background[i]))/(Number(data.calibration[i] -Number(data.background[i])));
+				dcal.push([data.dates[i],value]);
+			}
+		}
+		console.log(data.dcal);
+		if (data.dcal.length > 0){
+			$.jqplot('chart1',[dcal,d2],options).redraw();
+			$("#message").css("display","block");
+			$("#message").html("Including "+data.calibration.length+" calibrators");
+			$("#message").delay(1500).slideUp("slow");
+		}else{
+			$("#message").css("display","block");
+			$("#message").html("There are no calibrators in this region");
+			$("#message").delay(1500).slideUp("slow");
+		}
+		
+	});
+}
+
+</script>
+{% endblock %}
+
+{% block main-content %}
+	<div class="page stackedpaper">
+		<h1>Transit lightcurve of <a href="{% url agentex.views.infoview event.name %}">{{event.title}}</a></h1>
+		<div class="jqplot" id="chart1" style="margin-left:10px;height:300px;width:680px;"></div>
+		<div class="jqplot" id="calibrators" style="margin-left:10px;height:300px;width:680px;"></div>
+		<p>This is a graph from all the analysis measurements made by you and other citizen scientists. The more people analyse each image the better the quality of the lightcurve.</p>
+	</div>
+{% endblock %}
+
+{% block lower-menu%}
+<div id="finderthumb">
+	<img src="{{ STATIC_URL }}{{target.finderchart_tb}}" style="border-radius: 10px;-moz-border-radius: 10px;-webkit-border-radius: 10px;width:100%;" id="finderthumbimage"/>
+</div>
+	<div id="finderzoomarea" style="border:0px;display:none;margin:0px;"></div>
+</div>
+<div id="message" style="display:none;"></div>
+<div id="toolbar">
+	<a href="#" id="restrictdata" class="fancybtn" style="display:block;">Restrict data</a>
+	<a href="#" class="showmypoints fancybtngrey mypoints" style="display:none;">Show your points</a>
+	<a href="#" class="hidemypoints fancybtngrey mypoints" style="display:block;">Show all points</a>
+								{% if line.points %}
+								<li><a href="#" class="togglelist magnifier">edit data points?</a></li>
+								<ul class="edit-list" style="display: none">
+									<li>Data timestamp</li>
+	{% for p in line.points %}								<li><a href="{% url agentex.views.addvalue line.event.name %}?dataid={{p.data.id}}">{{ p.data.timestamp }}</a></li>
+	{% endfor %}							</ul>{% endif %}
+</div>
+{%endblock%}

@@ -1,0 +1,44 @@
+{% extends 'agentex/base.html' %}
+
+{% block body-class %}full agentex dossier profile {%endblock%}
+
+{% block script-content %}
+	<script type="text/javascript" charset="utf-8">
+	<!--
+	$(document).ready(function(){
+		$("a.togglelist").click(function () {
+			$(".edit-list").toggle();
+		});
+		$("a.showinfo").click(function () {
+			$("#helper").toggle();
+			$("span").toggle();
+		});
+	})
+	// -->
+	</script>
+{%endblock%}
+
+{%block header %}My Profile | Agent Exoplanet{%endblock%}
+
+{% block main-content %}
+				<div class="page stackedpaper">
+
+					<h1>Name: <span class="objectspecific">{% if user.last_name %}{{ user.last_name }}{% else %}Identity Unknown{% endif %}</span></h1>
+					<span class="discrete">[<a href="{% url agentex.views.editaccount %}">Edit your account</a>]</span>
+
+					<h3>Planets being analyzed: <span class="objectspecific">{{ planets }}</span> (<span class="objectspecific">{{ completed }}</span> completed)</h3>
+					<h3>Measurements: <span class="objectspecific">{{ measurements }}</span></h3>
+					<h3>Achievements unlocked{% if unlocked|length > 0 %}: <span class="objectspecific">{{ unlocked|length }}</span></h3>{% else %}</h3><p>You have not received any awards yet. You will have to <a href="{% url agentex.views.target  %}">start the mission</a> to receive awards.</p>{% endif %}
+					<ul class="badges">
+						<!-- We have to put them all on one line otherwise some browsers render the whitespace -->
+						{% for badge in unlocked %}<li class="medal"><img src="{{ STATIC_URL }}{{ badge.badge.image }}" alt="{{ badge.badge.description }}" title="{{ badge.badge.description }}" /></li>{% endfor %}{% for badge in badges %}<li class="medal locked"><img src="{{ STATIC_URL }}{{ badge.image }}" alt="{{ badge.description }}" title="{{ badge.description }}" /></li>{% endfor %}
+					</ul>
+
+					<div style="clear:both;"></div>
+				</div>
+			<!-- div class="arrow-up"></div>
+			</div -->
+{% endblock %}
+
+{% block section-nav%}
+{% endblock %}

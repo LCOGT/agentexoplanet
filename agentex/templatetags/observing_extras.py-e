@@ -1,6 +1,6 @@
 from django.template import Library
 from math import fabs,floor
-from settings import STATIC_URL
+from settings import MEDIA_URL
 from agentex.agentex_settings import decision_images
 
 register = Library()
@@ -35,7 +35,7 @@ def decisionconvert(arg):
     try:
         image = dec[arg]['image']
         name = dec[arg]['name']
-        html = '<img src="%simages/%s" alt="%s" title="Classified as %s">' % (STATIC_URL,image,name,name)
+        html = '<img src="%simages/%s" alt="%s" title="Classified as %s">' % (MEDIA_URL,image,name,name)
         return html
     except:
         return ""

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block header %}{% if edit %}Edit account details{%else%}Create an account{%endif%}{% endblock %}
+
+{% block main-content %}
+<div class="row rowfirst">
+  <h1>{% if edit %}Edit account details{%else%}Create an account{%endif%}</h1>
+{% if messages%}
+{% for m in messages%}
+{{m}}<br/>
+{% endfor %}
+{% endif %}
+</div>
+	<form action="" method="post">
+		<input type="hidden" name="next" value="{{ next }}">
+	{% csrf_token %}
+		<div class="row">
+			{{form.username.errors}}
+			{% if edit %}
+			<div class="twocol"><label for="id_username">Your username</label></div><div class="fourcol lastcol">{{user.username}}
+			</div>
+			{%else%}
+			<div class="twocol"><label for="id_username">{{form.username.label}}</label></div><div class="fourcol lastcol">{{form.username}}</div>
+			{%endif%}
+		</div>
+		<div class="row">
+			{{form.lastname.errors}}
+			<div class="twocol"><label for="id_lastname">{{form.lastname.label}}</label></div><div class="fourcol lastcol">{{form.lastname}}</div>
+		</div>
+		<div class="row">
+			{{form.firstname.errors}}
+			<div class="twocol"><label for="id_firstname">{{form.firstname.label}}</label></div><div class="fourcol lastcol">{{form.firstname}}</div>
+		</div>
+		<div class="row">
+			{{form.password.errors}}
+			<div class="twocol"><label for="id_password">{{form.password.label}}</label></div><div class="fourcol lastcol">{{form.password}}</div>
+		</div>
+		<div class="row">
+			{{form.emailaddress.errors}}
+			<div class="twocol"><label for="id_emailaddress">{{form.emailaddress.label}}</label></div><div class="fourcol lastcol">{{form.emailaddress}}</div>
+		</div>
+
+		<div class="row">
+			<input type="submit" value="{% if edit %}Update details{%else%}Create the account{%endif%}">
+		</div>
+	</form>
+	<!-- div class="row">
+		{{form..errors}}
+		<label for="id_">{{form..label}}</label>{{form.}}
+	</div -->
+{% endblock %}
