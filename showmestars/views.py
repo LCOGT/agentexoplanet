@@ -2,7 +2,7 @@ from django.template import RequestContext, loader
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 import MySQLdb
-from settings import DATABASES as dbc
+from django.conf import settings
 from datetime import datetime
 
 import time
@@ -21,7 +21,7 @@ def latestimages(request,eventid):
           
     newevents = []
 # Start connection
-    db = MySQLdb.connect(user=dbc['faulkes']['USER'], passwd=dbc['faulkes']['PASSWORD'], db=dbc['faulkes']['NAME'], host=dbc['faulkes']['HOST'])
+    db = MySQLdb.connect(user=DATABASES['faulkes']['USER'], passwd=DATABASES['faulkes']['PASSWORD'], db=DATABASES['faulkes']['NAME'], host=DATABASES['faulkes']['HOST'])
     for e in event:
         # Find new observations
         sql_images = "SELECT ImageID, WhenTaken,Filename,TelescopeId,SkyObjectName,filter FROM imagearchive WHERE  SchoolID ='%s' AND WhenTaken > '%s' AND WhenTaken < '%s' order by WhenTaken desc;" % (e.hostid, e.start.strftime("%Y%m%d%H%M%S"), e.end.strftime("%Y%m%d%H%M%S"))
@@ -46,7 +46,7 @@ def newimage(request,eventid):
         raise Http404
     obs = []
     stamp = request.GET.get('stamp','0')
-    db = MySQLdb.connect(user=dbc['faulkes']['USER'], passwd=dbc['faulkes']['PASSWORD'], db=dbc['faulkes']['NAME'], host=dbc['faulkes']['HOST'])
+    db = MySQLdb.connect(user=DATABASES['faulkes']['USER'], passwd=DATABASES['faulkes']['PASSWORD'], db=DATABASES['faulkes']['NAME'], host=DATABASES['faulkes']['HOST'])
     sql_images = "SELECT ImageID, WhenTaken,Filename,TelescopeId,SkyObjectName,filter FROM imagearchive  WHERE  SchoolID ='%s' AND WhenTaken > '%s' order by WhenTaken desc limit 20" % (event.hostid,stamp)
     images = db.cursor()
     images.execute(sql_images)

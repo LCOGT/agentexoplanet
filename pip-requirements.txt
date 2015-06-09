@@ -1,9 +1,0 @@
-APLpy==0.9.8
-ATpy==0.9.5.3
-Django==1.4.20
-MySQL-python==1.2.3
-astropy==0.2.3
-django-suit==0.2.2
-pyfits==3.0.4
-pywcs==1.10-4.7
-wsgiref==0.1.2

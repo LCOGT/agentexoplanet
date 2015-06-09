@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.shortcuts import render_to_response
 from django.http import HttpResponse
 from django.template import RequestContext
-from django.utils import simplejson
+import json
 
 class DatapointAd(admin.ModelAdmin):
     list_display = ['taken','data','pointtype','user','xpos','ypos','value','coorder','get_source']
@@ -46,7 +46,7 @@ def allcalibrators_check(request,planetid):
     # Uses and SQL statement to try to speed up the query for averaging data points
     e = Event.objects.filter(id=planetid)[0]
     normcals,dates,ids,cats = admin_averagecals(e.name,0)
-    c = simplejson.dumps(cats)
+    c = json.dumps(cats)
     # return normcals,stamps,[int(i) for i in ids],cats
     title = 'Check calibrators for %s' % e.title
     return render_to_response('admin/agentex/allcalibrators.html',{'calibrators':normcals,
@@ -78,7 +78,7 @@ def calibrator_check(request,planetid,calid):
             'people'     : people,
             'include'    : list(include),
             }
-    return HttpResponse(simplejson.dumps(resp,indent=2),mimetype='application/javascript')
+    return HttpResponse(json.dumps(resp,indent=2),mimetype='application/javascript')
     
 admin.site.register(Target, TargetAdmin)
 admin.site.register(Event,EventAdmin)

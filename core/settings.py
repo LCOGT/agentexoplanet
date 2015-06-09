@@ -8,22 +8,16 @@ from django.utils.crypto import get_random_string
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
 LOCAL_DEVELOPMENT = False if CURRENT_PATH.startswith('/var/www') else True
+PRODUCTION = True
 
-DEBUG = False if LOCAL_DEVELOPMENT == False else True
-TEMPLATE_DEBUG = DEBUG
+DEBUG = False
+
+PREFIX ="/agentexoplanet"
+BASE_DIR = os.path.dirname(CURRENT_PATH)
 
 ADMINS = (
      ('Edward Gomez', 'egomez@lcogt.net'),
 )
-
-MANAGERS = ADMINS
-
-# TEST authentication details
-
-ADMIN_LOGIN = 'admin'
-ADMIN_PASSWORD = 'sha1$4e987$afbcf42e21bd417fb71db8c66b321e9fc33051de'
-
-# END of TEST
 
 MANAGERS = ADMINS
 
@@ -54,25 +48,20 @@ SITE_ID = 1
 # to load the internationalization machinery.
 USE_I18N = True
 
-if not LOCAL_DEVELOPMENT:
-    MEDIA_DIR = '/agentexoplanet/media/'
-else:
-    MEDIA_DIR = '/media/'
 
-# Absolute path to the directory that holds media.
-# Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = CURRENT_PATH + MEDIA_DIR
+MEDIA_ROOT = '/var/www/html/media/'
+MEDIA_URL = '/media/'
 
-    
-STATIC_DIR = '/static/'
-STATIC_ROOT = CURRENT_PATH + '/static/'
-STATIC_URL = STATIC_DIR
+STATIC_ROOT = '/var/www/html/static/'
+STATIC_URL = PREFIX + '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR,'ingest'),]
 
+# List of finder classes that know how to find static files in
+# various locations.
 STATICFILES_FINDERS = (
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
-)
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder"
+ )
 
 # Make this unique, and don't share it with anybody.
 chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
@@ -85,119 +74,67 @@ TEMPLATE_LOADERS = (
 #     'django.template.loaders.eggs.load_template_source',
 )
 
-TEMPLATE_CONTEXT_PROCESSORS = (
-   'django.core.context_processors.media',
-   'django.contrib.auth.context_processors.auth',
-   'django.contrib.messages.context_processors.messages',
-   'django.core.context_processors.static'
-)
-
-if not LOCAL_DEVELOPMENT:
-    MIDDLEWARE_CLASSES = (
-        'django.middleware.common.CommonMiddleware',
-        'django.contrib.sessions.middleware.SessionMiddleware',
-        'django.contrib.auth.middleware.AuthenticationMiddleware',
-        'django.contrib.messages.middleware.MessageMiddleware',
-    )
-else:
-    MIDDLEWARE_CLASSES = (
-        'django.middleware.common.CommonMiddleware',
-        'django.contrib.sessions.middleware.SessionMiddleware',
-        'django.contrib.auth.middleware.AuthenticationMiddleware',
-        'django.contrib.messages.middleware.MessageMiddleware',
-        'debug_toolbar.middleware.DebugToolbarMiddleware',
-    )  
+MIDDLEWARE_CLASSES = (
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+)  
 
 CACHE_MIDDLEWARE_SECONDS = '1'
 
 AUTHENTICATION_BACKENDS = (
-    'auth_backends.LCOAuthBackend',
     'django.contrib.auth.backends.ModelBackend',
     )
 
-ROOT_URLCONF = 'urls'
+ROOT_URLCONF = 'core.urls'
 
-if not LOCAL_DEVELOPMENT:
-    LOGIN_REDIRECT_URL = 'http://lcogt.net/agentexoplanet/'
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
 
-    LOGIN_URL = 'http://lcogt.net/agentexoplanet/account/login/'
+INSTALLED_APPS = (
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.sites',
+    'django.contrib.admin',
+    'django.contrib.messages',
+    'agentex',
+    'showmestars',
+    'core'
+)
 
-    TEMPLATE_DIRS = (
-        CURRENT_PATH + '/templates',
-        """
-        CURRENT_PATH + '/templates/citsci',
-        """
-    )
-    INSTALLED_APPS = (
-        'django.contrib.auth',
-        'django.contrib.contenttypes',
-        'django.contrib.sessions',
-        'django.contrib.sites',
-        'django.contrib.admin',
-        'django.contrib.messages',
-        'django.contrib.comments',
-        'agentex',
-        'showmestars',
-    )
-else:
-    INTERNAL_IPS = ('127.0.0.1',)
-
-    DEBUG_TOOLBAR_PANELS = (
-        'debug_toolbar.panels.version.VersionDebugPanel',
-        'debug_toolbar.panels.timer.TimerDebugPanel',
-        'debug_toolbar.panels.settings_vars.SettingsVarsDebugPanel',
-        'debug_toolbar.panels.headers.HeaderDebugPanel',
-        'debug_toolbar.panels.request_vars.RequestVarsDebugPanel',
-        'debug_toolbar.panels.template.TemplateDebugPanel',
-        'debug_toolbar.panels.sql.SQLDebugPanel',
-        'debug_toolbar.panels.signals.SignalDebugPanel',
-        'debug_toolbar.panels.logger.LoggingPanel',
-    )
-    
-    LOGIN_URL = 'http://localhost:8000/account/login/'
-
-    LOGIN_REDIRECT_URL = '/'
-
-    TEMPLATE_DIRS = (
-        CURRENT_PATH + "/templates"
-    )  
-    INSTALLED_APPS = (
-        'django.contrib.auth',
-        'django.contrib.contenttypes',
-        'django.contrib.sessions',
-        'django.contrib.sites',
-        'django.contrib.messages',
-        'django.contrib.comments',
-        'django.contrib.admin',
-        'agentex',
-        'showmestars',
-        'debug_toolbar',
-        #'djcelery'
-    )
-
-#djcelery.setup_loader()
-# Our celery broker backend stuff (where RabbitMQ is installed)
-BROKER_HOST = "172.16.5.120"
-BROKER_PORT = 5672
-"""
-    RabbitMQ must be installed and configured on BROKER_HOST.
-    See http://mathematism.com/2010/02/16/message-queues-django-and-celery-quick-start/
-    
-    After a default RabbitMQ install, run:
-        rabbitmqctl add_user telops telops
-        rabbitmqctl add_vhost telops
-        rabbitmqctl set_permissions -p telops telops ".*" ".*" ".*"
-        
-"""
-BROKER_VHOST = "citsci"
-BROKER_USER = "citsci"
-BROKER_PASSWORD = "citsci"
+LOGIN_REDIRECT_URL = 'http://lcogt.net/agentexoplanet/'
+LOGIN_URL = 'http://lcogt.net/agentexoplanet/account/login/'
 
 BASE_URL = "/agentexoplanet/"
 
-if not LOCAL_DEVELOPMENT:
-    DATA_LOCATION = CURRENT_PATH + '/media/data'
-    DATA_URL = '/agentexoplanet/media/data'
-else:
-    DATA_LOCATION ='/Volumes/Tardis-type40/AgentExoplanetData/agentexdata'
-    DATA_URL = 'http://localhost/agentexdata'
+DATA_LOCATION = CURRENT_PATH + '/media/data'
+DATA_URL = '/agentexoplanet/media/data'
+
+##################
+# LOCAL SETTINGS #
+##################
+
+# Allow any settings to be defined in local_settings.py which should be
+# ignored in your version control system allowing for settings to be
+# defined per machine.
+if LOCAL_DEVELOPMENT:
+    try:
+        from local_settings import *
+    except ImportError as e:
+        if "local_settings" not in str(e):
+            raise e

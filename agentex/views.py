@@ -1,4 +1,4 @@
-from django.utils import simplejson
+import json
 from django.utils.encoding import smart_unicode
 from django.core.serializers import serialize
 from django.shortcuts import render_to_response
@@ -16,7 +16,7 @@ import urllib2
 from xml.dom.minidom import parse
 from math import sin,acos,fabs,sqrt
 from numpy import *
-import pyfits
+from astropy.io import fits 
 from datetime import datetime,timedelta
 from calendar import timegm
 from time import mktime
@@ -31,7 +31,6 @@ from agentex.forms import DataEntryForm, RegisterForm, CommentForm,RegistrationE
 import agentex.dataset as ds
 
 from django.conf import settings
-from settings import DATA_LOCATION,DATA_URL,STATIC_URL
 from agentex.agentex_settings import planet_level
 
 guestuser = 2
@@ -209,7 +208,7 @@ def addvalue(request,code):
              #messages.success(request, "Measurement successfully added")
             return HttpResponseRedirect(url)
         else:
-            return render_to_response('agentex/dataentry.html', {'data':DataSource.objects.get(id=id),'form':form,'data_url':DATA_URL}, context_instance=RequestContext(request))
+            return render_to_response('agentex/dataentry.html', {'data':DataSource.objects.get(id=id),'form':form,'data_url':settings.DATA_URL}, context_instance=RequestContext(request))
     else:
         nextcal = request.GET.get('next',False)
         ############ This condition is active when a user edits the frame
@@ -284,7 +283,7 @@ def addvalue(request,code):
                                                                     'form':form,
                                                                     'calibrators':calibs,
                                                                     'least_data':least_coords,
-                                                                    'data_url':DATA_URL},
+                                                                    'data_url':settings.DATA_URL},
                                     context_instance=RequestContext(request))                             
         else:
             ######## User is being given a new frame not editing data  
@@ -309,7 +308,7 @@ def addvalue(request,code):
                                         'complete':complete,
                                         'progress':progress,
                                         'points':Datapoint.objects.filter(user=person,pointtype='S',data__event=e).order_by('data__timestamp'),
-                                        'data_url':DATA_URL,
+                                        'data_url':settings.DATA_URL,
                                         'numplanets':numplanets,},
                                         context_instance=RequestContext(request))            
             else:
@@ -378,7 +377,7 @@ def addvalue(request,code):
                                         'calibrators':othercals,
                                         'points':coords,
                                         'least_data':least_coords,
-                                        'data_url':DATA_URL},
+                                        'data_url':settings.DATA_URL},
                                         context_instance=RequestContext(request))        
 
 
@@ -616,7 +615,7 @@ def classifyupdate(request,code):
     else:
         msg = {'update':False}
     #messages.warning(request,msg)
-    return HttpResponse(simplejson.dumps(msg),mimetype='application/javascript')
+    return HttpResponse(json.dumps(msg),mimetype='application/javascript')
 
 def updatedataset(request,code):
     formdata = request.POST
@@ -857,7 +856,7 @@ def graphview(request,code,mode,calid):
         return render_to_response('agentex/graph_average.html', {'event': planet,
                                                                 'data':data,
                                                                 'sources':cats,
-                                                                'cals':simplejson.dumps(cats),
+                                                                'cals':json.dumps(cats),
                                                                 'calid': currentcal,
                                                                 'prevchoice' : prev,
                                                                 'classified':classif,
@@ -929,7 +928,7 @@ def fitsanalyse(request):
     y = request.POST.get('y','').split(',')
     if (len(x) < 3 or len(y) < 3):
         response = {'message' : 'Please submit calibration, blank sky and source apertures.'}
-        return HttpResponse(simplejson.dumps(response),mimetype='application/javascript')
+        return HttpResponse(json.dumps(response),mimetype='application/javascript')
     x = map(float,x)
     y = map(float,y)
     coords = zip(x,y)
@@ -944,7 +943,7 @@ def fitsanalyse(request):
     # ***** No longer used as we fix radius from the outset ****
     #if r >= 70:
     #    response = {'message' : 'Apertures are too large. Please make your circles smaller'}
-    #    return HttpResponse(simplejson.dumps(response),mimetype='application/javascript')
+    #    return HttpResponse(json.dumps(response),mimetype='application/javascript')
     # Check all apertures are away from frame edge
     d = DataSource.objects.filter(id=int(dataid))[:1]
     r = d[0].event.radius
@@ -953,13 +952,13 @@ def fitsanalyse(request):
         yi = co[1]
         if (xi-r < 0 or xi+r >= d[0].max_x or yi-r < 0 or yi+r > d[0].max_y ):
             response = {'message' : 'Please make sure your circles are fully within the image'}
-            return HttpResponse(simplejson.dumps(response),mimetype='application/javascript')
+            return HttpResponse(json.dumps(response),mimetype='application/javascript')
 
     #print datetime.now() - now
     # Grab a fits file
-    dfile = "%s%s" % (DATA_LOCATION,d[0].fits)
+    dfile = "%s%s" % (settings.DATA_LOCATION,d[0].fits)
     #print dfile
-    dc = pyfits.getdata(dfile,header=False)
+    dc = fits.getdata(dfile,header=False)
     #print datetime.now() - now
     
     # Find all the pixels a radial distance r from x0,y0
@@ -1023,7 +1022,7 @@ def fitsanalyse(request):
         lines = {'error':  resp['msg']}
     else:
         messages.add_message(request, resp['code'], resp['msg'])
-    return HttpResponse(simplejson.dumps(lines,indent = 2),mimetype='application/javascript')
+    return HttpResponse(json.dumps(lines,indent = 2),mimetype='application/javascript')
         
 def measurementsummary(request,code,format):
     ####################
@@ -1071,7 +1070,7 @@ def measurementsummary(request,code,format):
             cals.append(list(vals/maxval))
         datapoints = {'calibration' : cals, 'source' : list(sources),'background':list(bg),'dates':dates,'id':list(ids),'datestamps':stamps,'n':maxcals+1}
         dataid = request.GET.get('dataid','')
-        return HttpResponse(simplejson.dumps(datapoints,indent=2),mimetype='application/javascript')
+        return HttpResponse(json.dumps(datapoints,indent=2),mimetype='application/javascript')
     elif (format == 'xhr' and options=='ave'):
         #cals = []
         #cs = mypoints.filter(pointtype='C').order_by('coorder__calid')
@@ -1083,7 +1082,7 @@ def measurementsummary(request,code,format):
             datapoints = {'calibration' : normcals, 'source' : sb,'background':bg,'calibrator':cals,'dates':dates,'id':ids,'datestamps':stamps,'n':maxcals+1}
         else:
             datapoints = {'calibration':None}
-        return HttpResponse(simplejson.dumps(datapoints,indent=2),mimetype='application/javascript')
+        return HttpResponse(json.dumps(datapoints,indent=2),mimetype='application/javascript')
     elif (format == 'xhr' and options == 'super'):
         # Construct the supercalibrator lightcurve
         planet = Event.objects.filter(name=code)[0]
@@ -1093,7 +1092,7 @@ def measurementsummary(request,code,format):
         for s in sources:
             dates.append(timegm(s.timestamp.timetuple())+1e-6*s.timestamp.microsecond,)
         datapoints = {'normalised' : normvals, 'dates':dates, 'std':std}
-        return HttpResponse(simplejson.dumps(datapoints),mimetype='application/javascript')
+        return HttpResponse(json.dumps(datapoints),mimetype='application/javascript')
     elif (request.GET and format == 'json'):
         dataid = request.GET.get('dataid','')
         s = DataSource.objects.filter(id=dataid)[0]
@@ -1105,7 +1104,7 @@ def measurementsummary(request,code,format):
                 'datestamp' : timegm(s.timestamp.timetuple())+1e-6*s.timestamp.microsecond,
                 'data'      : datalist,
                 }
-        return HttpResponse(simplejson.dumps(line,indent = 2),mimetype='application/javascript')
+        return HttpResponse(json.dumps(line,indent = 2),mimetype='application/javascript')
     else:
         planet = Event.objects.filter(name=code)[0]
         numsuper, normvals, myvals, std,radiusratio = supercaldata(request.user,planet)
@@ -1128,7 +1127,7 @@ def measurementsummary(request,code,format):
                     data.append(line)
             else:
                 data = None
-            return HttpResponse(simplejson.dumps(data,indent = 2),mimetype='application/javascript')
+            return HttpResponse(json.dumps(data,indent = 2),mimetype='application/javascript')
         # elif format == 'xml':
         #     return render_to_response('agentex/data_summary.xml',{'data':data},mimetype="application/xhtml+xml")
         elif format == 'csv':

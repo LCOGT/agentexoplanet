@@ -75,7 +75,7 @@ class Event(models.Model):
         return self.name
         
 class DataSource(models.Model):
-    fits = models.URLField(blank=True, verify_exists=True)
+    fits = models.URLField(blank=True)
     image = models.URLField(blank=True, null=True)
     timestamp = models.DateTimeField(null=True, blank=True)
     telescopeid = models.CharField(blank=True, max_length=100)

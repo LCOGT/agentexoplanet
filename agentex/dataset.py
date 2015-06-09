@@ -11,7 +11,7 @@ from datetime import datetime
 from calendar import timegm
 from numpy import array,nan_to_num, vstack, apply_along_axis, mean, var, sqrt,average, r_, linspace
 
-import settings
+from django.conf import settings
 
 class Dataset(object):
     def __init__(self , planetid=None,userid=None):
