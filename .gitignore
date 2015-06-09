@@ -5,3 +5,5 @@ transit/
 local_settings.py
 .DS_Store
 media/data/*
+
+docker-compose.yml
