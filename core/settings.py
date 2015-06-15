@@ -24,7 +24,7 @@ CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
 LOCAL_DEVELOPMENT = False if CURRENT_PATH.startswith('/var/www') else True
 PRODUCTION = True
 
-DEBUG = False
+DEBUG = True
 
 PREFIX ="/agentexoplanet"
 BASE_DIR = os.path.dirname(CURRENT_PATH)
@@ -37,11 +37,11 @@ MANAGERS = ADMINS
 
 DATABASES = {
  'default' : {
-    'NAME'      : 'citsciportal',
+    'ENGINE': 'django.db.backends.sqlite3',
+    'NAME'      : os.environ.get('CITSCI_DB_NAME',''),
     "USER": os.environ.get('CITSCI_DB_USER',''),
     "PASSWORD": os.environ.get('CITSCI_DB_PASSWD',''),
     "HOST": os.environ.get('CITSCI_DB_HOST',''),
-    "OPTIONS"   : {'init_command': 'SET storage_engine=INNODB'},
 }
 }
 
@@ -138,6 +138,8 @@ BASE_URL = "/agentexoplanet/"
 
 DATA_LOCATION = CURRENT_PATH + '/media/data'
 DATA_URL = '/agentexoplanet/media/data'
+
+ALLOWED_HOSTS = ['*']
 
 ##################
 # LOCAL SETTINGS #

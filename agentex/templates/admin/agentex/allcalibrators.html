@@ -10,7 +10,7 @@
 
 {% block breadcrumbs %}
 <div class="breadcrumbs">
-<a href="{% url admin:index %}">Home</a> > <a href="{% url admin:agentex_event_changelist %}">Planets</a>
+<a href="{% url 'admin:index' %}">Home</a> > <a href="{% url 'agentex_event_changelist' %}">Planets</a>
 </div>
 {% endblock %}
 
@@ -131,7 +131,7 @@
 		for(ds = 0 ; ds < this.decs.length ; ds++){
 		    
 			n = (this.meta.decisions[this.decs[ds]] ? this.meta.decisions[this.decs[ds]] : 0);
-			el.append('<div class="decision'+(n==0 ? " zero" : "")+'"><a href="{% url agentex.admin.allcalibrators_check planetid %}'+this.meta.sourceid+'/" class="'+this.decs[ds]+'" data="'+n+'">'+this.decisionImage(this.decisionFull(this.decs[ds]))+'<\/a>'+n+'<\/div>');
+			el.append('<div class="decision'+(n==0 ? " zero" : "")+'"><a href="{% url 'agentex_all_calib planetid' %}'+this.meta.sourceid+'/" class="'+this.decs[ds]+'" data="'+n+'">'+this.decisionImage(this.decisionFull(this.decs[ds]))+'<\/a>'+n+'<\/div>');
 			// Attach click events to the decision images
 			el.find('.decision a.'+this.decs[ds]).bind('click',{me:this,decision:this.decs[ds]},function(e){
 
@@ -237,7 +237,7 @@
 
 		$.ajax({
 			type: 'POST',
-			url: '{% url agentex.admin.allcalibrators_check planetid %}'+this.meta.sourceid+'/',
+			url: '{% url 'agentex_all_calib planetid' %}'+this.meta.sourceid+'/',
 			data: { include: input.is(":checked"),csrfmiddlewaretoken: '{{ csrf_token }}' },
 			success: function(data) {
 			},
@@ -259,7 +259,7 @@
 		}
 		$.ajax({
 			type: 'POST',
-			url: '{% url agentex.admin.allcalibrators_check planetid %}'+this.meta.sourceid+'/',
+			url: '{% url 'agentex_all_calib planetid' %}'+this.meta.sourceid+'/',
 			data: { 'user': u,csrfmiddlewaretoken: '{{ csrf_token }}' },
 			success: function(data) {
 			},
@@ -305,7 +305,7 @@
 
     {% comment %}
     {% for c in cats %}
-    <a href="{% url agentex.admin.calibrator_check planetid c.sourceid %}">{{c.sourcename}}</a> - {{c.decisions}}</br>
+    <a href="{% url agentex_admin_calib planetid c.sourceid %}">{{c.sourcename}}</a> - {{c.decisions}}</br>
     {% endfor %}
 
     {% endcomment %}

@@ -27,14 +27,14 @@
 		lcurve = new Lightcurve({
 			id:'#mainplot',
 			msg:{
-				nodata: "<h3>You have no data points yet<\/h3><p>Why not make some <a href='{% url agentex.views.addvalue event.name %}'>measurements of {{event.title}}<\/a><\/p>",
-				login: "Please <a href='{% url django.contrib.auth.views.login %}'>login<\/a> to edit"
+				nodata: "<h3>You have no data points yet<\/h3><p>Why not make some <a href='{% url 'addvalue' event.name %}'>measurements of {{event.title}}<\/a><\/p>",
+				login: "Please <a href='{% url 'login' %}'>login<\/a> to edit"
 			},
 			url:{
-				edit: "{% url agentex.views.addvalue event.name %}?dataid=",
-				json: "{% url agentex.views.index %}{{event.name}}/data.json",
-				xhr: "{% url agentex.views.index %}{{event.name}}/data.xhr",
-				superc: "{% url agentex.views.index %}{{event.name}}/data.xhr?mode=super"
+				edit: "{% url 'addvalue' event.name %}?dataid=",
+				json: "{% url 'index' %}{{event.name}}/data.json",
+				xhr: "{% url 'index' %}{{event.name}}/data.xhr",
+				superc: "{% url 'index' %}{{event.name}}/data.xhr?mode=super"
 			},
 			data:{{data|safe}},
 			authenticated: {% if user.is_authenticated %}true{% else %}false{% endif %}
@@ -67,7 +67,7 @@
 						</ul>
 {% endif %}
 </div>{%endif%}
-		<h1>Transit Lightcurve: <a href="{% url agentex.views.infoview event.name %}" class="objectspecific">{{event.title}}</a></span></h1>
+		<h1>Transit Lightcurve: <a href="{% url 'infoview' event.name %}" class="objectspecific">{{event.title}}</a></span></h1>
 		
 		<p class="accessible">Without Javascript enabled we can't show you a lightcurve but you could create your own lightcurve using the data in the table below. You can also provide us with information about which calibrators are not variable by checking the boxes below.</p>
 		<table class="accessible">
