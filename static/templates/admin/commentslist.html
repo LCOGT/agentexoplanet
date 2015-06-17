@@ -1,0 +1,19 @@
+{% load admintags %}
+<div class="module">
+    <h2>Agent Exoplanet Comments</h2>
+    <table class="bluetable">
+       <tbody>
+           <thead>
+       	<tr>
+       		<th>User</th><th>Comment</th>
+       	</tr>
+       	</thead>
+       	{% for log in logs %}
+           <tr>
+               <td>{{log.user.last_name}}</a></td><td style="white-space:normal">{{log.change_message}}</td>
+           </tr>
+           {% endfor %}
+           </tbody>
+    </table>
+    </fieldset>
+</div>

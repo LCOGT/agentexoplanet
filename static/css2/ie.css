@@ -1,0 +1,86 @@
+/* $Id: ie.css,v 1.1.2.7 2008/02/14 03:04:48 johnalbin Exp $ */
+
+/**
+ * @file
+ * IE CSS
+ *
+ * CSS targeted specifically for Internet Explorer for Windows.
+ *
+ * Properties starting with an underscore _ are for IE 5 and 6 only.
+ * Properties starting with head:first-child+body are for IE7 only.
+ * Properties with a child selector (>) or sibling selector (+) are for IE7 only.
+ */
+
+/**
+ * @section
+ * Layout
+ */
+
+/**
+ * This applies the min-width and max-width to IE6 using an expression
+ */
+#page {
+  _width:expression(((document.compatMode && 
+  document.compatMode=='CSS1Compat') ? 
+  document.documentElement.clientWidth : document.body.clientWidth) 
+  > 1318 ? "1300px" : (((document.compatMode && 
+  document.compatMode=='CSS1Compat') ? 
+  document.documentElement.clientWidth : 
+  document.body.clientWidth) < 590 ? "590px" : "99.7%"));
+}
+  
+/**
+ * @section
+ * Header blocks
+ */
+ 
+/**
+ * Fix an issue with the logo getting cropped 
+ */
+#logo-image {
+  margin: 0 0 6px;
+}
+
+#header-blocks {
+  margin: 8px 0 5px -18px;
+}
+
+/**
+ * Prevent search button wrapping over so easily 
+ */
+head:first-child+body #header-blocks #block-search-0 {
+  width: 100%;
+}
+
+/**
+ * Fix for navbar spacing on zoom,based on http://www.brunildo.org/test/ie7_badzoom.html 
+ */
+#navbar li {
+  _height: 0;
+  zoom: 1px;
+}
+
+/**
+ * @section
+ * Fields
+ */
+/**
+ * IE needs both fields floated 
+ */
+.view-1-teaser-n-list-publications .item-list ul li .view-data-node-title,
+.view-1-teaser-n-list-contributor-blog .item-list ul li .view-data-node-title {
+  float: left;
+}
+
+/**
+ * IE line height messes up the gallery
+ */
+.view-content-image-gallery .item-list li {
+  line-height: 0;
+}
+
+.view-item-image-gallery .view-data-node-title {
+  clear: left;
+  line-height: 1.1em;
+  width: 110px;
+}

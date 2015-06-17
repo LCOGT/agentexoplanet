@@ -14,7 +14,7 @@
 			<p class="objectspecific">Digital Sky Survey 2</p>
 		</div>	
 		<div id="mylink" style="display:none;"><a href="{% url 'my-graph' object.event.name %}"><img src="{{ STATIC_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" /></a></div>
-		<div id="avlink" style="display:none;"><a href="{%url average-graph object.event.name %}"><img src="{{ STATIC_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" /></a></div>
+		<div id="avlink" style="display:none;"><a href="{% url average-graph object.event.name %}"><img src="{{ STATIC_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" /></a></div>
 		<div id="sulink" style="display:none;"><a href="{%url super-graph object.event.name%}"><img src="{{ STATIC_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" /></a></div>
 		<div class="title">
 			<h1>Name: <span class="objectspecific">{{object.event.title}}</span></h1>

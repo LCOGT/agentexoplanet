@@ -1,0 +1,126 @@
+{% extends 'agentex/base.html' %}
+{% block body-class %}full agentex dossier briefing {%endblock%}
+{% block script-content %}
+	<script type="text/javascript">
+	<!--
+		$(document).ready(function(){
+			$('.polaroid').each(function(i){
+				$(this).bind('click',function(){
+					align = ($(this).attr('class').indexOf("right") > 0) ? "left" : "right"
+					bubblePopup({id:'helptooltip',el:$(this),w:450,'padding':10,html:$(this).html(),style:"fullimg",align:align,width: 400,animate:true,dismiss:true});
+				}).css({cursor:'pointer'}).attr({'title':'Click to enlarge'});
+			})
+		});
+	// -->
+	</script>
+	<style type="text/css">
+		div.polaroid img { width: 192px; }
+		div.polaroid { margin-right: 16px; margin-left: 0px; -webkit-transform: rotate(-0.5deg); -moz-transform: rotate(-0.5deg); -o-transform: rotate(-0.5deg); transform: rotate(-0.5deg); }
+		div.polaroid-left { float: left; }
+		div.polaroid-right { float: right; margin-left: 16px; margin-right: 0px;  -webkit-transform: rotate(1deg); -moz-transform: rotate(1deg); -o-transform: rotate(1deg); transform: rotate(1deg); position: relative; right: 0px; }
+		div.polaroid {
+			padding-top: 10px;
+			padding-bottom: 10px;
+			width: 208px;
+			margin-bottom: 8px;
+		}
+	</style>
+{%endblock%}
+
+{%block header %}Agent Exoplanet Briefing{%endblock%}
+
+{% block main-content %}
+	<div class="page stackedpaper">
+		<div class="padder">
+					<h1 class="objectspecific">Mission Briefing</h1>
+					
+					<div class="spacer"></div>
+					<h2>Introduction</h2>
+
+					<p>Astronomers at Las Cumbres Observatory are investigating exoplanets - planets which orbit stars other than our Sun - and they’d like your help.</p>
+
+					<p>Discovering exoplanets is tricky since they are so faint compared to the stars they orbit. It requires detective work. Your mission, should you choose to accept it, is to look through a sequence of images recently taken by our telescopes in Hawaii, Australia and California and help us to spot these exoplanets and measure their size.</p>
+
+					<div class="spacer"></div>
+					<iframe width="640" height="360" src="http://www.youtube.com/embed/qY1N-v4TwOg?rel=0&amp;hd=1" title="Video on YouTube"><a href="http://www.youtube.com/watch?v=qY1N-v4TwOg">Watch this video on YouTube</a></iframe>
+					<div class="spacer"></div>
+					<!-- Don't blink -->
+					<h2 id="blink">Blinking stars</h2>
+
+					<p>The first discovery of an exoplanet was in 1992 and since then over 680 <a href="http://lcogt.net/en/education/article/extrasolar-planets-history-and-detection">exoplanets have been found using several different methods</a>. One of these methods spots exoplanets whose orbit is lined up so that part of it passes between its star and us here on the Earth. When the exoplanet gets between its star and us we call it a <a href="http://lcogt.net/en/education/article/extrasolar-planets-history-and-detection#transit">transit</a>. You can sometimes see transits in our own Solar System when Mercury or Venus pass directly between the Sun and the Earth.</p>
+
+					<div class="crumpledpaper" style="width:300px;padding:5px 20px 0 20px;margin: 0 0 10px 10px;background-color:#ddd;float:right;"><h3>Did you know?</h3><p>The most recent <a href="http://lcogt.net/transitofvenus">transit of Venus</a> was on June 6, 2012 but the next one will not be until December 10, 2117. The next transit of Mercury won’t be until May 9, 2016.</p></div>
+
+					<p>We have used <a href="http://lcogt.net/en/network">our telescopes</a> to take a sequence of images of a particular star-field over a period of time. During that time there was a transit of an exoplanet around one of the stars. Agent Exoplanet gives you tools to spot these transits by measuring the brightness of the star as the exoplanet passes in front of it and blocks some of the starlight.</p>
+
+					<div class="spacer"></div>
+					<h2 id="planet">Getting started - choose your planet</h2>
+
+					<p>From the front page of Agent Exoplanet, click on the &quot;<a href="{% url 'target'  %}">Start the mission</a>&quot; button. Now you can choose one of the exoplanet polaroids to start your brightness measurements. Each polaroid shows you the planet's name and how many images are in the set. You will then be taken one by one to images of a patch of sky containing the star and exoplanet (although only the star is visible because the exoplanet is very faint in comparison). Each image will look very similar because they are of the same patch of sky but at different times. You will analyze each image to capture the dip in the brightness of the star as the exoplanet passes in front of it.</p>
+
+					<div class="spacer"></div>
+					<h2 id="analysis">Analyzing images with the Light Monitor</h2>
+					
+					<div class="polaroid polaroid-right"><img src="{{STATIC_URL}}images/briefing/ss-analysis.jpg" alt="light monitor" title="Light Monitor illustration"><p>Light Monitor</p></div>
+					<p>The first thing you will see is an area of sky in the middle of the screen. On the left you will see a smaller image, called a finder chart, of this same patch of sky. On the finder chart is a crosshairs that indicates the star in the image that has the known exoplanet - the target star. At any time you can click on this finder chart, and it will appear over the top of your working image so that you can see which is the target star. Click on either the finder chart or the main image to see your working image again.</p>
+	
+					<h3>Select the target</h3>
+					<p>On your working image you will see a small circle with the word <strong class="source">Target</strong> next to it. Click on the word and drag the circle over the target star. When you begin to drag, the image will zoom in. This makes it easier for you to place the circle exactly where you want it. You may need to drop and pick up the marker a couple of times if you want to move it across the whole image.</p>
+					<blockquote>It is <em>very important</em> that you select the correct star as the target (you can remind yourself which one is the target star at any time, by clicking the finder chart image).</blockquote>
+
+					<p>Next you will see that a circle labeled <strong class="sky">blank sky</strong> has appeared. Drag this to a patch of sky near the target star, and place it on an area with no stars at all.</p>
+					<div class="polaroid polaroid-left"><img src="{{STATIC_URL}}images/briefing/ss-calibrators.jpg" alt="choosing stars" title="Choosing stars"><p>Choosing stars</p></div>
+
+					<h3>Calibration's what you need</h3>
+					<p>Next you will see that a new circle labeled <strong class="calibrator">Calibrator</strong> has appeared. Drag this to a star in the image that seems to be a similar size to the target star. Choose a star that does not have any other bright stars overlapping it or very close by.</p>
+
+					<p>Two more calibrators will appear. Do the same as above with those but position them over different stars. Once you have placed your calibrators, you may choose to place one or even several more. Click on the <em>+ Calibrator</em> button to the left of the image and a new marker will appear. You can move this to another star in the image. You may continue this for as many calibrator stars in the image as you want.</p>
+
+					<p>Using more calibrators will help make your results more accurate, but only if they are placed on the stars you have used throughout your set! If you decide you have too many calibrators, you can remove them one at a time by clicking the (-) Calibrator button. The last calibrator added will be removed.</p>
+					    
+					<h3>Analyze this</h3>
+                    <div class="polaroid polaroid-right"><img src="{{STATIC_URL}}images/briefing/ss-graphs.jpg" alt="analyzing stars" title="Illustration of analyzing stars"><p>Analyzing stars</p></div>
+					<p>When you have placed your target, blank sky and calibrator circles, you can click the “Analyze Image” button to the left of the image. When you do this, you will see small graphs pop up near each of your circles.</p>
+
+					<p>Each graph has a green and a blue curve. The peaks of the two curves do not need to line up, you just to make sure there is only one bump of each color (i.e. only 1 star is in your circle) and you have a complete bump (i.e. your circle has not missed part of the star), and the 2 bumps are close together and about the same size. If one of the curves appears significantly to the right or left of the other, you can adjust the placement of that circle, and click Analyze again to check. Repeat until you are happy with the placement of all of your circles, then click the “Next image” button.</p>
+
+					<p>Repeat the steps above for each image in this time-series.</p>
+
+					<p>At any time  you can click on the lightcurve links (below the help "<strong>?</strong>") to see how your measurements have contributed to the lightcurve of this exoplanet transit event.</p>
+
+					<div class="spacer"></div>
+					<h2 id="lightcurve">Lightcurves</h2>
+					<p>A lightcurve is what we call the graph of the brightness you have measured in each image, plotted against the time the observation was made. These are a really useful tool because they show you very simply where the dip in brightness is how deep the dip is.</p>
+					<div class="polaroid polaroid-left"><img src="{{STATIC_URL}}images/briefing/ss-tabs.jpg" alt="light curve tabs" title="Lightcurve tabs"><p>Lightcurve tabs</p></div>
+					<p>Just below the help "<strong>?</strong>" there are 3 tabs. These are links to the lightcurves.</p>
+					    
+					<h3 id="mymeasurements">My measurements</h3>
+					<img src="{{STATIC_URL}}images/graph_my.png" style="float:left;padding-right:5px;" alt="my graph" title="My measurements"><p>Here you will see all of the measurements you have made. Each point shows the ratio of your target measurement and one of your calibrators e.g. if you chose 3 calibrators, you will have 3 different colored lines. If you notice one of your points is very different to other points at the same time, you may have not placed the calibrator marker completely over the star. You can click the point to edit it.
+					<p>Now move on to....</p>
+					
+					<h3 id="classify">Classify your lightcurves</h3>
+					<div class="polaroid polaroid-right"><img src="{{STATIC_URL}}images/briefing/ss-classify.jpg" alt="classify" title="Classify lightcurves"><p>Lightcurve classification</p></div>
+					<img src="{{STATIC_URL}}images/graph_ave.png" style="float:left;padding-right:5px;" alt="Average graph" title="Average graph">
+					<p>This step is very important! We will show you a lightcurve which was made using each of your calibrators, in turn. If you have not completed all the images, we will try to combine your results with other people's. If other people have used the same calibration stars there is a good chance you will be able to see your points combined with other people's to produce a lightcurve with a full transit.</p>
+					<p>One-by-one we would like you to classify your lightcurves using the buttons on the right. Remember, we are looking for a big dip in the brightness. If you have anything that is <strong>not</strong> a dip (e.g. a sharp spike, up and down) then use the buttons to mark it. You can change your mind at any time, just click the button you want. To check on the classifications you have made, click the "Toggle table" link. You can also download the data values from there, if you would like to plot the lightcurves in a spreadsheet.</p>
+					<p>Once you have classified all of your lightcurves move on to...</p>
+
+					<h3 id="finalresult">Final Result</h3>
+					<img src="{{STATIC_URL}}images/graph_super.png" style="float:left;padding-right:5px;" alt="final result" title="Final lightcurve"><p>Here you will see the combined results of everyone who is analyzing this exoplanet transit. If more people analyze the images of this transit the better quality the final result will be. The final result will show you how big this exoplanet is.</p>
+					
+					<div class="spacer"></div>
+					<h2 class="clear-block">Briefing Complete</h2>
+					<p>Whether you choose lots of calibrators and analyze all the images in the time-series, or if you choose 3 calibrators and a couple of images, all of your measurements are valuable and make the final lightcurve more accurate.</p>
+					<p>You are now ready to begin.</p>
+	
+					<form action="{% url 'read_manual_check' %}" method="POST">
+					{% csrf_token %}
+					<input type="hidden" name="read_manual" value="true" />
+					<p style="text-align:center;"><input type="submit" class="fancybtn btn" value="Start the mission" /></p>
+					</form>
+			</div>
+		</div>
+{% endblock %}
+
+{% block section-nav%}
+{% endblock %}

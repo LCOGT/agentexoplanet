@@ -18,6 +18,7 @@ import os
 import platform
 from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS as TCP
 from django.utils.crypto import get_random_string
+from django.conf import settings
 
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -63,11 +64,13 @@ SITE_ID = 1
 USE_I18N = True
 
 
-MEDIA_ROOT = '/var/www/html/media/'
+#MEDIA_ROOT = '/var/www/html/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
 MEDIA_URL = '/media/'
 
-STATIC_ROOT = '/var/www/html/static/'
-STATIC_URL = PREFIX + '/static/'
+#STATIC_ROOT = '/var/www/html/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, "static/")
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR,'agentex'),os.path.join(BASE_DIR,'showmestars')]
 
 # List of finder classes that know how to find static files in
@@ -114,6 +117,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.core.context_processors.static', # Serves static files (added by TJ)
             ],
         },
     },
@@ -126,9 +130,10 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.admin',
     'django.contrib.messages',
+    'django.contrib.staticfiles', # Added by TJ to allow static files declaration
     'agentex',
     'showmestars',
-    'core'
+    'core',
 )
 
 LOGIN_REDIRECT_URL = 'http://lcogt.net/agentexoplanet/'

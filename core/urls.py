@@ -17,12 +17,11 @@ admin.autodiscover()
 urlpatterns = [
 #    (r'^api/', include('odin.api.urls')),
     url(r'^home/$', home, name='portal'),
-    url(r'^agentexoplanet/admin/', include(urls), name='agentexo_admin'),
+    url(r'^agentexoplanet/admin/', include(admin.site.urls), name='agentexo_admin'),
     url(r'^agentexoplanet/agentex/', RedirectView.as_view(url='/agentexoplanet/'), name='agentex_redirect'),
     url(r'^agentexoplanet/admin/agentex/event/(?P<planetid>\d+)/calibrators/(?P<calid>\d+)/$',calibrator_check, name='agentex_admin_calib'),
     url(r'^agentexoplanet/admin/agentex/event/(?P<planetid>\d+)/calibrators/$',allcalibrators_check, name='agentex_all_calib'),
-    url(r'^agentexoplanet/admin/', include(admin.site.urls), name=''), # QUERY
-    url(r'^agentexoplanet/',include(admin.site.urls), name='agentexo_urls'),
+    url(r'^agentexoplanet/',include(urls), name='agentexo_urls'),
 #    url(r'^showmestars/newimage/$', newimage, {'eventid':0}, name='showmestars_newimage'),
 #    url(r'^showmestars/(?P<eventid>\w+)/$', latestimages, name='showmestars_latestimage'),
 #    url(r'^showmestars/$', latestimages, {'eventid':0}, name='showmestars_latestimage_event'),

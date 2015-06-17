@@ -1,0 +1,140 @@
+{% extends 'agentex/base.html' %}
+
+{% block body-class %}full agentex dossier {%endblock%}
+
+{%block header %}My lightcurves for {{event.title}}{%endblock%}
+
+{% block script-content %}
+	<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/agentex.js"></script>
+	<!--[if lt IE 9]><script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/excanvas.js"></script><![endif]-->
+	<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jquery.min.js"></script>
+	<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jquery.graph.js"></script>
+	<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/lightcurve.js"></script>
+
+	<script type="text/javascript">
+	<!--
+	var helper = true;
+	$(document).ready(function(){
+		//html = 'Next steps: <ul><li><a href="{% url average-graph event.name %}">Classify your lightcurve shapes<\/a> to combine your data with other citizen scientists\' data,</li> <li>View the <a href="{% url 'average-graph' event.name %}">final curve<\/a> from everyone\'s results</li></ul>';
+		$('#progress').before('<span id="morecalbtn" style="float:right"><a href="{% url 'addvalue' event.name %}?dataid={{event.finder}}&next=cal">Add more calibrators</a><\/span>').after('<div class="clear-block"><\/div><div id="mainplot" style="height:460px;width:100%;"><\/div>');
+	
+		// Define help
+		addHelpHint($('#mainplot'),$('#whatsthis').html());
+		addHelpHint($('#morecalbtn'),'If you\'d like to add more <strong class="calibrator">calibrators<\/strong> you can use this button to go back to the observations.');
+		addHelpHint($('#mylink'),'This is the page you are looking at.','left');
+		addHelpHint($('#avlink'),'Classify your measurements','left');
+		addHelpHint($('#sulink'),'View the combined <a href="{% url 'briefing' %}#lightcurve">lightcurves<\/a> created using everybody\'s classifications.','left');
+	
+	
+		{% if sources %}
+		html = "<form style='max-width:500px;float:left;margin-top:10px;' id='calibrator_list' method='POST' action='{%  url agentex.views.updatedataset event.name %}?mode=display'>{% csrf_token %}"
+		html += "	<input type=hidden name='planet' value='{{event.name}}'>";
+		var onlyselection = false;
+		{% for d in sources %}{%if d.valid %}onlyselection = true{%endif%}{% endfor %}
+	
+		var select = false;
+	{% for d in sources %}	html += "	<input type='checkbox' name='cal-{{d.order}}' value='{{d.order}}'";
+	{%if d.valid %}	select = true;{%endif%}
+		if(!onlyselection || select)	html += " CHECKED";
+		html += "/>Show calibrator {{forloop.counter}} {%if d.name%}(<a href='http://www.strudel.org.uk/lookUP/?name={{d.name.catalogue}}+{{d.name}}'>{{d.name.catalogue}} {{d.name}}<\/a>){%endif%} on the graph<br \/>";
+		{% endfor %}
+	
+		html += "<\/form>";
+		$("#nextstep").before(html)
+		{% endif %}
+		lcurve = new Lightcurve({
+			id:'#mainplot',
+			data: {{ data|safe }},
+			msg:{
+				nodata: "<h3>You have no data points yet<\/h3><p>Why not make some <a href='{% url 'addvalue' event.name %}'>measurements of {{event.title}}<\/a><\/p>",
+				login: "Please <a href='{% url 'login' %}'>login<\/a> to edit"
+			},
+			url:{
+				edit: "{% url 'addvalue' event.name %}?dataid=",
+				json: "{% url 'index' %}{{event.name}}/data.json",
+				xhr: "{% url 'index' %}{{event.name}}/data.xhr",
+				superc: "{% url 'index' %}{{event.name}}/data.xhr?mode=super"
+			},
+			authenticated: {% if user.is_authenticated %}true{% else %}false{% endif %}
+		});
+		
+		function check (){
+			vals = [];
+			nodata = true;
+			$('#calibrator_list input[type=checkbox]').each(function(){
+				lcurve.used[$(this).val()] = ($(this).filter(":checked").length > 0) ? true : false;
+				if(lcurve.used[$(this).val()]) nodata = false;
+			});
+			if(nodata){
+				$('#calibrator_list input[type=checkbox]').each(function(){
+					lcurve.used[$(this).val()] = true;
+				});
+			}
+			lcurve.update();
+			if(nodata){
+				$('#message ul.messages').prepend('<li>Please select which calibrators to plot from the list below.<\/li>');
+				bubblePopup({id:'message',el:$('#mainplot'),style:'warning',fade:2000,dismiss:true,align:"center",w:200,animate:true});
+			}
+		}
+		$('#calibrator_list input[type=checkbox]').bind('change',function(){
+			check();
+		});
+		check();
+			
+		{% if messages %} bubblePopup({id:'message',el:$('#mainplot'),fade:2000,dismiss:true,align:"center",w:200,animate:true});{% endif %}
+	
+			if($('table#datatable').length > 0){
+				$('table#datatable').before('<br /><div id="tabletoggle" style="float:left;cursor:pointer;"><img src="{{STATIC_URL}}images/table_icon&24.png" alt="toggle table" title="Show or hide the data table" style="width:16px;margin-right:0px;" \/> toggle data table<\/div><br style="clear:both;" />')
+				$('#tabletoggle').bind('click',function(){
+				$('table.accessible').toggle();
+			})
+		}
+	
+	})
+	// -->
+	</script>
+{% endblock %}
+
+{% block main-content %}
+	<div class="page stackedpaper">
+		{% if messages %}					<div id="message">
+								<ul class="messages">
+		{% for message in messages %}{%ifchanged%}		<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message|safe }}</li>{%endifchanged%}{% endfor %}
+								</ul>
+							</div>{% endif %}
+		<h1>Step 1: My Measurements of <a href="{% url 'infoview' event.name %}" class="objectspecific">{{event.title}}</a></h1>
+<!--
+		<ol class="breadcrumb">
+			<li class="active"><a href="{%url my-graph event.name%}"><img src="{{ STATIC_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" />Step 1: My measurements</a></li>
+			<li><a href="{%url 'average-graph' event.name%}" title="Classify your lightcurve shapes to combine your data with other citizen scientists' data"><img src="{{ STATIC_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" />Step 2: Classify lightcurves</a></li>
+			<li><a href="{%url super-graph event.name%}" title="View the final lightcurve from everyone's results"><img src="{{ STATIC_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" />Step 3: Final lightcurve</a></li>
+		</ol>
+-->
+		<div id="mylink" class="tabactive" style="display:none;"><a href="{%url my-graph event.name%}"><img src="{{ STATIC_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" /></a></div>
+		<div id="avlink" style="display:none;"><a href="{%url average-graph event.name%}"><img src="{{ STATIC_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" /></a></div>
+		<div id="sulink" style="display:none;"><a href="{%url super-graph event.name%}"><img src="{{ STATIC_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" /></a></div>
+
+		<p id="progress">You have analysed {{progress.percent}}% of the images for <span class="objectspecific">{{event.title}}</span>. {% if progress.done < progress.total %}You might not be able to see a complete transit event yet. <a href="{% url 'addvalue' event.name %}">Continue analysing?</a> {% else %}Congratulations!{%endif%}</p>
+
+		<p class="accessible">Without Javascript enabled we can't show you any graphs but you could create your own using the data in the table below. You can also provide us with information about which calibrators are not variable by checking the boxes below.</p>
+		<p class="accessible" id="whatsthis">In this graph our <span class="sky">background</span> value is subtracted from both your <span class="source">target</span> and <span class="calibrator">calibrators</span>. Then the ratio of <span class="source">target</span> to <span class="calibrator">calibrator</span> is found for each one. On this plot the ratios have been scaled so that you can compare them and look for <span class="calibrator">calibrators</span> which are variable.</p>
+
+		<div style="text-align:right;width:300px;float:right" id="nextstep">
+			<a href="{%url average-graph event.name%}" class="fancybtn">Step 2: Classify lightcurve<span class="arrow">&nbsp;</span></a> 
+		</div>
+		<br style="clear:both;" />
+
+		<div style="max-width:900px;overflow:auto;">
+		<table id="datatable" class="accessible" summary="The data used to make the plot of your lightcurves">
+			<tr><th>Date</th><th class="source">Target</th><th class="sky">Sky</th>{% for cal in data.0.data.calibrator %}<th class="calibrator">Cal {{forloop.counter}}</th>{% endfor %}</tr>
+			{% for line in data %}
+			{% if line.data.calibrator %}
+			<tr><td><a href="{% url 'addvalue' event.name %}?dataid={{line.id}}">{{line.date}}</a></td><td>{{line.data.source.0|floatformat:0}}</td><td>{{line.data.background.0|floatformat:0}}</td>{% for cal in line.data.calibrator %}<td>{{cal|floatformat:0}}</td>{% endfor %}</tr>
+			{% endif %}
+			{% endfor %}
+		</table>
+		</div>
+
+
+	</div>
+{% endblock %}
