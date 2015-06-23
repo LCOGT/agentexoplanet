@@ -63,6 +63,11 @@ class Target(models.Model):
     description = models.TextField()
     finderchart =  models.FileField('Finder chart',upload_to="finderchart", help_text='Image with a clearly marked up target position',blank=True)
     finderchart_tb =  models.FileField('Finder chart thumbnail',upload_to="finderchart/thumb", help_text='Image with a clearly marked up target position',blank=True)
+    exoplanet_enc_pl = models.URLField('Exoplanet Encyclopaedia: Planet', blank=True, null=True)
+    exoplanet_enc_st = models.URLField('Exoplanet Encyclopaedia: Star', blank=True, null=True)
+    etd_pl = models.URLField('Exoplanet Transit Database: Planet', blank=True, null=True)
+    simbad_pl = models.URLField('Simbad: Planet', blank=True, null=True)
+    simbad_st = models.URLField('Simbad: Star', blank=True, null=True)
     class Meta:
         verbose_name = u'transiting exoplanet target'
         db_table = u'dataexplorer_target'

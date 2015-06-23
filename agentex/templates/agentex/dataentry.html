@@ -552,17 +552,17 @@
 						This is a view of the images from the telescope. Move the <strong class="source">target</strong> circle to the target star, the <strong class="sky">sky</strong> circle to a star-free area near the target, the <strong class="calibrator">calibrator</strong> circles to comparison stars, then click <strong>Analyze image</strong> to save your results. For more information see the <a href="{% url 'briefing' %}#analysis">briefing</a> or move your mouse over parts of the screen to find out more about them.
 					</div>
 {% ifequal complete 1 %}
-										<div id="mylink"><a href="{%url my-graph event.name%}"><img src="{{STATIC_URL}}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" style="width:1em;" /></a></div>
-										<div id="avlink"><a href="{%url average-graph event.name%}"><img src="{{STATIC_URL}}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" style="width:1em;" /></a></div>
-										<div id="sulink"><a href="{%url super-graph event.name%}"><img src="{{STATIC_URL}}images/graph_super.png" alt="Final" title="Final lightcurve" style="width:1em;" /></a></div>
+										<div id="mylink"><a href="{%url 'my-graph' event.name%}"><img src="{{STATIC_URL}}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" style="width:1em;" /></a></div>
+										<div id="avlink"><a href="{%url 'average-graph' event.name%}"><img src="{{STATIC_URL}}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" style="width:1em;" /></a></div>
+										<div id="sulink"><a href="{%url 'super-graph' event.name%}"><img src="{{STATIC_URL}}images/graph_super.png" alt="Final" title="Final lightcurve" style="width:1em;" /></a></div>
 										<span class="dymotape datestamp">Completed</span>
 										<h1>Analysis Complete: <a href="{% url 'infoview' event.name  %}" class="objectspecific">{{event.title}}</a></h1>
 										<p>Congratulations! You've analysed all the data for {{event.title}}.<p>
 										<p>Now, have a look at the lightcurves we made from your measurements...</p>
 										<ol class="breadcrumb">
-											<li><a href="{%url my-graph event.name%}"><img src="{{ STATIC_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" /> My measurements</a></li>
-											<li><a href="{%url average-graph event.name%}"><img src="{{ STATIC_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" /> Classify lightcurves</a></li>
-											<li><a href="{%url super-graph event.name%}"><img src="{{ STATIC_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" /> Final lightcurve</a></li>
+											<li><a href="{%url 'my-graph' event.name%}"><img src="{{ STATIC_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" /> My measurements</a></li>
+											<li><a href="{%url 'average-graph' event.name%}"><img src="{{ STATIC_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" /> Classify lightcurves</a></li>
+											<li><a href="{%url 'super-graph' event.name%}"><img src="{{ STATIC_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" /> Final lightcurve</a></li>
 										</ol>
 										Would you like to edit any of your measurements?
 										<ul class="edit-list">
@@ -587,9 +587,9 @@
 						<div>
 							<div class="clear-block"></div>
 							<!--<div class="icons clear-block"><a class="chart" href="{% url 'my-graph' data.event.name %}" class="chart">View lightcurve for this exoplanet</a></div>-->
-							<div id="mylink"><a href="{%url my-graph data.event.name%}"><img src="{{STATIC_URL}}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" style="width:1em;" /></a></div>
-							<div id="avlink"><a href="{%url average-graph data.event.name%}"><img src="{{STATIC_URL}}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" style="width:1em;" /></a></div>
-							<div id="sulink"><a href="{%url super-graph data.event.name%}"><img src="{{STATIC_URL}}images/graph_super.png" alt="Final" title="Final lightcurve" style="width:1em;" /></a></div>
+							<div id="mylink"><a href="{%url 'my-graph' data.event.name%}"><img src="{{STATIC_URL}}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" style="width:1em;" /></a></div>
+							<div id="avlink"><a href="{%url 'average-graph' data.event.name%}"><img src="{{STATIC_URL}}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" style="width:1em;" /></a></div>
+							<div id="sulink"><a href="{%url 'super-graph' data.event.name%}"><img src="{{STATIC_URL}}images/graph_super.png" alt="Final" title="Final lightcurve" style="width:1em;" /></a></div>
 						</div>
 						<form method=POST action="">
 							{% csrf_token %}

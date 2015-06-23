@@ -1,5 +1,6 @@
 {% extends 'agentex/base.html' %}
 {% load observing_extras %}
+
 {% block body-class %}full agentex dossier {%endblock%}
 
 {%block header %}{{object.event.title}} | Agent Exoplanet{%endblock%}
@@ -14,8 +15,8 @@
 			<p class="objectspecific">Digital Sky Survey 2</p>
 		</div>	
 		<div id="mylink" style="display:none;"><a href="{% url 'my-graph' object.event.name %}"><img src="{{ STATIC_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" /></a></div>
-		<div id="avlink" style="display:none;"><a href="{% url average-graph object.event.name %}"><img src="{{ STATIC_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" /></a></div>
-		<div id="sulink" style="display:none;"><a href="{%url super-graph object.event.name%}"><img src="{{ STATIC_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" /></a></div>
+		<div id="avlink" style="display:none;"><a href="{% url 'average-graph' object.event.name %}"><img src="{{ STATIC_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" /></a></div>
+		<div id="sulink" style="display:none;"><a href="{%url 'super-graph' object.event.name%}"><img src="{{ STATIC_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" /></a></div>
 		<div class="title">
 			<h1>Name: <span class="objectspecific">{{object.event.title}}</span></h1>
 		</div>
@@ -59,7 +60,8 @@
 			<tr>
 				<td>Exoplanet Encyclopaedia</td>
 				<td><a href="http://exoplanet.eu/planet.php?p1={{object.target.name}}&p2=b">Planet</a></td>
-				<td><a href="http://exoplanet.eu/star.php?st={{object.target.name}}">Host star</a></td>
+				<!-- <td><a href="http://exoplanet.eu/star.php?st={{object.target.name}}">Host star</a></td> -->
+				<td><a href="http://exoplanet.eu/catalog/?f=%27{{object.target.name}}%27+in+name">Host star</a></td>
 			</tr>
 			<tr>
 				<td>Exoplanet Transit Database</td>
@@ -68,7 +70,7 @@
 			</tr>
 			<tr>
 				<td>Simbad</td>
-				<td><a href="http://simbad.u-strasbg.fr/simbad/sim-id?Ident={{object.event.name}}">Planet</a></td>
+				<td><a href="http://simbad.u-strasbg.fr/simbad/sim-id?Ident={{object.target.name}}b">Planet</a></td>
 				<td><a href="http://simbad.u-strasbg.fr/simbad/sim-id?Ident={{object.target.name}}">Host star</a></td>
 			</tr>
 			

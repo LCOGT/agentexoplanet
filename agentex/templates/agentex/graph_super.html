@@ -114,17 +114,17 @@
 {% if user.is_authenticated %}
 <!--
 		<ol class="breadcrumb">
-			<li><a href="{%url my-graph event.name%}"><img src="{{ STATIC_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" />Step 1: My measurements</a></li>
-			<li><a href="{%url average-graph event.name%}"><img src="{{ STATIC_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" />Step 2: Classify lightcurves</a></li>
-			<li class="active"><a href="{%url super-graph event.name%}"><img src="{{ STATIC_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" />Step 3: Final lightcurve</a></li>
+			<li><a href="{%url 'my-graph' event.name%}"><img src="{{ STATIC_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" />Step 1: My measurements</a></li>
+			<li><a href="{%url 'average-graph' event.name%}"><img src="{{ STATIC_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" />Step 2: Classify lightcurves</a></li>
+			<li class="active"><a href="{%url 'super-graph' event.name%}"><img src="{{ STATIC_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" />Step 3: Final lightcurve</a></li>
 		</ol>
 -->
 		<p class="breadcrumb"></p>
-		<div id="mylink" style="display:none;"><a href="{%url my-graph event.name%}"><img src="{{ STATIC_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" /></a></div>
-		<div id="avlink" style="display:none;"><a href="{%url average-graph event.name%}"><img src="{{ STATIC_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" /></a></div>
-		<div id="sulink" class="tabactive" style="display:none;"><a href="{%url super-graph event.name%}"><img src="{{ STATIC_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" /></a></div>
+		<div id="mylink" style="display:none;"><a href="{%url 'my-graph' event.name%}"><img src="{{ STATIC_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" /></a></div>
+		<div id="avlink" style="display:none;"><a href="{%url 'average-graph' event.name%}"><img src="{{ STATIC_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" /></a></div>
+		<div id="sulink" class="tabactive" style="display:none;"><a href="{%url 'super-graph' event.name%}"><img src="{{ STATIC_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" /></a></div>
 {% else %}
-		<p class="breadcrumb">You can contribute measurements to this lightcurve after <a href="{% url register %}?next={{ request.path }}">creating an account.</a> If you already have an account <a href="{% url 'login' %}?next={{ request.path }}">log in</a></p>
+		<p class="breadcrumb">You can contribute measurements to this lightcurve after <a href="{% url 'register' %}?next={{ request.path }}">creating an account.</a> If you already have an account <a href="{% url 'login' %}?next={{ request.path }}">log in</a></p>
 {% endif %}
 
 
@@ -183,7 +183,7 @@
 
 {% else%}
 		<p>Bad news! Not enough measurements have been made yet.</p>
-		<p>Go and <a href="{% url 'addvalue' event.name %}">make more measurements</a>, then <a href="{%url average-graph event.name%}">classify your results</a>.
+		<p>Go and <a href="{% url 'addvalue' event.name %}">make more measurements</a>, then <a href="{%url 'average-graph' event.name%}">classify your results</a>.
 		<p>It will make this page much more exciting!</p>
 {%endif%}
 	</div>

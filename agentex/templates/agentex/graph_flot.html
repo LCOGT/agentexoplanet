@@ -15,7 +15,7 @@
 	<!--
 	var helper = true;
 	$(document).ready(function(){
-		//html = 'Next steps: <ul><li><a href="{% url average-graph event.name %}">Classify your lightcurve shapes<\/a> to combine your data with other citizen scientists\' data,</li> <li>View the <a href="{% url 'average-graph' event.name %}">final curve<\/a> from everyone\'s results</li></ul>';
+		//html = 'Next steps: <ul><li><a href="{% url 'average-graph' event.name %}">Classify your lightcurve shapes<\/a> to combine your data with other citizen scientists\' data,</li> <li>View the <a href="{% url 'average-graph' event.name %}">final curve<\/a> from everyone\'s results</li></ul>';
 		$('#progress').before('<span id="morecalbtn" style="float:right"><a href="{% url 'addvalue' event.name %}?dataid={{event.finder}}&next=cal">Add more calibrators</a><\/span>').after('<div class="clear-block"><\/div><div id="mainplot" style="height:460px;width:100%;"><\/div>');
 	
 		// Define help
@@ -27,7 +27,7 @@
 	
 	
 		{% if sources %}
-		html = "<form style='max-width:500px;float:left;margin-top:10px;' id='calibrator_list' method='POST' action='{%  url agentex.views.updatedataset event.name %}?mode=display'>{% csrf_token %}"
+		html = "<form style='max-width:500px;float:left;margin-top:10px;' id='calibrator_list' method='POST' action='{%  url 'updatedataset' event.name %}?mode=display'>{% csrf_token %}"
 		html += "	<input type=hidden name='planet' value='{{event.name}}'>";
 		var onlyselection = false;
 		{% for d in sources %}{%if d.valid %}onlyselection = true{%endif%}{% endfor %}
@@ -105,14 +105,14 @@
 		<h1>Step 1: My Measurements of <a href="{% url 'infoview' event.name %}" class="objectspecific">{{event.title}}</a></h1>
 <!--
 		<ol class="breadcrumb">
-			<li class="active"><a href="{%url my-graph event.name%}"><img src="{{ STATIC_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" />Step 1: My measurements</a></li>
+			<li class="active"><a href="{%url 'my-graph' event.name%}"><img src="{{ STATIC_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" />Step 1: My measurements</a></li>
 			<li><a href="{%url 'average-graph' event.name%}" title="Classify your lightcurve shapes to combine your data with other citizen scientists' data"><img src="{{ STATIC_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" />Step 2: Classify lightcurves</a></li>
-			<li><a href="{%url super-graph event.name%}" title="View the final lightcurve from everyone's results"><img src="{{ STATIC_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" />Step 3: Final lightcurve</a></li>
+			<li><a href="{%url 'super-graph' event.name%}" title="View the final lightcurve from everyone's results"><img src="{{ STATIC_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" />Step 3: Final lightcurve</a></li>
 		</ol>
 -->
-		<div id="mylink" class="tabactive" style="display:none;"><a href="{%url my-graph event.name%}"><img src="{{ STATIC_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" /></a></div>
-		<div id="avlink" style="display:none;"><a href="{%url average-graph event.name%}"><img src="{{ STATIC_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" /></a></div>
-		<div id="sulink" style="display:none;"><a href="{%url super-graph event.name%}"><img src="{{ STATIC_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" /></a></div>
+		<div id="mylink" class="tabactive" style="display:none;"><a href="{%url 'my-graph' event.name%}"><img src="{{ STATIC_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" /></a></div>
+		<div id="avlink" style="display:none;"><a href="{%url 'average-graph' event.name%}"><img src="{{ STATIC_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" /></a></div>
+		<div id="sulink" style="display:none;"><a href="{%url 'super-graph' event.name%}"><img src="{{ STATIC_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" /></a></div>
 
 		<p id="progress">You have analysed {{progress.percent}}% of the images for <span class="objectspecific">{{event.title}}</span>. {% if progress.done < progress.total %}You might not be able to see a complete transit event yet. <a href="{% url 'addvalue' event.name %}">Continue analysing?</a> {% else %}Congratulations!{%endif%}</p>
 
@@ -120,7 +120,7 @@
 		<p class="accessible" id="whatsthis">In this graph our <span class="sky">background</span> value is subtracted from both your <span class="source">target</span> and <span class="calibrator">calibrators</span>. Then the ratio of <span class="source">target</span> to <span class="calibrator">calibrator</span> is found for each one. On this plot the ratios have been scaled so that you can compare them and look for <span class="calibrator">calibrators</span> which are variable.</p>
 
 		<div style="text-align:right;width:300px;float:right" id="nextstep">
-			<a href="{%url average-graph event.name%}" class="fancybtn">Step 2: Classify lightcurve<span class="arrow">&nbsp;</span></a> 
+			<a href="{%url 'average-graph' event.name%}" class="fancybtn">Step 2: Classify lightcurve<span class="arrow">&nbsp;</span></a> 
 		</div>
 		<br style="clear:both;" />
 

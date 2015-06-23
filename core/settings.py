@@ -96,9 +96,25 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    # Added by TJ to allow logging of active users
+    #'middleware.activateuser_middleware.ActiveUserMiddleware', 
 )  
 
 CACHE_MIDDLEWARE_SECONDS = '1'
+
+# Added by TJ to set up caching as per Django documentation
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': 'default-cache'
+    }
+}
+
+# Added by TJ: inactivity duration before marked offline
+USER_ONLINE_TIMEOUT = 300
+
+# Added by TJ: keep track of inactive users for this duration
+USER_LASTSEEN_TIMEOUT = 60*60*24*7 # ie one week
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
