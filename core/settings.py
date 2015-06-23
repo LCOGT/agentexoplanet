@@ -88,16 +88,14 @@ SECRET_KEY = get_random_string(50, chars)
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.load_template_source',
+   #'django.template.loaders.eggs.load_template_source',
 )
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    # Added by TJ to allow logging of active users
-    #'middleware.activateuser_middleware.ActiveUserMiddleware', 
+    'django.contrib.messages.middleware.MessageMiddleware', 
 )  
 
 CACHE_MIDDLEWARE_SECONDS = '1'
@@ -109,12 +107,6 @@ CACHES = {
         'LOCATION': 'default-cache'
     }
 }
-
-# Added by TJ: inactivity duration before marked offline
-USER_ONLINE_TIMEOUT = 300
-
-# Added by TJ: keep track of inactive users for this duration
-USER_LASTSEEN_TIMEOUT = 60*60*24*7 # ie one week
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
