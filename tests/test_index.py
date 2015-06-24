@@ -4,5 +4,6 @@
 import pytest
 
 # Define function 
-def homepagetest():
+def homepagetest(self):
+    response = self.c.get('/agentex/templates/index.html')
     self.assertEqual(response.status_code, 200)

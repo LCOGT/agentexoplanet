@@ -1736,4 +1736,3 @@ def update_cat_sources(username,planetcode):
             dc.source=None
             print dc.id, 'No catsource found'
         dc.save()
-        
