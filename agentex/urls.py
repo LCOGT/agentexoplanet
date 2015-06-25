@@ -1,12 +1,10 @@
 '''
 Citizen Science Portal: App containing Agent Exoplant and Show Me Stars for Las Cumbres Observatory Global Telescope Network
 Copyright (C) 2014-2015 LCOGT
-
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
-
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -14,12 +12,14 @@ GNU General Public License for more details.
 '''
 from django.conf.urls import include, url
 from django.contrib.auth.views import login, logout
-from .views import *
+from agentex.views import index, register, editaccount, profile, target, fitsanalyse, tester, read_manual_check, briefing, addcomment, addvalue, updatedataset, graphview, classifyupdate, graphview, graphsuper, infoview, measurementsummary
+
+from django.conf import settings
 
 urlpatterns = [
     url(r'^$',index, name='index'),
-    url(r'^account/login/$', login, {'template_name' :'login.html'}, name='login'),
-    url(r'^account/logout/$', logout,{'template_name' :'logout.html'}, name='logout'),
+    url(r'^account/login/$', login, {'template_name': 'login.html'}, name='login'),
+    url(r'^account/logout/$', logout, {'template_name': 'logout.html'}, name='logout'),
     url(r'^account/register/$', register, name='register'),
     url(r'^account/$', editaccount, name='editaccount'),
     url(r'^profile/$',profile, name='profile'),

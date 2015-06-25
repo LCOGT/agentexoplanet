@@ -1,6 +1,7 @@
 from django.template import Library
+from django.conf import settings
 from math import fabs,floor
-from settings import STATIC_URL
+#from settings import STATIC_URL
 from agentex.agentex_settings import decision_images
 
 register = Library()

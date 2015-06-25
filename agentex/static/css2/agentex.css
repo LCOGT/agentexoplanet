@@ -1,10 +1,10 @@
 @font-face {
 	font-family: 'SecretTypewriterRegular';
-	src: url('/agentexoplanet/media/css2/fonts/veteran_typewriter-webfont.eot');
-	src: url('/agentexoplanet/media/css2/fonts/veteran_typewriter-webfont.eot?#iefix') format('embedded-opentype'),
-		url('/agentexoplanet/media/css2/fonts/veteran_typewriter-webfont.woff') format('woff'),
-		url('/agentexoplanet/media/css2/fonts/veteran_typewriter-webfont.ttf') format('truetype'),
-		url('/agentexoplanet/media/css2/fonts/veteran_typewriter-webfont.svg#SecretTypewriterRegular') format('svg');
+	src: url('fonts/veteran_typewriter-webfont.eot');
+	src: url('fonts/veteran_typewriter-webfont.eot?#iefix') format('embedded-opentype'),
+		url('fonts/veteran_typewriter-webfont.woff') format('woff'),
+		url('fonts/veteran_typewriter-webfont.ttf') format('truetype'),
+		url('fonts/veteran_typewriter-webfont.svg#SecretTypewriterRegular') format('svg');
 	font-weight: normal;
 	font-style: normal;
 }
@@ -26,8 +26,8 @@ iframe { border: 0px; }
 	padding: 3px 8px;
 }
 
-body.agentex #page-wrapper { background: url('/agentexoplanet/media/images/new-agentex-bg.png') #fefefe repeat-x; }
-body.agentex #page { background: url('/agentexoplanet/media/images/new-header-agentex-bg.png') transparent no-repeat; background-position: center top; }
+body.agentex #page-wrapper { background: url('images/new-agentex-bg.png') #fefefe repeat-x; }
+body.agentex #page { background: url('images/new-header-agentex-bg.png') transparent no-repeat; background-position: center top; }
 
 body.agentex #logo { margin-top: 8px; margin-bottom: 0px; }
 body.agentex #logo img { width: 247px; height: 104px;}
@@ -237,14 +237,14 @@ body.dossier #main .page, body.airmail #main .page {
 }
 body.airmail #main .page {
 	background-color: white;
-	background-image: url('/agentexoplanet/media/images/frank.png');
+	background-image: url('images/frank.png');
 	background-repeat: no-repeat;
 	background-position: right top;
 }
 body.dossier #main .page {
 	margin: 16px!important;
 	padding: 24px 16px 16px 16px;
-	background: url('/agentexoplanet/media/images/paperbg3.gif') repeat left center;
+	background: url('images/paperbg3.gif') repeat left center;
 	box-shadow: 2px 2px 5px #333;
 	-moz-box-shadow: 2px 2px 5px #333;
 	-webkit-box-shadow: 2px 2px 5px #333;
@@ -344,7 +344,7 @@ body.dossier #main .furtherinfo {
     position:relative;
 	background-color: #ddd;	
 	padding:10px;
-	background-image: url("/agentexoplanet/media/images/paper.jpg");
+	background-image: url("/images/paper.jpg");
 	background-position:right center;
 	background-repeat: no-repeat;
 	margin-left:10px;
@@ -465,7 +465,7 @@ body.dossier #main .eventimage img,
 .poppitypin:hover { z-index:100!important; }
 
 .crumpledpaper {
-	background: url("/agentexoplanet/media/images/paper.jpg") repeat left center;
+	background: url("images/paper.jpg") repeat left center;
 	-webkit-box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
 	-moz-box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
 	box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
@@ -474,7 +474,7 @@ body.dossier #main .eventimage img,
 	position: relative;
 	z-index: 10;
 	background-color: white;
-    background: url('/agentexoplanet/media/images/paperbg3.gif') repeat left top;
+    background: url('images/paperbg3.gif') repeat left top;
 	-webkit-box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.8);
 	-moz-box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.8);
 	box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.8);
@@ -489,7 +489,7 @@ body.dossier #main .eventimage img,
 	height: 100%;
 	content: '';
 	background-color: white;
-    background: url('/agentexoplanet/media/images/paperbg3.gif') repeat left center;
+    background: url('images/paperbg3.gif') repeat left center;
 	-webkit-transform: rotate(0.8deg);
 	-moz-transform: rotate(0.8deg);
 	-o-transform: rotate(0.8deg);
@@ -508,7 +508,7 @@ body.dossier #main .eventimage img,
 	height: 100%;
 	content: '';
 	background-color: white;
-	background-image: url('/agentexoplanet/media/images/paperbg3.gif');
+	background-image: url('images/paperbg3.gif');
 	background-repeat: repeat;
 	/*background-position: left top;
 	background-image: -moz-linear-gradient(rgba(200,200,200,.2) 1px, transparent 1px), -moz-linear-gradient(0, rgba(200,200,200,.2) 1px, transparent 1px);
@@ -786,7 +786,7 @@ Helper information boxes
 	width: 30px!important;
 	padding-right: 0px;
 	display: inline-block;
-	background-image: url("/agentexoplanet/media/images/playback_play_icon&24_w.png");
+	background-image: url("images/playback_play_icon&24_w.png");
  	background-position:right center;
 	background-repeat: no-repeat;
 }
@@ -825,7 +825,7 @@ Helper information boxes
         margin: -1px;
 }
 .ui-widget-header {
-    background: url("/agentexoplanet/media/images/progresshighlight.png") repeat-x scroll 50% 50% #F6A828;
+    background: url("images/progresshighlight.png") repeat-x scroll 50% 50% #F6A828;
     border: 1px solid #E78F08;
     color: #FFFFFF;
     font-weight: bold;

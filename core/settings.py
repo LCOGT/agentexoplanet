@@ -18,13 +18,14 @@ import os
 import platform
 from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS as TCP
 from django.utils.crypto import get_random_string
+from django.conf import settings
 
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
 LOCAL_DEVELOPMENT = False if CURRENT_PATH.startswith('/var/www') else True
 PRODUCTION = True
 
-DEBUG = False
+DEBUG = True
 
 PREFIX ="/agentexoplanet"
 BASE_DIR = os.path.dirname(CURRENT_PATH)
@@ -37,11 +38,11 @@ MANAGERS = ADMINS
 
 DATABASES = {
  'default' : {
-    'NAME'      : 'citsciportal',
+    'ENGINE': 'django.db.backends.sqlite3',
+    'NAME'      : os.environ.get('CITSCI_DB_NAME',''),
     "USER": os.environ.get('CITSCI_DB_USER',''),
     "PASSWORD": os.environ.get('CITSCI_DB_PASSWD',''),
     "HOST": os.environ.get('CITSCI_DB_HOST',''),
-    "OPTIONS"   : {'init_command': 'SET storage_engine=INNODB'},
 }
 }
 
@@ -63,11 +64,13 @@ SITE_ID = 1
 USE_I18N = True
 
 
-MEDIA_ROOT = '/var/www/html/media/'
+#MEDIA_ROOT = '/var/www/html/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
 MEDIA_URL = '/media/'
 
-STATIC_ROOT = '/var/www/html/static/'
-STATIC_URL = PREFIX + '/static/'
+#STATIC_ROOT = '/var/www/html/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, "static/")
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR,'agentex'),os.path.join(BASE_DIR,'showmestars')]
 
 # List of finder classes that know how to find static files in
@@ -85,17 +88,25 @@ SECRET_KEY = get_random_string(50, chars)
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.load_template_source',
+   #'django.template.loaders.eggs.load_template_source',
 )
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware', 
 )  
 
 CACHE_MIDDLEWARE_SECONDS = '1'
+
+# Added by TJ to set up caching as per Django documentation
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': 'default-cache'
+    }
+}
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
@@ -114,6 +125,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.core.context_processors.static', # Serves static files (added by TJ)
             ],
         },
     },
@@ -126,9 +138,10 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.admin',
     'django.contrib.messages',
+    'django.contrib.staticfiles', # Added by TJ to allow static files declaration
     'agentex',
     'showmestars',
-    'core'
+    'core',
 )
 
 LOGIN_REDIRECT_URL = 'http://lcogt.net/agentexoplanet/'
@@ -138,6 +151,8 @@ BASE_URL = "/agentexoplanet/"
 
 DATA_LOCATION = CURRENT_PATH + '/media/data'
 DATA_URL = '/agentexoplanet/media/data'
+
+ALLOWED_HOSTS = ['*']
 
 ##################
 # LOCAL SETTINGS #

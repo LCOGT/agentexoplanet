@@ -2,7 +2,7 @@
 
 {% block body-class %}full agentex dossierfront {%endblock%}
 
-{%block header %}Agent Exoplanet{%endblock%}
+{% block header %}Agent Exoplanet{%endblock%}
 
 {% block script-content %}
 {% if messages %}
@@ -19,7 +19,7 @@
 {% block main-content %}
 
 	<div style="margin:32px;">
-		<div style="height:160px;background-color:black;background-image:url('{{STATIC_URL}}images/banner.png');border:3px solid white;" class="paper"><a href="{% url agentex.views.target %}" style="margin-top:90px;margin-right:20px;float:right;" class="fancybtn btn fancybtnglow">Start the mission <span class="arrow">&nbsp;</span></a></div>
+		<div style="height:160px;background-color:black;background-image:url('{{STATIC_URL}}images/banner.png');border:3px solid white;" class="paper"><a href="{% url 'target' %}" style="margin-top:90px;margin-right:20px;float:right;" class="fancybtn btn fancybtnglow">Start the mission <span class="arrow">&nbsp;</span></a></div>
 	
 		<div class="lower" style="margin-bottom:16px;"></div>
 	
@@ -36,7 +36,7 @@
 				
 					<p style="color:black;">You can examine as many images, from as many exoplanet transit events, as you like and contribute to understanding the properties of each exoplanet.</p>
 				
-					<p><a href="{% url agentex.views.briefing %}">Find out more...</a></p>
+					<p><a href="{% url 'briefing' %}">Find out more...</a></p>
 	
 				</div>
 			</div>

@@ -47,6 +47,9 @@ import agentex.dataset as ds
 from django.conf import settings
 from agentex.agentex_settings import planet_level
 
+# Added by TJ to allow logged in query to function (bottom of document)
+from django.contrib.sessions.models import Session
+
 guestuser = 2
 
 def home(request):
@@ -917,10 +920,9 @@ def infoview(request,code):
     
     if request.user.is_authenticated():
         person = personcheck(request)
-        progress = checkprogress(person,code)
+        progress = checkprogress(person.user,code)
     else:
         progress = None
-    print progress
     try:
         data = ds[0]
     except:
@@ -1734,4 +1736,3 @@ def update_cat_sources(username,planetcode):
             dc.source=None
             print dc.id, 'No catsource found'
         dc.save()
-        

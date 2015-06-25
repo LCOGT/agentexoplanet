@@ -1,5 +1,6 @@
 {% extends 'agentex/base.html' %}
 {% load observing_extras %}
+
 {% block body-class %}full agentex dossier {%endblock%}
 
 {%block header %}{{object.event.title}} | Agent Exoplanet{%endblock%}
@@ -13,9 +14,9 @@
 			<img src="{{STATIC_URL}}images/paperclip.png" class="paperclip" alt="." />
 			<p class="objectspecific">Digital Sky Survey 2</p>
 		</div>	
-		<div id="mylink" style="display:none;"><a href="{% url my-graph object.event.name %}"><img src="{{ STATIC_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" /></a></div>
-		<div id="avlink" style="display:none;"><a href="{%url average-graph object.event.name %}"><img src="{{ STATIC_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" /></a></div>
-		<div id="sulink" style="display:none;"><a href="{%url super-graph object.event.name%}"><img src="{{ STATIC_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" /></a></div>
+		<div id="mylink" style="display:none;"><a href="{% url 'my-graph' object.event.name %}"><img src="{{ STATIC_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" /></a></div>
+		<div id="avlink" style="display:none;"><a href="{% url 'average-graph' object.event.name %}"><img src="{{ STATIC_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" /></a></div>
+		<div id="sulink" style="display:none;"><a href="{%url 'super-graph' object.event.name%}"><img src="{{ STATIC_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" /></a></div>
 		<div class="title">
 			<h1>Name: <span class="objectspecific">{{object.event.title}}</span></h1>
 		</div>
@@ -23,7 +24,7 @@
 		<p>{{object.target.description|safe}}</p>
 		<!--
 		<ul class="icons">	
-			<li><a class="target" href="{% url agentex.views.addvalue object.event.name %}">Analyze images for this exoplanet</a></li>
+			<li><a class="target" href="{% url 'addvalue' object.event.name %}">Analyze images for this exoplanet</a></li>
 		</ul>
 		-->
 		<p>There are {{object.event.numobs}} images to be analysed in this set</p>
@@ -59,7 +60,8 @@
 			<tr>
 				<td>Exoplanet Encyclopaedia</td>
 				<td><a href="http://exoplanet.eu/planet.php?p1={{object.target.name}}&p2=b">Planet</a></td>
-				<td><a href="http://exoplanet.eu/star.php?st={{object.target.name}}">Host star</a></td>
+				<!-- <td><a href="http://exoplanet.eu/star.php?st={{object.target.name}}">Host star</a></td> -->
+				<td><a href="http://exoplanet.eu/catalog/?f=%27{{object.target.name}}%27+in+name">Host star</a></td>
 			</tr>
 			<tr>
 				<td>Exoplanet Transit Database</td>
@@ -68,7 +70,7 @@
 			</tr>
 			<tr>
 				<td>Simbad</td>
-				<td><a href="http://simbad.u-strasbg.fr/simbad/sim-id?Ident={{object.event.name}}">Planet</a></td>
+				<td><a href="http://simbad.u-strasbg.fr/simbad/sim-id?Ident={{object.target.name}}b">Planet</a></td>
 				<td><a href="http://simbad.u-strasbg.fr/simbad/sim-id?Ident={{object.target.name}}">Host star</a></td>
 			</tr>
 			
@@ -76,9 +78,9 @@
 		</div>
 		<div class="column">
 		    {% if progress.done < progress.total or not user.is_authenticated %}
-			<a href="{% url agentex.views.addvalue object.event.name %}" class="fancybtn">Analyze images for this exoplanet<span class="arrow">&nbsp;</span></a>
+			<a href="{% url 'addvalue' object.event.name %}" class="fancybtn">Analyze images for this exoplanet<span class="arrow">&nbsp;</span></a>
 			{% endif %}
-			<a href="{% url agentex.views.graphsuper object.event.name %}" class="fancybtn">View combined light-curve graph<span class="arrow">&nbsp;</span></a>
+			<a href="{% url 'super-graph' object.event.name %}" class="fancybtn">View combined light-curve graph<span class="arrow">&nbsp;</span></a>
 		</div>
 		<div class="lower"></div>
 	</div>

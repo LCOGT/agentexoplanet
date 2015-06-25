@@ -29,9 +29,9 @@
 		<div id="page">
 		
 			<div id="lcogt-bar">
-				<div id="login" class="block">{% if user.is_authenticated %}{% block username %}{{ user.username }}{% endblock %} | <a href="{% url django.contrib.auth.views.logout %}">Logout?</a>{% else %}<a href="{% url django.contrib.auth.views.login %}?next={{request.path}}">Login</a>{% endif %}</div>
+				<div id="login" class="block">{% if user.is_authenticated %}{% block username %}{{ user.username }}{% endblock %} | <a href="{% url 'logout' %}">Logout?</a>{% else %}<a href="{% url 'login' %}?next={{request.path}}">Login</a>{% endif %}</div>
 				<div>
-					<a href="http://lcogt.net/" title="LCOGT Home" rel="home">Las Cumbres Observatory Global Telescope Network</a> | <a href="{% url portal %}" title="Citizen Science portal" rel="home">Citizen Science portal</a>
+					<a href="http://lcogt.net/" title="LCOGT Home" rel="home">Las Cumbres Observatory Global Telescope Network</a> | <a href="{% url 'portal' %}" title="Citizen Science portal" rel="home">Citizen Science portal</a>
 				</div>
 			</div>
 
@@ -39,13 +39,13 @@
 		
 				<div id="container">
 		
-					{% block logo-content %}<div id="logo"><a href="{% url portal %}" title="Citizen Science Home" rel="home"><img src="{{STATIC_URL}}images/citsci-logo2.png" alt="Home" id="logo-image" /></a></div>{% endblock %}
+					{% block logo-content %}<div id="logo"><a href="{% url 'portal' %}" title="Citizen Science Home" rel="home"><img src="{{STATIC_URL}}images/citsci-logo2.png" alt="Home" id="logo-image" /></a></div>{% endblock %}
 					<div id="logo2"><a href="http://lcogt.net" title="LCOGT Home" rel="home"><img src="{{STATIC_URL}}images/logo-gray-poweredby.png" alt="Home" id="logo-image" /></a></div>
 		
 					{% block navbar %}
 					<div id="navbar" class="primary clear-block">
 						<ul class="links">
-							<li><a href="{% url register %}">Register to take part</a></li>
+							<li><a href="{% url 'register' %}">Register to take part</a></li>
 						</ul>
 					</div>
 					{% endblock %}
