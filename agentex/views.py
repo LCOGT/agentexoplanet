@@ -2083,7 +2083,7 @@ def addcomment(request):
         else:
             form = CommentForm()
     #return render_to_response('agentex/comments_box.html', {'form':form}, context_instance=RequestContext(request))
-    return render(request, 'agentex/comments_box.html' {'form':form})
+    return render(request, 'agentex/comments_box.html', {'form':form})
 
 def update_final_display():
     c = CatSource.objects.all()
