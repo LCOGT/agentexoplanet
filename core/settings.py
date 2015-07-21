@@ -16,7 +16,6 @@ GNU General Public License for more details.
 
 import os
 import platform
-from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS as TCP
 from django.utils.crypto import get_random_string
 from django.conf import settings
 
@@ -84,13 +83,6 @@ STATICFILES_FINDERS = (
 chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
 SECRET_KEY = get_random_string(50, chars)
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-   #'django.template.loaders.eggs.load_template_source',
-)
-
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -101,12 +93,12 @@ MIDDLEWARE_CLASSES = (
 CACHE_MIDDLEWARE_SECONDS = '1'
 
 # Added by TJ to set up caching as per Django documentation
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': 'default-cache'
-    }
-}
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+#         'LOCATION': 'default-cache'
+#     }
+# }
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
@@ -117,7 +109,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

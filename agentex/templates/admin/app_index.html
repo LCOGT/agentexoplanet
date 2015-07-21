@@ -1,4 +1,5 @@
-{% extends "admin/base_site.html" %}
+<!--{% extends "admin/base_site.html" %}-->
+{% extends "admin/app_index.html" %}
 {% load i18n %}
 {% load admintags %}
 
@@ -12,6 +13,7 @@
 
 {% block content %}
 <div id="content-main">
+<h1>HELO</h1>
 {% agentex_info %}
 {% if app_list %}
     {% for app in app_list %}
@@ -80,4 +82,23 @@
             {% endif %}
     </div>
 </div>
+
+<!--
+<div id="user-login-info">
+{% commentslist %}
+    <div class="module" id="last-login-module">
+        <h2>{% trans 'User Login Information' %}</h2>
+        <h3>{% trans 'Last 10 User Logins' %}</h3>
+            <ul class="actionlist">
+            {% lastusers = User.objects.all().order_by('last_login')[0:10] %}
+                <li>
+                   {% for i in range 9|get_range %}
+                   {% lastusers[i] %} <br/>
+                   {% endfor %}
+                </li>
+            </ul>
+    </div>
+</div>
+-->
+
 {% endblock %}

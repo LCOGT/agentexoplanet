@@ -1,12 +1,3 @@
 {% extends "admin/base.html" %}
-{% load i18n %}
 
-{% block title %}{{ title }} | {% trans 'LCOGT Citizen Science admin' %}{% endblock %}
-{% block extrastyle %}<link rel="stylesheet" href="{{STATIC_URL}}css2/portal.css" type="text/css" />
-{%endblock%}
-
-{% block branding %}
-<h1 id="site-name">{% trans 'LCOGT Citizen Science admin' %}</h1>
-{% endblock %}
-
-{% block nav-global %}{% endblock %}
+{% block title %}{{ title }} | {{ site_title|default:_('LCOGT') }}{% endblock %}

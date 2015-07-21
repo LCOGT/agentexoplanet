@@ -39,3 +39,11 @@
     position: relative;
     width: 29em;
 }
+
+#user-login-info {
+    float: right;
+    margin-right: -30em;
+    margin-bottom: -30em;
+    position: fixed;
+    width: 29em;
+}

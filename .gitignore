@@ -8,4 +8,6 @@ media/data/*
 
 *agentex.json
 
+agentex/static/data/*
+
 docker-compose.yml
