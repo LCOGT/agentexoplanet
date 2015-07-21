@@ -1105,6 +1105,7 @@ def graphview(request,code,mode,calid):
         else:
             cats = None
         classif = classified(o,code)
+        '''
         return render_to_response('agentex/graph_flot.html', {'event':d1.planet,
                                                                 'data':data,
                                                                 'n':n,
@@ -1113,6 +1114,14 @@ def graphview(request,code,mode,calid):
                                                                 'progress' : progress,
                                                                 'target':DataSource.objects.filter(event__name=code)[0].target}, 
                                                                 context_instance=RequestContext(request))
+        '''
+        return render(request, 'agentex/graph_flot.html', {'event':d1.planet,
+                                                                'data':data,
+                                                                'n':n,
+                                                                'sources':cats,
+                                                                'classified':classif,
+                                                                'progress' : progress,
+                                                                'target':DataSource.objects.filter(event__name=code)[0].target})
     elif mode == 'ave':
         data = []
         # get and restructure the average data JS can read it nicely
@@ -1194,6 +1203,7 @@ def graphview(request,code,mode,calid):
             else : msg = 'Achievement unlocked'+msg
             messages.add_message(request, messages.SUCCESS, msg)
         print classif
+        '''
         return render_to_response('agentex/graph_average.html', {'event': planet,
                                                                 'data':data,
                                                                 'sources':cats,
@@ -1204,7 +1214,16 @@ def graphview(request,code,mode,calid):
                                                                 'progress' : progress,
                                                                 'target':DataSource.objects.filter(event=planet)[0].target},
                                                                 context_instance=RequestContext(request))
-            
+        '''
+        return render(request, 'agentex/graph_average.html', {'event': planet,
+                                                                'data':data,
+                                                                'sources':cats,
+                                                                'cals':json.dumps(cats),
+                                                                'calid': currentcal,
+                                                                'prevchoice' : prev,
+                                                                'classified':classif,
+                                                                'progress' : progress,
+                                                                'target':DataSource.objects.filter(event=planet)[0].target})
     elif mode == 'advanced':
         opt = {'S' :'source','C':'calibrator','B':'sky'}
         if 'dataid' in request.GET:
@@ -1223,21 +1242,34 @@ def graphview(request,code,mode,calid):
                 'datestamp' : timegm(s.timestamp.timetuple())+1e-6*s.timestamp.microsecond,
                 'data'      : datalist,
                 }
+        '''
         return render_to_response('agentex/graph_advanced.html', {'event':Event.objects.filter(name=code)[0],
                                                                         'framedata':line,
                                                                         'target':DataSource.objects.filter(event__name=code)[0].target,
                                                                         'progress' : progress}, context_instance=RequestContext(request))
+        '''
+        return render_to_response(request, 'agentex/graph_advanced.html', {'event':Event.objects.filter(name=code)[0],
+                                                                        'framedata':line,
+                                                                        'target':DataSource.objects.filter(event__name=code)[0].target,
+                                                                        'progress' : progress})
 
 def graphsuper(request,code):
     # Construct the supercalibrator lightcurve
     ds1 = ds.Dataset(planetid=code,userid=request.user.username)
     data = ds1.final()
     ###### Setting nodata to True and not showing each person their own data, but just for now
+    '''
     return render_to_response('agentex/graph_super.html', {'event':ds1.planet,
                                                                 'data':data,
                                                                 'numsuper':13,
                                                                 'target':ds1.target,
                                                                 'nodata' : True}, context_instance=RequestContext(request))
+    '''
+    return render(request, 'agentex/graph_super.html', {'event':ds1.planet,
+                                                                'data':data,
+                                                                'numsuper':13,
+                                                                'target':ds1.target,
+                                                                'nodata' : True})
 
 def infoview(request,code):
     ds = DataSource.objects.filter(event__name=code)[:1]
@@ -1251,7 +1283,8 @@ def infoview(request,code):
         data = ds[0]
     except:
         raise Http404
-    return render_to_response('agentex/info.html', {'object' : data, 'progress' : progress}, context_instance=RequestContext(request))
+    #return render_to_response('agentex/info.html', {'object' : data, 'progress' : progress}, context_instance=RequestContext(request))
+    return render(request, 'agentex/info.html', {'object' : data, 'progress' : progress})
     
 def fitsanalyse(request):
     now = datetime.now()
@@ -1925,7 +1958,8 @@ def update_web_pref(request,setting):
         return HttpResponse("Setting unchanged")
             
 def tester(request):
-    return render_to_response('agentex/test.html')
+    #return render_to_response('agentex/test.html')
+    return render(request, 'agentex/test.html', {})
     
 def average_sources(code):
     typep = ('S','C','B')
@@ -2048,7 +2082,8 @@ def addcomment(request):
           form = CommentForm(data)
         else:
             form = CommentForm()
-    return render_to_response('agentex/comments_box.html', {'form':form}, context_instance=RequestContext(request))
+    #return render_to_response('agentex/comments_box.html', {'form':form}, context_instance=RequestContext(request))
+    return render(request, 'agentex/comments_box.html' {'form':form})
 
 def update_final_display():
     c = CatSource.objects.all()
