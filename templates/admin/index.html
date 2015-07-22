@@ -1,8 +1,9 @@
 {% extends "admin/base_site_old.html" %}
 {% load i18n %}
 {% load admintags %}
+{% load staticfiles %}
 
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/dashboard.css" />{% endblock %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static 'css/dashboard.css' %}" />{% endblock %}
 
 {% block coltype %}colMS{% endblock %}
 
