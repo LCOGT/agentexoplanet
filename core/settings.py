@@ -92,13 +92,6 @@ MIDDLEWARE_CLASSES = (
 
 CACHE_MIDDLEWARE_SECONDS = '1'
 
-# Added by TJ to set up caching as per Django documentation
-# CACHES = {
-#     'default': {
-#         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-#         'LOCATION': 'default-cache'
-#     }
-# }
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
