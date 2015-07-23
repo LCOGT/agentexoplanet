@@ -17,6 +17,7 @@ admin.autodiscover()
 urlpatterns = [
 #    (r'^api/', include('odin.api.urls')),
     url(r'^home/$', home, name='portal'),
+    url(r'^grappelli/', include('grappelli.urls'), name='agentexo_admin_grapp'), # grappelli urls
     url(r'^agentexoplanet/admin/', include(admin.site.urls), name='agentexo_admin'),
     url(r'^agentexoplanet/agentex/', RedirectView.as_view(url='/agentexoplanet/'), name='agentex_redirect'),
     url(r'^agentexoplanet/admin/agentex/event/(?P<planetid>\d+)/calibrators/(?P<calid>\d+)/$',calibrator_check, name='agentex_admin_calib'),

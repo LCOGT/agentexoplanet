@@ -4,6 +4,7 @@ from datetime import date, datetime, timedelta
 import time
 
 from agentex.models import Target, Event, Datapoint, DataSource, DataCollection,CatSource, Decision, Achievement, Badge, Observer
+from django.contrib.auth.models import User
 
 register = Library()
 
@@ -31,3 +32,26 @@ def agentex_info():
 def commentslist():
     logs = LogEntry.objects.filter(action_flag=ADDITION,content_type__id=3).order_by('-action_time')[:20]
     return {'logs' : logs}
+
+@register.inclusion_tag('agentex/get_last_login.html')
+@register.filter(expects_localtime=True)  #Allows Django to use local time
+def get_last_login():
+
+    #Empty list to store users
+    users = []
+
+    #Gets the last 10 users to have signed in
+    last = User.objects.all().order_by('last_login')[:10] 
+
+    #Loops through last 10 users and appends their usernames
+    for i in last:
+        username = i.username
+        login_date = i.last_login
+        users.append({'user': username, 'lastlogin': login_date})
+
+    ###################################
+
+    #Finds the number of users logged in within 7 days
+    week_users = User.objects.filter(last_login=date.today()-timedelta(7)).count()
+
+    return {'users':users, 'num_users':week_users}

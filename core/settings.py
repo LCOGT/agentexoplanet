@@ -111,16 +111,20 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.core.context_processors.static', # Serves static files (added by TJ)
+                'django.core.context_processors.request',
             ],
         },
     },
 ]
+
 
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
+    'grappelli.dashboard', # Grappelli apps must be before django.contrib.admin
+    'grappelli',
     'django.contrib.admin',
     'django.contrib.messages',
     'django.contrib.staticfiles', # Added by TJ to allow static files declaration
@@ -152,3 +156,13 @@ if LOCAL_DEVELOPMENT:
     except ImportError as e:
         if "local_settings" not in str(e):
             raise e
+
+##################
+# GRAPPELLI SETTINGS #
+##################
+
+# Changes default dashboard to Grappelli dashboard
+GRAPPELLI_INDEX_DASHBOARD = 'citsciportal.dashboard.CustomIndexDashboard'
+
+# Changes the title of the admin page from Grappelli default
+GRAPPELLI_ADMIN_TITLE = 'Agent Exoplanet Administration Page'
