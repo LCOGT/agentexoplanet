@@ -50,7 +50,7 @@ from agentex.agentex_settings import planet_level
 '''
 Data reduction views have been moved to datareduc.py. This file (views.py) contains only render and page based views (along with views directly associated with them).
 '''
-from agentex.datareduc import calibrator_data, average_combine, calibrator_averages, photometry, measure_offset, updatedisplay, addvalidset, my_data
+from agentex.datareduc import *
 
 # Added by TJ to allow logged in query to function (bottom of document)
 #from django.contrib.sessions.models import Session
@@ -714,7 +714,7 @@ def classifyupdate(request,code):
     else:
         msg = {'update':False}
     #messages.warning(request,msg)
-    return HttpResponse(json.dumps(msg),mimetype='application/javascript')
+    return HttpResponse(json.dumps(msg),content_type='application/javascript')
 
 def updatedataset(request,code):
     formdata = request.POST
@@ -966,7 +966,7 @@ def fitsanalyse(request):
     y = request.POST.get('y','').split(',')
     if (len(x) < 3 or len(y) < 3):
         response = {'message' : 'Please submit calibration, blank sky and source apertures.'}
-        return HttpResponse(json.dumps(response),mimetype='application/javascript')
+        return HttpResponse(json.dumps(response),content_type='application/javascript')
     x = map(float,x)
     y = map(float,y)
     coords = zip(x,y)
@@ -981,7 +981,7 @@ def fitsanalyse(request):
     # ***** No longer used as we fix radius from the outset ****
     #if r >= 70:
     #    response = {'message' : 'Apertures are too large. Please make your circles smaller'}
-    #    return HttpResponse(json.dumps(response),mimetype='application/javascript')
+    #    return HttpResponse(json.dumps(response),content_type='application/javascript')
     # Check all apertures are away from frame edge
     d = DataSource.objects.filter(id=int(dataid))[:1]
     r = d[0].event.radius
@@ -990,7 +990,7 @@ def fitsanalyse(request):
         yi = co[1]
         if (xi-r < 0 or xi+r >= d[0].max_x or yi-r < 0 or yi+r > d[0].max_y ):
             response = {'message' : 'Please make sure your circles are fully within the image'}
-            return HttpResponse(json.dumps(response),mimetype='application/javascript')
+            return HttpResponse(json.dumps(response),content_type='application/javascript')
 
     #print datetime.now() - now
     # Grab a fits file
@@ -1108,7 +1108,7 @@ def measurementsummary(request,code,format):
             cals.append(list(vals/maxval))
         datapoints = {'calibration' : cals, 'source' : list(sources),'background':list(bg),'dates':dates,'id':list(ids),'datestamps':stamps,'n':maxcals+1}
         dataid = request.GET.get('dataid','')
-        return HttpResponse(json.dumps(datapoints,indent=2),mimetype='application/javascript')
+        return HttpResponse(json.dumps(datapoints,indent=2),content_type='application/javascript')
     elif (format == 'xhr' and options=='ave'):
         #cals = []
         #cs = mypoints.filter(pointtype='C').order_by('coorder__calid')
@@ -1120,7 +1120,7 @@ def measurementsummary(request,code,format):
             datapoints = {'calibration' : normcals, 'source' : sb,'background':bg,'calibrator':cals,'dates':dates,'id':ids,'datestamps':stamps,'n':maxcals+1}
         else:
             datapoints = {'calibration':None}
-        return HttpResponse(json.dumps(datapoints,indent=2),mimetype='application/javascript')
+        return HttpResponse(json.dumps(datapoints,indent=2),content_type='application/javascript')
     elif (format == 'xhr' and options == 'super'):
         # Construct the supercalibrator lightcurve
         planet = Event.objects.filter(name=code)[0]
@@ -1130,7 +1130,7 @@ def measurementsummary(request,code,format):
         for s in sources:
             dates.append(timegm(s.timestamp.timetuple())+1e-6*s.timestamp.microsecond,)
         datapoints = {'normalised' : normvals, 'dates':dates, 'std':std}
-        return HttpResponse(json.dumps(datapoints),mimetype='application/javascript')
+        return HttpResponse(json.dumps(datapoints),content_type='application/javascript')
     elif (request.GET and format == 'json'):
         dataid = request.GET.get('dataid','')
         s = DataSource.objects.filter(id=dataid)[0]
@@ -1142,7 +1142,7 @@ def measurementsummary(request,code,format):
                 'datestamp' : timegm(s.timestamp.timetuple())+1e-6*s.timestamp.microsecond,
                 'data'      : datalist,
                 }
-        return HttpResponse(json.dumps(line,indent = 2),mimetype='application/javascript')
+        return HttpResponse(json.dumps(line,indent = 2),content_type='application/javascript')
     else:
         planet = Event.objects.filter(name=code)[0]
         numsuper, normvals, myvals, std,radiusratio = supercaldata(request.user,planet)
@@ -1165,14 +1165,14 @@ def measurementsummary(request,code,format):
                     data.append(line)
             else:
                 data = None
-            return HttpResponse(json.dumps(data,indent = 2),mimetype='application/javascript')
+            return HttpResponse(json.dumps(data,indent = 2),content_type='application/javascript')
         # elif format == 'xml':
-        #     return render_to_response('agentex/data_summary.xml',{'data':data},mimetype="application/xhtml+xml")
+        #     return render_to_response('agentex/data_summary.xml',{'data':data},content_type="application/xhtml+xml")
         elif format == 'csv':
             csv = "# Date of observation, Unix timestamp, normalised average values, standard deviation, my normalised values\n"
             for i,s in enumerate(sources):
                 csv += "%s, %s, %s, %s, %s\n" % (s.timestamp.isoformat(" "),timegm(s.timestamp.timetuple())+1e-6*s.timestamp.microsecond,normvals[i],std[i],myvals[i])
-            return HttpResponse(csv,mimetype='text/csv')
+            return HttpResponse(csv,content_type='text/csv')
 
 def calibratemydata(code,user):
     #cs = Datapoints.objects.filter(pointtype='C',user=user).order_by('coorder__calid')

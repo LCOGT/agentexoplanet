@@ -41,7 +41,7 @@ def get_last_login():
     users = []
 
     #Gets the last 10 users to have signed in
-    last = User.objects.all().order_by('last_login')[:10] 
+    last = User.objects.all().order_by('-last_login')[:10] 
 
     #Loops through last 10 users and appends their usernames
     for i in last:
@@ -52,6 +52,6 @@ def get_last_login():
     ###################################
 
     #Finds the number of users logged in within 7 days
-    week_users = User.objects.filter(last_login=date.today()-timedelta(7)).count()
+    week_users = User.objects.filter(last_login__gte=date.today()-timedelta(7)).count()
 
     return {'users':users, 'num_users':week_users}

@@ -4,7 +4,7 @@
 from django.test import TestCase, Client
 
 # Import Target from models
-#from agentex.models import Target
+from agentex.models import Target
 
 # Class for testing whether database is written to correctly
 class TestData(TestCase):
@@ -15,8 +15,8 @@ class TestData(TestCase):
     def test_data(self):
         
         # Creates dummy entry in database
-        dummy = models.Target.objects.create(name="Dummy-1b")
+        dummy = Target.objects.create(name="Dummy-1b")
         
-        retrieve = models.Target.objects.get(name="Dummy-1b")
+        retrieve = Target.objects.get(name="Dummy-1b")
         self.assertEqual(dummy, retrieve)
 

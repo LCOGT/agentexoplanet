@@ -58,6 +58,8 @@ def calibrator_data(calid,code):
             except:
                 cal.append(0)
         data.append(cal)
+
+    print calid, code
     return data,[timegm(s.timetuple())+1e-6*s.microsecond for s in times],list(people)
 
 def average_combine(measurements,averages,ids,star,category,progress,admin=False):

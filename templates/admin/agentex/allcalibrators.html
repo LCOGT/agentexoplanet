@@ -10,7 +10,7 @@
 
 {% block breadcrumbs %}
 <div class="breadcrumbs">
-<a href="{% url 'admin:index' %}">Home</a> > <a href="{% url 'agentex_event_changelist' %}">Planets</a>
+<a href="{% url 'admin:index' %}">Home</a>
 </div>
 {% endblock %}
 
@@ -131,7 +131,7 @@
 		for(ds = 0 ; ds < this.decs.length ; ds++){
 		    
 			n = (this.meta.decisions[this.decs[ds]] ? this.meta.decisions[this.decs[ds]] : 0);
-			el.append('<div class="decision'+(n==0 ? " zero" : "")+'"><a href="{% url 'agentex_all_calib' planetid %}'+this.meta.sourceid+'/" class="'+this.decs[ds]+'" data="'+n+'">'+this.decisionImage(this.decisionFull(this.decs[ds]))+'<\/a>'+n+'<\/div>');
+			el.append('<div class="decision'+(n==0 ? " zero" : "")+'"><a href="{% url 'agentex_all_calib' planetid %}id/'+this.meta.sourceid+'/" class="'+this.decs[ds]+'" data="'+n+'">'+this.decisionImage(this.decisionFull(this.decs[ds]))+'<\/a>'+n+'<\/div>');
 			// Attach click events to the decision images
 			el.find('.decision a.'+this.decs[ds]).bind('click',{me:this,decision:this.decs[ds]},function(e){
 
@@ -259,7 +259,7 @@
 		}
 		$.ajax({
 			type: 'POST',
-			url: '{% url 'agentex_all_calib planetid' %}'+this.meta.sourceid+'/',
+			url: '{% url 'agentex_all_calib' planetid %}'+'id/'+this.meta.sourceid+'/',
 			data: { 'user': u,csrfmiddlewaretoken: '{{ csrf_token }}' },
 			success: function(data) {
 			},

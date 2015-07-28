@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from agentex.models import DataSource, Event, Target, CatSource
-import os, pyfits
+import os #, pyfits
+from astropy.io import fits
 from datetime import datetime
 from settings import DATA_LOCATION
 
@@ -31,7 +32,8 @@ class Command(BaseCommand):
         for lf in listf:
             datapath = "%s/%s/%s/%s" % (DATA_LOCATION,e.name,urlf,lf)
             self.stdout.write('reading from %s' % datapath)
-            head = pyfits.getheader(datapath)
+            #head = pyfits.getheader(datapath)
+            head = fits.open(datapath)
             imagej = lf.replace('.fits','.jpg')
             fitsurl = "/%s/%s/%s" % (e.name,urlf,lf)
             try:

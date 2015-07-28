@@ -15,7 +15,7 @@ GNU General Public License for more details.
 from agentex.models import Target, Event, Datapoint, DataSource, Badge, Achievement, DataCollection,Decision,CatSource, Observer, AverageSet
 from agentex.views import photometry, calibrator_data, admin_averagecals
 from django.contrib import admin
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, render
 from django.http import HttpResponse
 from django.template import RequestContext
 import json
@@ -63,7 +63,15 @@ def allcalibrators_check(request,planetid):
     c = json.dumps(cats)
     # return normcals,stamps,[int(i) for i in ids],cats
     title = 'Check calibrators for %s' % e.title
+    '''
     return render_to_response('admin/agentex/allcalibrators.html',{'calibrators':normcals,
+                                                                    'title':title,
+                                                                    'planetid':planetid,
+                                                                    'dates':dates,
+                                                                    'calids':[int(i) for i in ids],
+                                                                    'cats':c},context_instance=RequestContext(request))
+    '''
+    return render(request, 'admin/agentex/allcalibrators.html',{'calibrators':normcals,
                                                                     'title':title,
                                                                     'planetid':planetid,
                                                                     'dates':dates,
@@ -92,7 +100,7 @@ def calibrator_check(request,planetid,calid):
             'people'     : people,
             'include'    : list(include),
             }
-    return HttpResponse(json.dumps(resp,indent=2),mimetype='application/javascript')
+    return HttpResponse(json.dumps(resp,indent=2),content_type='application/javascript')
     
 admin.site.register(Target, TargetAdmin)
 admin.site.register(Event,EventAdmin)

@@ -20,8 +20,8 @@ urlpatterns = [
     url(r'^grappelli/', include('grappelli.urls'), name='agentexo_admin_grapp'), # grappelli urls
     url(r'^agentexoplanet/admin/', include(admin.site.urls), name='agentexo_admin'),
     url(r'^agentexoplanet/agentex/', RedirectView.as_view(url='/agentexoplanet/'), name='agentex_redirect'),
-    url(r'^agentexoplanet/admin/agentex/event/(?P<planetid>\d+)/calibrators/(?P<calid>\d+)/$',calibrator_check, name='agentex_admin_calib'),
-    url(r'^agentexoplanet/admin/agentex/event/(?P<planetid>\d+)/calibrators/$',allcalibrators_check, name='agentex_all_calib'),
+    url(r'^agentexoplanet/admin/calibrators/(?P<planetid>\d+)/id/(?P<calid>\d+)/$',calibrator_check, name='agentex_admin_calib'),
+    url(r'^agentexoplanet/admin/calibrators/(?P<planetid>\d+)/$',allcalibrators_check, name='agentex_all_calib'),
     url(r'^agentexoplanet/',include(urls), name='agentexo_urls'),
 #    url(r'^showmestars/newimage/$', newimage, {'eventid':0}, name='showmestars_newimage'),
 #    url(r'^showmestars/(?P<eventid>\w+)/$', latestimages, name='showmestars_latestimage'),
