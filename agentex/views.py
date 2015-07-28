@@ -15,7 +15,7 @@ GNU General Public License for more details.
 import json
 from django.utils.encoding import smart_unicode
 from django.core.serializers import serialize
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, render
 from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.core.urlresolvers import reverse
@@ -47,20 +47,27 @@ import agentex.dataset as ds
 from django.conf import settings
 from agentex.agentex_settings import planet_level
 
+'''
+Data reduction views have been moved to datareduc.py. This file (views.py) contains only render and page based views (along with views directly associated with them).
+'''
+from agentex.datareduc import *
+
 # Added by TJ to allow logged in query to function (bottom of document)
-from django.contrib.sessions.models import Session
+#from django.contrib.sessions.models import Session
 
 guestuser = 2
 
 def home(request):
     ''' Render the Front page of citizen science portal '''
-    return render_to_response('index.html',context_instance=RequestContext(request))
+    return render(request, 'index.html', {})
 
 def index(request):  
-    return render_to_response('agentex/index.html', context_instance=RequestContext(request))
+    #return render_to_response('agentex/index.html', context_instance=RequestContext(request))
+    return render(request, 'agentex/index.html', {})
 
 def briefing(request):
-    return render_to_response('agentex/briefing.html', context_instance=RequestContext(request))
+    #return render_to_response('agentex/briefing.html', context_instance=RequestContext(request))
+    return render(request, 'agentex/briefing.html', {})
 
 def register(request):
     if request.method == 'POST':
@@ -84,9 +91,11 @@ def register(request):
             else:
                 return HttpResponseRedirect(reverse('portal'))
         else:
-            return render_to_response("register.html",{'form': form},context_instance=RequestContext(request))
+            #return render_to_response("register.html",{'form': form},context_instance=RequestContext(request))
+            return render(request, 'register.html', {'form': form})
     else:
-        return render_to_response("register.html",{'form': RegisterForm()},context_instance=RequestContext(request))
+        #return render_to_response("register.html",{'form': RegisterForm()},context_instance=RequestContext(request))
+        return render(request, 'register.html', {'form': RegisterForm()})
         
 @login_required
 def editaccount(request):
@@ -107,10 +116,12 @@ def editaccount(request):
             user.save()
             messages.success(request,"Your account has been updated")
         # data = {'firstname' : p.user.first_name,'lastname' : p.user.last_name,'emailaddress':p.user.email,'password':p.user.password,'username':p.user.username}
-        return render_to_response("register.html",{'form': form,'edit':True},context_instance=RequestContext(request))
+        #return render_to_response("register.html",{'form': form,'edit':True},context_instance=RequestContext(request))
+        return render(request, 'register.html', {'form': form,'edit':True})
     else:
         form = RegistrationEditForm({'firstname' : p.user.first_name,'lastname' : p.user.last_name,'emailaddress':p.user.email,'password':p.user.password})
-        return render_to_response("register.html",{'form': form,'edit':True},context_instance=RequestContext(request))    
+        #return render_to_response("register.html",{'form': form,'edit':True},context_instance=RequestContext(request))
+        return render(request, 'register.html', {'form': form,'edit':True})
 
 @login_required
 def profile(request):
@@ -120,7 +131,8 @@ def profile(request):
     completed = DataCollection.objects.values('planet').filter(person=request.user).annotate(Count('complete')).count()
     #ndecs = Decision.objects.filter(person=request.user,planet=d[0].event,current=True).count()
     badgelist = Badge.objects.exclude(id__in=[b.badge.id for b in a]).order_by('name')
-    return render_to_response("agentex/profile.html",{'unlocked':a,'badges':badgelist,'planets':noplanet,'measurements':nomeas,'completed':completed},context_instance=RequestContext(request))
+    #return render_to_response("agentex/profile.html",{'unlocked':a,'badges':badgelist,'planets':noplanet,'measurements':nomeas,'completed':completed},context_instance=RequestContext(request))
+    return render(request, 'agentex/profile.html', {'unlocked':a,'badges':badgelist,'planets':noplanet,'measurements':nomeas,'completed':completed})
 
 #@login_required
 def target(request):  
@@ -140,11 +152,304 @@ def target(request):
             level = None
         line = {'event':e,'points':points,'completed':completed,'level':level}
         data.append(line)
-    return render_to_response('agentex/target.html', {'data':data},context_instance=RequestContext(request))
+    #return render_to_response('agentex/target.html', {'data':data},context_instance=RequestContext(request))
+    return render(request, 'agentex/target.html', {'data':data})
+
+@login_required
+def addvalue_post(request, person, code):
+
+    o = Observer.objects.filter(user=person)
+    progress = checkprogress(person,code)
+
+    ####### Form data has been submitted
+    x = []
+    y = []
+    nocals = request.POST.get('calibrators','1')
+    setting = request.POST.get('entrytype','')
+    # Only update the user's preference if they change it
+    if (setting == 'manual' and o[0].dataexploreview == True):
+        o.update(dataexploreview=False)
+        messages.success(request, "Setting changed to use manual view")
+        entrymode = 'M'
+    elif (setting == 'dataexplorer' and o[0].dataexploreview == False):
+        o.update(dataexploreview=True)
+        messages.success(request, "Setting changed to use web view")
+        entrymode = 'W'
+    else:
+        entrymode = 'N'
+    id = request.POST.get('dataid','')
+    form = DataEntryForm(request.POST)
+    if form.is_valid():
+        cd = form.cleaned_data
+        ind = {'source':'S','bg':'B'}
+        reduced = 0
+        update = request.POST.get('update','')
+        counts = list()
+        for i in ind:
+            value = float(cd[i+'counts'])
+            x.append(cd[i+'xpos'])
+            y.append(cd[i+'ypos'])
+            counts.append(value)
+        for vari in range(1,int(nocals)+1):
+            cali = str(vari)
+            value = request.POST.get('cal'+cali+'counts','')
+            x.append(request.POST.get('cal'+cali+'xpos',''))
+            y.append(request.POST.get('cal'+cali+'ypos',' '))
+            counts.append(float(value))
+        pointsum = {'bg' :  '%.2f' % counts[0], 'sc' : '%.2f' % counts[1], 'cal' : counts[2:]}
+        if (len(x) < 3 or len(y) < 3):
+            messages.warning(request,'Please submit calibration, blank sky and source apertures.')
+            url = reverse('agentex.views.addvalue',args= [DataSource.objects.get(id=id).event.name])
+            return HttpResponseRedirect(url)
+        x = map(float,x)
+        y = map(float,y)
+        coords = zip(x,y)
+        dataid = request.POST.get('dataid','')
+        resp = savemeasurement(person,pointsum,coords,dataid,entrymode)
+        messages.add_message(request, resp['code'], resp['msg'])
+        if webin == False:
+            url = "%s?%s" % (reverse('agentex.views.addvalue',args= [DataSource.objects.get(id=id).event.name]),"input=manual")
+        else:
+            url = reverse('agentex.views.addvalue',args= [DataSource.objects.get(id=id).event.name])
+         #messages.success(request, "Measurement successfully added")
+        return HttpResponseRedirect(url)
+    else:
+        #return render_to_response('agentex/dataentry.html', {'data':DataSource.objects.get(id=id),'form':form,'data_url':settings.DATA_URL}, context_instance=RequestContext(request))
+        return render(request, 'agentex/dataentry.html', {'data':DataSource.objects.get(id=id),'form':form,'data_url':settings.DATA_URL})
+
+
+@login_required
+def addvalue_nopost(request, person, code):
+    nextcal = request.GET.get('next',False)
+    
+    # Call DataEntryForm from agentex.forms
+    form = DataEntryForm()
+
+    o = Observer.objects.filter(user=person)
+    progress = checkprogress(person,code)
+    
+    ############ This condition is active when a user edits the frame
+    # Find the data sources for the given code
+    source = DataSource.objects.filter(event__name=code)
+    length = source.count()
+    
+    ###### Has the user selected to use the web interface?
+    ###### Default for anonymous is always web interface
+    # If statement to check if user is guest
+    if (person != guestuser):
+        try:
+            webin = o[0].dataexploreview
+        except:
+            webin = True
+    else:
+        webin = True
+    least_coords = leastmeasured(code)
+
+    # Pull out data user has viewed and exclude them from the list of possible candidates
+    ds = Datapoint.objects.values_list('data',flat=True).filter(data__event__name=code,user=person,pointtype='S')
+    input = request.GET.get('input',False)
+    id = request.GET.get('dataid',False)
+    # If an ID is specified return the frame, as long as the person has made measurements of it
+    if id:
+        dnext = False
+        #### If anonymous user tell them they cannot edit points
+        if person == guestuser:
+            messages.warning(request,'You cannot edit points unless you are logged in')
+            try:
+                url = reverse('agentex.views.addvalue',args= [DataSource.objects.get(id=id).event.name])
+                return HttpResponseRedirect(url)
+            except:
+                raise Http404
+        mycalibs = []
+        ##### The page is being displayed with data for editing
+        points = Datapoint.objects.filter(data__id=id,user=person)
+        if nextcal=='cal':
+            print "*******"
+            dp = Datapoint.objects.filter(pointtype='S',user=person,data__id=id)
+            dd = dp[0].data.timestamp
+            ds = Datapoint.objects.filter(pointtype='S',user=person,data__timestamp__gt=dd).order_by('data__timestamp')
+            if ds.count() > 0:
+                dnext = ds[0].data
+        d = DataSource.objects.filter(id=id)[0]
+        otherpoints = Datapoint.objects.filter(~Q(user=person),pointtype='C',data=d)
+        cals = Datapoint.objects.values_list('xpos','ypos','radius').filter(data=d,pointtype='C').order_by('coorder__calid')
+        calibs = []
+        if cals:
+            for c in cals:
+                calibs.append({'x' : int(c[0]) , 'y' : int(c[1]), 'r' : int(c[2])})
+        source = points.filter(pointtype='S')[:1]
+        bg = points.filter(pointtype='B')[:1]
+        #### If there are no results, the person is hacking the query string. Return a fresh frame
+        if (source.count() == 0 or bg.count() == 0):
+            url = reverse('agentex.views.addvalue',args= [code])
+            return HttpResponseRedirect(url)
+        cal = points.filter(pointtype='C').order_by('coorder__calid')
+        for c in cal:
+            line = {'x' :c.xpos,'y' : c.ypos}
+            mycalibs.append(line)
+        ### If more cals have been placed on other frames add these to this frame
+        max_cal = Datapoint.objects.filter(pointtype='C',user=person).aggregate(max=Max('coorder__calid'))['max']
+        if max_cal+1 > cal.count():
+            for order in range(cal.count(),max_cal+1):
+                dp = Datapoint.objects.filter(pointtype='C',user=person,coorder__calid=order,data__event__name=code)
+                if dp.count() > 0:
+                    line = {'x': dp[0].xpos, 'y':dp[0].ypos}
+                    # Add to the mycalibs array
+                    mycalibs.append(line)
+        coords = { 'source': {'x' :source[0].xpos,'y' : source[0].ypos},
+                 'cal'  : mycalibs,
+                 'bg'  : {'x' :bg[0].xpos,'y' : bg[0].ypos},
+                 'radius' : source[0].radius,
+                 'id'  : id,
+                 'numcals' : len(mycalibs),
+                 }
+        messages.info(request, "Updating measurement")
+        '''
+        return render_to_response('agentex/dataentry.html',{'data':d,
+                                                                'next':dnext,
+                                                                'points':coords,
+                                                                'update':True,
+                                                                'webinput':webin,
+                                                                'progress':progress,
+                                                                'form':form,
+                                                                'calibrators':calibs,
+                                                                'least_data':least_coords,
+                                                                'data_url':settings.DATA_URL},
+                                context_instance=RequestContext(request))  
+        '''
+        return render(request, 'agentex/dataentry.html', {'data':d,
+                                                                'next':dnext,
+                                                                'points':coords,
+                                                                'update':True,
+                                                                'webinput':webin,
+                                                                'progress':progress,
+                                                                'form':form,
+                                                                'calibrators':calibs,
+                                                                'least_data':least_coords,
+                                                                'data_url':settings.DATA_URL})                           
+    else:
+        ######## User is being given a new frame not editing data  
+        o = Observer.objects.filter(user=person)
+        progress = checkprogress(person,code)
+        complete = 0
+        if  (progress['done'] >= progress['total'] and person != guestuser):
+            ####### No new data can be provided because the user has come to the end
+            complete = 1
+            numplanets = DataCollection.objects.values('planet').filter(person=person,complete=True).annotate(Count('complete')).count()
+            e = Event.objects.filter(name=code)[0]
+            resp = achievementscheck(person,e,0,0,0,0,numplanets)
+
+            msg = '<br />'
+            for item in resp:
+                if messages.SUCCESS == item['code'] :
+                    msg += "<img src=\""+STATIC_URL+item['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />"
+                    messages.success(request,msg)
+            
+            return HttpResponseRedirect(reverse('my-graph',args=[code]))
+
+            '''
+            return render_to_response('agentex/dataentry.html',
+                                    {'event': e,
+                                    'complete':complete,
+                                    'progress':progress,
+                                    'points':Datapoint.objects.filter(user=person,pointtype='S',data__event=e).order_by('data__timestamp'),
+                                    'data_url':settings.DATA_URL,
+                                    'numplanets':numplanets,},
+                                    context_instance=RequestContext(request))
+            '''
+            return render(request, 'agentex/dataentry.html', {'event': e,
+                                    'complete':complete,
+                                    'progress':progress,
+                                    'points':Datapoint.objects.filter(user=person,pointtype='S',data__event=e).order_by('data__timestamp'),
+                                    'data_url':settings.DATA_URL,
+                                    'numplanets':numplanets,})          
+        else:
+            planet = Event.objects.get(name=code)
+            mylist = Datapoint.objects.filter(user=person,pointtype='S',data__event=planet).values_list('data',flat=True)
+            print mylist
+            ### if person does not have a DataCollection it is their first measurement
+            if (DataCollection.objects.filter(planet=planet,person=person).count() == 0):
+                d = DataSource.objects.filter(event=planet,id=planet.finder)[0]
+                did = d.id
+                try:
+                    dold = d.id
+                    first = True   
+                except:
+                    messages.error(request,"Finderchart cannot be found")
+                    raise Http404    
+            elif  person == guestuser:
+                d = DataSource.objects.filter(event=planet).annotate(count=Count('datapoint')).order_by('-count')[0]
+                did = d.id
+                dold = d.id
+                first = True
+            else:
+                try:
+                    source_rank = DataSource.objects.filter(event=planet ).annotate(count=Count('datapoint') ).values_list('id','count').order_by('-count')  
+                    available = [x for x in source_rank if x[0] not in list(mylist)]
+                    dold = Datapoint.objects.values_list('data__id',flat=True).filter(user=person,data__event=planet,pointtype='C').annotate(max =Max('coorder__calid')).order_by('-max','-taken')[0]
+                # Find position in set of DataSources
+                    d = available[0]
+                    did = d[0]
+                    first = False
+                except Exception,e:
+                    print e
+                    messages.error(request,"User has a data collection but no points!")
+                    raise Http404
+            cals = Datapoint.objects.values_list('xpos','ypos').filter(data=dold,pointtype='C',user=person).order_by('coorder__calid')
+            calibs = []
+            if cals:
+                for c in cals:
+                    calibs.append({'x' : int(c[0]) , 'y' : int(c[1])})
+            otherpoints = Datapoint.objects.filter(~Q(user=person),pointtype='C',data__id=did)
+            othercals = []
+            if otherpoints:
+                for c in otherpoints:
+                    othercals.append({'x' : int(c.xpos) , 'y' : int(c.ypos),'r':int(c.radius)})
+            prev = Datapoint.objects.filter(user=person,data=dold).order_by('coorder__calid')
+            if first == False:
+                coords = { 'source': {'x' :prev.filter(pointtype='S')[0].xpos,'y' : prev.filter(pointtype='S')[0].ypos},
+                         'bg'  : {'x' :prev.filter(pointtype='B')[0].xpos,'y' : prev.filter(pointtype='B')[0].ypos},
+                         'cal'  : calibs ,
+                         'id'  : dold,
+                         'radius' : planet.radius
+                         }
+            else:
+                coords = False
+            if person == guestuser:
+                progress = {'percent'   : "0",
+                            'done'      : 0,
+                            'total'     : n_sources,}
+            '''
+            return render_to_response('agentex/dataentry.html',
+                                    {'data':DataSource.objects.get(id=did),
+                                    'complete':complete,
+                                    'update':False,
+                                    'webinput':webin,
+                                    'progress':progress,
+                                    'form':form,
+                                    'calibrators':othercals,
+                                    'points':coords,
+                                    'least_data':least_coords,
+                                    'data_url':settings.DATA_URL},
+                                    context_instance=RequestContext(request))
+            '''
+            return render(request, 'agentex/dataentry.html', {'data':DataSource.objects.get(id=did),
+                                    'complete':complete,
+                                    'update':False,
+                                    'webinput':webin,
+                                    'progress':progress,
+                                    'form':form,
+                                    'calibrators':othercals,
+                                    'points':coords,
+                                    'least_data':least_coords,
+                                    'data_url':settings.DATA_URL}) 
 
 @login_required
 def addvalue(request,code):
-    form = DataEntryForm()
+    
+    # Import pdf and set trace for debug
+    #import pdb; pdb.set_trace()
+    # If statement to allow admin access to authenticated users
     if (request.user.is_authenticated()):
         if request.user.username == 'admin':
             superuser = True
@@ -156,13 +461,17 @@ def addvalue(request,code):
         else:
             person = request.user
             superuser = False
+   
     o = Observer.objects.filter(user=person)
     progress = checkprogress(person,code)
+    
     if (progress['done'] >= progress['total']):
         dcolls = DataCollection.objects.filter(person=person,planet__name=code)
         dcolls.update(complete=True)
-    ###### Has the user selected to use the web interface
+    '''
+    ###### Has the user selected to use the web interface?
     ###### Default for anonymous is always web interface
+    # If statement to check if user is guest
     if (person != guestuser):
         try:
             webin = o[0].dataexploreview
@@ -171,232 +480,13 @@ def addvalue(request,code):
     else:
         webin = True
     least_coords = leastmeasured(code)
+    '''
     if (request.POST):
-    ####### Form data has been submitted
-        x = []
-        y = []
-        nocals = request.POST.get('calibrators','1')
-        setting = request.POST.get('entrytype','')
-        # Only update the user's preference if they change it
-        if (setting == 'manual' and o[0].dataexploreview == True):
-            o.update(dataexploreview=False)
-            messages.success(request, "Setting changed to use manual view")
-            entrymode = 'M'
-        elif (setting == 'dataexplorer' and o[0].dataexploreview == False):
-            o.update(dataexploreview=True)
-            messages.success(request, "Setting changed to use web view")
-            entrymode = 'W'
-        else:
-            entrymode = 'N'
-        id = request.POST.get('dataid','')
-        form = DataEntryForm(request.POST)
-        if form.is_valid():
-            cd = form.cleaned_data
-            ind = {'source':'S','bg':'B'}
-            reduced = 0
-            update = request.POST.get('update','')
-            counts = list()
-            for i in ind:
-                value = float(cd[i+'counts'])
-                x.append(cd[i+'xpos'])
-                y.append(cd[i+'ypos'])
-                counts.append(value)
-            for vari in range(1,int(nocals)+1):
-                cali = str(vari)
-                value = request.POST.get('cal'+cali+'counts','')
-                x.append(request.POST.get('cal'+cali+'xpos',''))
-                y.append(request.POST.get('cal'+cali+'ypos',' '))
-                counts.append(float(value))
-            pointsum = {'bg' :  '%.2f' % counts[0], 'sc' : '%.2f' % counts[1], 'cal' : counts[2:]}
-            if (len(x) < 3 or len(y) < 3):
-                messages.warning(request,'Please submit calibration, blank sky and source apertures.')
-                url = reverse('agentex.views.addvalue',args= [DataSource.objects.get(id=id).event.name])
-                return HttpResponseRedirect(url)
-            x = map(float,x)
-            y = map(float,y)
-            coords = zip(x,y)
-            dataid = request.POST.get('dataid','')
-            resp = savemeasurement(person,pointsum,coords,dataid,entrymode)
-            messages.add_message(request, resp['code'], resp['msg'])
-            if webin == False:
-                url = "%s?%s" % (reverse('agentex.views.addvalue',args= [DataSource.objects.get(id=id).event.name]),"input=manual")
-            else:
-                url = reverse('agentex.views.addvalue',args= [DataSource.objects.get(id=id).event.name])
-             #messages.success(request, "Measurement successfully added")
-            return HttpResponseRedirect(url)
-        else:
-            return render_to_response('agentex/dataentry.html', {'data':DataSource.objects.get(id=id),'form':form,'data_url':settings.DATA_URL}, context_instance=RequestContext(request))
+        result = addvalue_post(request, person, code)
+        return result
     else:
-        nextcal = request.GET.get('next',False)
-        ############ This condition is active when a user edits the frame
-        # Find the data sources for the given code
-        source = DataSource.objects.filter(event__name=code)
-        length = source.count()
-        # Pull out data user has viewed and exclude them from the list of possible candidates
-        ds = Datapoint.objects.values_list('data',flat=True).filter(data__event__name=code,user=person,pointtype='S')
-        input = request.GET.get('input',False)
-        id = request.GET.get('dataid',False)
-        # If an ID is specified return the frame, as long as the person has made measurements of it
-        if id:
-            dnext = False
-            #### If anonymous user tell them they cannot edit points
-            if person == guestuser:
-                messages.warning(request,'You cannot edit points unless you are logged in')
-                try:
-                    url = reverse('agentex.views.addvalue',args= [DataSource.objects.get(id=id).event.name])
-                    return HttpResponseRedirect(url)
-                except:
-                    raise Http404
-            mycalibs = []
-            ##### The page is being displayed with data for editing
-            points = Datapoint.objects.filter(data__id=id,user=person)
-            if nextcal=='cal':
-                print "*******"
-                dp = Datapoint.objects.filter(pointtype='S',user=person,data__id=id)
-                dd = dp[0].data.timestamp
-                ds = Datapoint.objects.filter(pointtype='S',user=person,data__timestamp__gt=dd).order_by('data__timestamp')
-                if ds.count() > 0:
-                    dnext = ds[0].data
-            d = DataSource.objects.filter(id=id)[0]
-            otherpoints = Datapoint.objects.filter(~Q(user=person),pointtype='C',data=d)
-            cals = Datapoint.objects.values_list('xpos','ypos','radius').filter(data=d,pointtype='C').order_by('coorder__calid')
-            calibs = []
-            if cals:
-                for c in cals:
-                    calibs.append({'x' : int(c[0]) , 'y' : int(c[1]), 'r' : int(c[2])})
-            source = points.filter(pointtype='S')[:1]
-            bg = points.filter(pointtype='B')[:1]
-            #### If there are no results, the person is hacking the query string. Return a fresh frame
-            if (source.count() == 0 or bg.count() == 0):
-                url = reverse('agentex.views.addvalue',args= [code])
-                return HttpResponseRedirect(url)
-            cal = points.filter(pointtype='C').order_by('coorder__calid')
-            for c in cal:
-                line = {'x' :c.xpos,'y' : c.ypos}
-                mycalibs.append(line)
-            ### If more cals have been placed on other frames add these to this frame
-            max_cal = Datapoint.objects.filter(pointtype='C',user=person).aggregate(max=Max('coorder__calid'))['max']
-            if max_cal+1 > cal.count():
-                for order in range(cal.count(),max_cal+1):
-                    dp = Datapoint.objects.filter(pointtype='C',user=person,coorder__calid=order,data__event__name=code)
-                    if dp.count() > 0:
-                        line = {'x': dp[0].xpos, 'y':dp[0].ypos}
-                        # Add to the mycalibs array
-                        mycalibs.append(line)
-            coords = { 'source': {'x' :source[0].xpos,'y' : source[0].ypos},
-                     'cal'  : mycalibs,
-                     'bg'  : {'x' :bg[0].xpos,'y' : bg[0].ypos},
-                     'radius' : source[0].radius,
-                     'id'  : id,
-                     'numcals' : len(mycalibs),
-                     }
-            messages.info(request, "Updating measurement")
-            return render_to_response('agentex/dataentry.html',{'data':d,
-                                                                    'next':dnext,
-                                                                    'points':coords,
-                                                                    'update':True,
-                                                                    'webinput':webin,
-                                                                    'progress':progress,
-                                                                    'form':form,
-                                                                    'calibrators':calibs,
-                                                                    'least_data':least_coords,
-                                                                    'data_url':settings.DATA_URL},
-                                    context_instance=RequestContext(request))                             
-        else:
-            ######## User is being given a new frame not editing data  
-            complete = 0
-            if  (progress['done'] >= progress['total'] and person != guestuser):
-                ####### No new data can be provided because the user has come to the end
-                complete = 1
-                numplanets = DataCollection.objects.values('planet').filter(person=person,complete=True).annotate(Count('complete')).count()
-                e = Event.objects.filter(name=code)[0]
-                resp = achievementscheck(person,e,0,0,0,0,numplanets)
-
-                msg = '<br />'
-                for item in resp:
-                    if messages.SUCCESS == item['code'] :
-                        msg += "<img src=\""+STATIC_URL+item['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />"
-                        messages.success(request,msg)
-                
-                return HttpResponseRedirect(reverse('my-graph',args=[code]))
-
-                return render_to_response('agentex/dataentry.html',
-                                        {'event': e,
-                                        'complete':complete,
-                                        'progress':progress,
-                                        'points':Datapoint.objects.filter(user=person,pointtype='S',data__event=e).order_by('data__timestamp'),
-                                        'data_url':settings.DATA_URL,
-                                        'numplanets':numplanets,},
-                                        context_instance=RequestContext(request))            
-            else:
-                planet = Event.objects.get(name=code)
-                mylist = Datapoint.objects.filter(user=person,pointtype='S',data__event=planet).values_list('data',flat=True)
-                print mylist
-                ### if person does not have a DataCollection it is their first measurement
-                if (DataCollection.objects.filter(planet=planet,person=person).count() == 0):
-                    d = DataSource.objects.filter(event=planet,id=planet.finder)[0]
-                    did = d.id
-                    try:
-                        dold = d.id
-                        first = True   
-                    except:
-                        messages.error(request,"Finderchart cannot be found")
-                        raise Http404    
-                elif  person == guestuser:
-                    d = DataSource.objects.filter(event=planet).annotate(count=Count('datapoint')).order_by('-count')[0]
-                    did = d.id
-                    dold = d.id
-                    first = True
-                else:
-                    try:
-                        source_rank = DataSource.objects.filter(event=planet ).annotate(count=Count('datapoint') ).values_list('id','count').order_by('-count')  
-                        available = [x for x in source_rank if x[0] not in list(mylist)]
-                        dold = Datapoint.objects.values_list('data__id',flat=True).filter(user=person,data__event=planet,pointtype='C').annotate(max =Max('coorder__calid')).order_by('-max','-taken')[0]
-                    # Find position in set of DataSources
-                        d = available[0]
-                        did = d[0]
-                        first = False
-                    except Exception,e:
-                        print e
-                        messages.error(request,"User has a data collection but no points!")
-                        raise Http404
-                cals = Datapoint.objects.values_list('xpos','ypos').filter(data=dold,pointtype='C',user=person).order_by('coorder__calid')
-                calibs = []
-                if cals:
-                    for c in cals:
-                        calibs.append({'x' : int(c[0]) , 'y' : int(c[1])})
-                otherpoints = Datapoint.objects.filter(~Q(user=person),pointtype='C',data__id=did)
-                othercals = []
-                if otherpoints:
-                    for c in otherpoints:
-                        othercals.append({'x' : int(c.xpos) , 'y' : int(c.ypos),'r':int(c.radius)})
-                prev = Datapoint.objects.filter(user=person,data=dold).order_by('coorder__calid')
-                if first == False:
-                    coords = { 'source': {'x' :prev.filter(pointtype='S')[0].xpos,'y' : prev.filter(pointtype='S')[0].ypos},
-                             'bg'  : {'x' :prev.filter(pointtype='B')[0].xpos,'y' : prev.filter(pointtype='B')[0].ypos},
-                             'cal'  : calibs ,
-                             'id'  : dold,
-                             'radius' : planet.radius
-                             }
-                else:
-                    coords = False
-                if person == guestuser:
-                    progress = {'percent'   : "0",
-                                'done'      : 0,
-                                'total'     : n_sources,}
-                return render_to_response('agentex/dataentry.html',
-                                        {'data':DataSource.objects.get(id=did),
-                                        'complete':complete,
-                                        'update':False,
-                                        'webinput':webin,
-                                        'progress':progress,
-                                        'form':form,
-                                        'calibrators':othercals,
-                                        'points':coords,
-                                        'least_data':least_coords,
-                                        'data_url':settings.DATA_URL},
-                                        context_instance=RequestContext(request))        
-
+        result = addvalue_nopost(request, person, code)
+        return result
 
 def savemeasurement(person,pointsum,coords,dataid,entrymode):
     # Only update the user's preference if they change it
@@ -530,15 +620,7 @@ def savemeasurement(person,pointsum,coords,dataid,entrymode):
             else : return {'msg': 'Achievement unlocked'+msg, 'code': messages.SUCCESS}
         return {'msg': 'Measurements saved', 'code': messages.SUCCESS}
 
-def measure_offset(d,person,basiccoord):
-    # Find the likely offset of this new calibrator compared to the basic ones and find any sources within 5 pixel radius search
-    finderid = d[0].event.finder
-    finderdp = Datapoint.objects.values_list('xpos','ypos').filter(user=person,data__id=finderid,pointtype='C',coorder__calid__lt=3).order_by('coorder__calid')
-    finder = basiccoord - array(finderdp)
-    t = transpose(finder)
-    xmean = mean(t[0])
-    ymean = mean(t[1])
-    return xmean,ymean
+
 
 
 
@@ -632,7 +714,7 @@ def classifyupdate(request,code):
     else:
         msg = {'update':False}
     #messages.warning(request,msg)
-    return HttpResponse(json.dumps(msg),mimetype='application/javascript')
+    return HttpResponse(json.dumps(msg),content_type='application/javascript')
 
 def updatedataset(request,code):
     formdata = request.POST
@@ -655,101 +737,8 @@ def updatedataset(request,code):
         messages.warning(request,'Nothing to save')
     return HttpResponseRedirect(url)
 
-def updatedisplay(request,code):
-    # Wipe all the validations for user and event
-    o = personcheck(request)
-    dc = DataCollection.objects.filter(person=o.user,planet=Event.objects.get(name=code),complete=True)
-    dc.update(display = False)
-    empty = True
-    formdata = request.POST
-    for i,val in formdata.items():
-        if i[4:] == val:
-            # Add validations back one by one
-            col = dc.filter(calid=val)
-            col.update(display= True)
-            empty = False
-    return empty
 
-def addvalidset(request,code):
-    o = personcheck(request)
-    calid = request.POST.get('calid','')
-    choice1 = request.POST.get('choice1','')
-    choice2 = request.POST.get('choice2','')
-    point = DataCollection.objects.filter(person=o.user,calid=calid,planet__name=code)
-    planet = Event.objects.filter(name=code)[0]
-    if choice1 and point and calid:
-        value = decisions[choice1]
-        source = point[0].source
-        old = Decision.objects.filter(person=o.user,planet=planet,source=source)
-        old.delete()
-        decision1 = Decision(source=source,
-                        value=value,
-                        person=o.user,
-                        planet=planet)
-        
-        if choice2:
-            value2 = decisions[choice2]
-            decision2 = Decision(source=source,
-                            value=value2,
-                            person=o.user,
-                            planet=planet,
-                            current=True)
-            decision2.save()
-        else:
-            decision1.current = True
-        decision1.save()
-        return False
-    else:
-        return True
-        
-@login_required
-def my_data(o,code):
-    data = []
-    sources = DataSource.objects.filter(event__name=code).order_by('timestamp')
-    points  = Datapoint.objects.filter(data__event__name=code,user=o.user)
-    for s in sources:
-        ps = points.filter(data=s)
-        myp = ps.filter(pointtype='S')
-        try:
-            mypoint = '%f' % myp[0].value
-        except:
-            mypoint = 'null'
-        cals = ps.filter(pointtype='C').values_list('value',flat=True).order_by('coorder')
-        line = {
-                'id'        : "%i" % s.id,
-                'date'      : s.timestamp.isoformat(" "),
-                'datestamp' : timegm(s.timestamp.timetuple())+1e-6*s.timestamp.microsecond,
-                'data'      : { 'source' : list(ps.filter(pointtype='S').values_list('value',flat=True)),
-                                'background' :  list(ps.filter(pointtype='B').values_list('value',flat=True)),
-                                'calibrator' :  list(cals),
-                            },
-                }
-        data.append(line)
-    return data,points
-    
-def calibrator_data(calid,code):
-    data = []
-    sources, times = zip(*DataSource.objects.filter(event__name=code).values_list('id','timestamp').order_by('timestamp'))
-    points  = Datapoint.objects.filter(data__in=sources)
-    #points.filter(pointtype='C').values('data__id','user','value')
-    people = Decision.objects.filter(source__id=calid,planet__name=code,value='D',current=True).values_list('person__username',flat=True).distinct()
-    norm = dict((key,0) for key in sources)
-    for pid in people:
-        cal = []
-        sc = dict(points.filter(user__username=pid,pointtype='S').values_list('data__id','value'))
-        bg = dict(points.filter(user__username=pid,pointtype='B').values_list('data__id','value'))
-        c = dict(points.filter(user__username=pid,pointtype='C',coorder__source__id=calid).values_list('data__id','value'))
-        sc_norm = dict(norm.items() + sc.items())
-        bg_norm = dict(norm.items() + bg.items())
-        c_norm = dict(norm.items() + c.items())
-        #print sc_norm,bg_norm,c_norm
-        for v in sources:
-            try:
-                cal.append((sc_norm[v]- bg_norm[v])/(c_norm[v] - bg_norm[v]))
-            except:
-                cal.append(0)
-        data.append(cal)
-    return data,[timegm(s.timetuple())+1e-6*s.microsecond for s in times],list(people)
+
         
 @login_required  
 def graphview(request,code,mode,calid):
@@ -781,6 +770,7 @@ def graphview(request,code,mode,calid):
         else:
             cats = None
         classif = classified(o,code)
+        '''
         return render_to_response('agentex/graph_flot.html', {'event':d1.planet,
                                                                 'data':data,
                                                                 'n':n,
@@ -789,6 +779,14 @@ def graphview(request,code,mode,calid):
                                                                 'progress' : progress,
                                                                 'target':DataSource.objects.filter(event__name=code)[0].target}, 
                                                                 context_instance=RequestContext(request))
+        '''
+        return render(request, 'agentex/graph_flot.html', {'event':d1.planet,
+                                                                'data':data,
+                                                                'n':n,
+                                                                'sources':cats,
+                                                                'classified':classif,
+                                                                'progress' : progress,
+                                                                'target':DataSource.objects.filter(event__name=code)[0].target})
     elif mode == 'ave':
         data = []
         # get and restructure the average data JS can read it nicely
@@ -870,6 +868,7 @@ def graphview(request,code,mode,calid):
             else : msg = 'Achievement unlocked'+msg
             messages.add_message(request, messages.SUCCESS, msg)
         print classif
+        '''
         return render_to_response('agentex/graph_average.html', {'event': planet,
                                                                 'data':data,
                                                                 'sources':cats,
@@ -880,7 +879,16 @@ def graphview(request,code,mode,calid):
                                                                 'progress' : progress,
                                                                 'target':DataSource.objects.filter(event=planet)[0].target},
                                                                 context_instance=RequestContext(request))
-            
+        '''
+        return render(request, 'agentex/graph_average.html', {'event': planet,
+                                                                'data':data,
+                                                                'sources':cats,
+                                                                'cals':json.dumps(cats),
+                                                                'calid': currentcal,
+                                                                'prevchoice' : prev,
+                                                                'classified':classif,
+                                                                'progress' : progress,
+                                                                'target':DataSource.objects.filter(event=planet)[0].target})
     elif mode == 'advanced':
         opt = {'S' :'source','C':'calibrator','B':'sky'}
         if 'dataid' in request.GET:
@@ -899,21 +907,34 @@ def graphview(request,code,mode,calid):
                 'datestamp' : timegm(s.timestamp.timetuple())+1e-6*s.timestamp.microsecond,
                 'data'      : datalist,
                 }
+        '''
         return render_to_response('agentex/graph_advanced.html', {'event':Event.objects.filter(name=code)[0],
                                                                         'framedata':line,
                                                                         'target':DataSource.objects.filter(event__name=code)[0].target,
                                                                         'progress' : progress}, context_instance=RequestContext(request))
+        '''
+        return render_to_response(request, 'agentex/graph_advanced.html', {'event':Event.objects.filter(name=code)[0],
+                                                                        'framedata':line,
+                                                                        'target':DataSource.objects.filter(event__name=code)[0].target,
+                                                                        'progress' : progress})
 
 def graphsuper(request,code):
     # Construct the supercalibrator lightcurve
     ds1 = ds.Dataset(planetid=code,userid=request.user.username)
     data = ds1.final()
     ###### Setting nodata to True and not showing each person their own data, but just for now
+    '''
     return render_to_response('agentex/graph_super.html', {'event':ds1.planet,
                                                                 'data':data,
                                                                 'numsuper':13,
                                                                 'target':ds1.target,
                                                                 'nodata' : True}, context_instance=RequestContext(request))
+    '''
+    return render(request, 'agentex/graph_super.html', {'event':ds1.planet,
+                                                                'data':data,
+                                                                'numsuper':13,
+                                                                'target':ds1.target,
+                                                                'nodata' : True})
 
 def infoview(request,code):
     ds = DataSource.objects.filter(event__name=code)[:1]
@@ -927,7 +948,8 @@ def infoview(request,code):
         data = ds[0]
     except:
         raise Http404
-    return render_to_response('agentex/info.html', {'object' : data, 'progress' : progress}, context_instance=RequestContext(request))
+    #return render_to_response('agentex/info.html', {'object' : data, 'progress' : progress}, context_instance=RequestContext(request))
+    return render(request, 'agentex/info.html', {'object' : data, 'progress' : progress})
     
 def fitsanalyse(request):
     now = datetime.now()
@@ -944,7 +966,7 @@ def fitsanalyse(request):
     y = request.POST.get('y','').split(',')
     if (len(x) < 3 or len(y) < 3):
         response = {'message' : 'Please submit calibration, blank sky and source apertures.'}
-        return HttpResponse(json.dumps(response),mimetype='application/javascript')
+        return HttpResponse(json.dumps(response),content_type='application/javascript')
     x = map(float,x)
     y = map(float,y)
     coords = zip(x,y)
@@ -959,7 +981,7 @@ def fitsanalyse(request):
     # ***** No longer used as we fix radius from the outset ****
     #if r >= 70:
     #    response = {'message' : 'Apertures are too large. Please make your circles smaller'}
-    #    return HttpResponse(json.dumps(response),mimetype='application/javascript')
+    #    return HttpResponse(json.dumps(response),content_type='application/javascript')
     # Check all apertures are away from frame edge
     d = DataSource.objects.filter(id=int(dataid))[:1]
     r = d[0].event.radius
@@ -968,7 +990,7 @@ def fitsanalyse(request):
         yi = co[1]
         if (xi-r < 0 or xi+r >= d[0].max_x or yi-r < 0 or yi+r > d[0].max_y ):
             response = {'message' : 'Please make sure your circles are fully within the image'}
-            return HttpResponse(json.dumps(response),mimetype='application/javascript')
+            return HttpResponse(json.dumps(response),content_type='application/javascript')
 
     #print datetime.now() - now
     # Grab a fits file
@@ -1038,7 +1060,7 @@ def fitsanalyse(request):
         lines = {'error':  resp['msg']}
     else:
         messages.add_message(request, resp['code'], resp['msg'])
-    return HttpResponse(json.dumps(lines,indent = 2),mimetype='application/javascript')
+    return HttpResponse(json.dumps(lines,indent = 2))
         
 def measurementsummary(request,code,format):
     ####################
@@ -1086,7 +1108,7 @@ def measurementsummary(request,code,format):
             cals.append(list(vals/maxval))
         datapoints = {'calibration' : cals, 'source' : list(sources),'background':list(bg),'dates':dates,'id':list(ids),'datestamps':stamps,'n':maxcals+1}
         dataid = request.GET.get('dataid','')
-        return HttpResponse(json.dumps(datapoints,indent=2),mimetype='application/javascript')
+        return HttpResponse(json.dumps(datapoints,indent=2),content_type='application/javascript')
     elif (format == 'xhr' and options=='ave'):
         #cals = []
         #cs = mypoints.filter(pointtype='C').order_by('coorder__calid')
@@ -1098,7 +1120,7 @@ def measurementsummary(request,code,format):
             datapoints = {'calibration' : normcals, 'source' : sb,'background':bg,'calibrator':cals,'dates':dates,'id':ids,'datestamps':stamps,'n':maxcals+1}
         else:
             datapoints = {'calibration':None}
-        return HttpResponse(json.dumps(datapoints,indent=2),mimetype='application/javascript')
+        return HttpResponse(json.dumps(datapoints,indent=2),content_type='application/javascript')
     elif (format == 'xhr' and options == 'super'):
         # Construct the supercalibrator lightcurve
         planet = Event.objects.filter(name=code)[0]
@@ -1108,7 +1130,7 @@ def measurementsummary(request,code,format):
         for s in sources:
             dates.append(timegm(s.timestamp.timetuple())+1e-6*s.timestamp.microsecond,)
         datapoints = {'normalised' : normvals, 'dates':dates, 'std':std}
-        return HttpResponse(json.dumps(datapoints),mimetype='application/javascript')
+        return HttpResponse(json.dumps(datapoints),content_type='application/javascript')
     elif (request.GET and format == 'json'):
         dataid = request.GET.get('dataid','')
         s = DataSource.objects.filter(id=dataid)[0]
@@ -1120,7 +1142,7 @@ def measurementsummary(request,code,format):
                 'datestamp' : timegm(s.timestamp.timetuple())+1e-6*s.timestamp.microsecond,
                 'data'      : datalist,
                 }
-        return HttpResponse(json.dumps(line,indent = 2),mimetype='application/javascript')
+        return HttpResponse(json.dumps(line,indent = 2),content_type='application/javascript')
     else:
         planet = Event.objects.filter(name=code)[0]
         numsuper, normvals, myvals, std,radiusratio = supercaldata(request.user,planet)
@@ -1143,14 +1165,14 @@ def measurementsummary(request,code,format):
                     data.append(line)
             else:
                 data = None
-            return HttpResponse(json.dumps(data,indent = 2),mimetype='application/javascript')
+            return HttpResponse(json.dumps(data,indent = 2),content_type='application/javascript')
         # elif format == 'xml':
-        #     return render_to_response('agentex/data_summary.xml',{'data':data},mimetype="application/xhtml+xml")
+        #     return render_to_response('agentex/data_summary.xml',{'data':data},content_type="application/xhtml+xml")
         elif format == 'csv':
             csv = "# Date of observation, Unix timestamp, normalised average values, standard deviation, my normalised values\n"
             for i,s in enumerate(sources):
                 csv += "%s, %s, %s, %s, %s\n" % (s.timestamp.isoformat(" "),timegm(s.timestamp.timetuple())+1e-6*s.timestamp.microsecond,normvals[i],std[i],myvals[i])
-            return HttpResponse(csv,mimetype='text/csv')
+            return HttpResponse(csv,content_type='text/csv')
 
 def calibratemydata(code,user):
     #cs = Datapoints.objects.filter(pointtype='C',user=user).order_by('coorder__calid')
@@ -1238,83 +1260,9 @@ def myaverages(code,person):
     # If they have no 'D' decisions
     return [0.]*ds.count()
     
-def calibrator_averages(code,person=None,progress=False):
-    cals = []
-    cats = []
-    planet = Event.objects.get(name=code)
-    sources = list(DataSource.objects.filter(event=planet).order_by('timestamp').values_list('id','timestamp'))
-    ids,stamps = zip(*sources)
-    if person:
-        ## select calibrator stars used, excluding ones where ID == None, i.e. non-catalogue stars
-        dc = DataCollection.objects.filter(~Q(source=None),person=person,planet=planet).order_by('calid')
-        ## Measurement values only for selected 'person'
-        dps = Datapoint.objects.filter(data__event=planet,user=person).order_by('data__timestamp')
-    else:
-        # select calibrator stars used, excluding ones where ID == None, i.e. non-catalogue stars
-        dc = DataCollection.objects.filter(~Q(source=None),planet=planet).order_by('calid')
-        ## Measurement values only for selected 'person'
-        dps = Datapoint.objects.filter(data__event=planet).order_by('data__timestamp')
-    averages = AverageSet.objects.filter(planet=planet)
-    if person:
-        # Make a combined list of source values
-        measurements = dps.filter(pointtype='S')
-        sc = average_combine(measurements,averages,ids,None,'S',progress)
-        # Make a combined list of background values
-        measurements = dps.filter(pointtype='B')
-        bg = average_combine(measurements,averages,ids,None,'B',progress)
-    else:
-        sc = array(averages.filter(star=None,settype='S')[0].data)
-        bg = array(averages.filter(star=None,settype='B')[0].data)
-    # Make a combined list of all calibration stars used by 'person'
-    for calibrator in dc:
-        if person:
-            measurements = dps.filter(pointtype='C',coorder=calibrator)
-            ave = average_combine(measurements,averages,ids,calibrator.source,'C',progress)
-        else:
-            ave_cal = averages.filter(star=calibrator,settype='C')
-            if ave_cal.count() > 0:
-                ave = array(ave_cal[0].data)
-            else:
-                ave = array([])
-        if ave.size > 0:
-            cals.append(ave)
-            try:
-                if person:
-                    decvalue = Decision.objects.filter(source=calibrator.source,person=person,planet=planet,current=True)[0].value
-                else:
-                    decvalue = Decision.objects.filter(source=calibrator.source, planet=planet,current=True)[0].value
-            except:
-                decvalue ='X'
-            cat_item = {'sourcename':calibrator.source.name,'catalogue':calibrator.source.catalogue}
-            cat_item['decsion'] = decvalue
-            cat_item['order'] = str(calibrator.calid)
-            cats.append(cat_item)
-    return cals,sc,bg,stamps,ids,cats
+
     
-def average_combine(measurements,averages,ids,star,category,progress,admin=False):
-    if progress['done'] < progress['total']:
-        ave_measurement = averages.filter(star=star,settype=category)
-        if ave_measurement.count() > 0:
-            ## Find the array indices of my values and replace these averages
-            ave = array(ave_measurement[0].data)
-            mine = zip(*measurements.values_list('data','value'))
-            try:
-                my_ids = [ids.index(x) for x in mine[0]]
-                ave[my_ids] = mine[1]
-            except Exception, e:
-                print e
-            return ave
-        else:
-            return array([])
-    elif progress['done'] == progress['total']:
-        mine = array(measurements.values_list('value',flat=True))
-        return mine
-    elif not progress:
-        print "No progress was passed"
-        return array([])
-    else:
-        print "Error - too many measurements: %s %s" % (measurements.count() , numobs)
-        return array([])
+
         
 def admin_averagecals(code,person):
     # Uses and SQL statement to try to speed up the query for averaging data points
@@ -1431,29 +1379,7 @@ def admin_averagecals(code,person):
         return normcals,stamps,[],[]
     return cals,normcals,[],[],dates,stamps,[],cats
     
-def photometry(code,person,progress=False,admin=False):
-    normcals = []
-    maxvals = []
-    cals,sc,bg,times,ids,cats = calibrator_averages(code,person,progress)
-    indexes = [int(i) for i in ids]
-    #sc = array(sc)
-    #bg = array(bg)     
-    for cal in cals:
-	if len(cal) == progress['total']:
-        #### Do not attempt to do the photmetry where the number of calibrators does not match the total        
-            val = (sc - bg)/(cal-bg)
-            maxval = mean(r_[val[:3],val[-3:]])
-            maxvals.append(maxval)
-            norm = val/maxval
-            normcals.append(list(norm))
-        # Find my data and create unix timestamps
-    unixt = lambda x: timegm(x.timetuple())+1e-6*x.microsecond
-    iso = lambda x: x.isoformat(" ")
-    stamps = map(unixt,times)
-    dates = map(iso,times)
-    if admin:
-        return normcals,stamps,indexes,cats
-    return cals,normcals,list(sc),list(bg),dates,stamps,indexes,cats
+
         
 def averagecals_async(e):
     #e = Event.objects.get(name=code)
@@ -1589,7 +1515,8 @@ def update_web_pref(request,setting):
         return HttpResponse("Setting unchanged")
             
 def tester(request):
-    return render_to_response('agentex/test.html')
+    #return render_to_response('agentex/test.html')
+    return render(request, 'agentex/test.html', {})
     
 def average_sources(code):
     typep = ('S','C','B')
@@ -1712,7 +1639,8 @@ def addcomment(request):
           form = CommentForm(data)
         else:
             form = CommentForm()
-    return render_to_response('agentex/comments_box.html', {'form':form}, context_instance=RequestContext(request))
+    #return render_to_response('agentex/comments_box.html', {'form':form}, context_instance=RequestContext(request))
+    return render(request, 'agentex/comments_box.html', {'form':form})
 
 def update_final_display():
     c = CatSource.objects.all()

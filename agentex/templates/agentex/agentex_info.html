@@ -1,6 +1,5 @@
-{% load admintags %}
 <div class="module">
-      <h2>Agent Exoplanet stats</h2>
+      <h2>Agent Exoplanet Stats</h2>
 <table class="bluetable">
    <tbody>
        <thead>
@@ -20,7 +19,7 @@
        <tr><th colspan=2>Completed planets</th></tr>
    {% for p in completes.planets %}
    <tr class="{% cycle 'row1' 'row2' %}">
-       <td><a href="{% url agentex_all_calib p.id %}">{{p.name}}</a></td><td>{{p.subtotal}}</td>
+       <td><a href="{% url 'agentex_all_calib' p.id %}">{{p.name}}</a></td><td>{{p.subtotal}}</td>
    </tr>
    {% endfor %}
    </tbody>

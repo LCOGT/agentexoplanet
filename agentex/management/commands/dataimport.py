@@ -1,5 +1,7 @@
 import os
-import pyfits
+#import pyfits
+from astropy.io import fits
+from astropy import wcs
 from datetime import datetime
 import atpy
 import aplpy
@@ -36,29 +38,39 @@ def importfits(ev,tg,url):
     for lf in listf:
         datapath = "%s%s%s%s" % (path,url,urlf,lf)
         print "reading from %s" % datapath
-        head = pyfits.getheader(datapath)
+        #head = pyfits.getheader(datapath)
+        head = fits.open(datapath)
         imagej = lf.replace('.fits','.jpg')
         fitsurl = "/%s%s%s" % (url,urlf,lf)
         try:
-            print head['TELESCOP']
+            #print head['TELESCOP']
+            head[0].header['TELESCOP']
         except:
             print "Not FTN or FTS"
-        if head['TELESCOP'] == 'Faulkes Telescope North' or head['TELESCOP'] == 'Faulkes Telescope South': 
+        #if head['TELESCOP'] == 'Faulkes Telescope North' or head['TELESCOP'] == 'Faulkes Telescope South': 
+        if head[0].header['TELESCOP'] == 'Faulkes Telescope North' or head[0].header['TELESCOP'] == 'Faulkes Telescope South':
             # FTN/S data
-            timestamp = datetime.strptime(head['DATE-OBS'], "%Y-%m-%dT%H:%M:%S.%f")
-            maxx = int(head['CCDXIMSI'])
-            maxy = int(head['CCDYIMSI'])
+            #timestamp = datetime.strptime(head[0].header['DATE-OBS'], "%Y-%m-%dT%H:%M:%S.%f")
+            timestamp = datetime.strptime(head[0].header['DATE-OBS'], "%Y-%m-%dT%H:%M:%S.%f")
+            maxx = int(head[0].header['CCDXIMSI'])
+            maxy = int(head[0].header['CCDYIMSI'])
+            #maxx = int(head['CCDXIMSI'])
+            #maxy = int(head['CCDYIMSI'])
             print maxx,maxy
         else:
             # Sedgwick data
-            timestamp = datetime.strptime(head['DATE-OBS'], "%Y-%m-%dT%H:%M:%S")
-            maxx= int(head['NAXIS1'])
-            maxy = int(head['NAXIS2'])
+            timestamp = datetime.strptime(head[0].header['DATE-OBS'], "%Y-%m-%dT%H:%M:%S")
+            maxx= int(head[0].header['NAXIS1'])
+            maxy = int(head[0].header['NAXIS2'])
+            #timestamp = datetime.strptime(head['DATE-OBS'], "%Y-%m-%dT%H:%M:%S")
+            #maxx= int(head['NAXIS1'])
+            #maxy = int(head['NAXIS2'])
         ds = DataSource(fits = fitsurl,
                     event=e,
                     target=target,
                     timestamp=timestamp,
-                    telescopeid=head['TELESCOP'],
+                    telescopeid=head[0].header['TELESCOP'],
+                    #telescopeid = head['TELESCOP'],
                     max_x=maxx,
                     max_y=maxy,
                     )
@@ -90,10 +102,12 @@ def findsources(dataid,datapath):
     d = DataSource.objects.filter(id=dataid)
     dfile = '%s%s' % (datapath,d[0].fits)
     #dfile = '%s%s/astrometry-solution.fits' % (path,url)
-    dc = pyfits.open(dfile)
+    dc = fits.open(dfile)
     #### Map WCS coords to pixel values for the first file in the dataset
     f = aplpy.FITSFigure(dc[0])
     head = dc[0].header
+    w = wcs.WCS(head)  # This line extracts the WCS info from the header
+    #head = dc[0].head[0].header
     print head['TELESCOP']
     ra= head['CRVAL1'] #291.75
     dec = head['CRVAL2'] #1.38
@@ -106,7 +120,8 @@ def findsources(dataid,datapath):
     # Change to 0,0 1024,1024 if in Northern Hem
         xpix  = [0,head['CCDXIMSI'],0,head['CCDXIMSI']]
         ypix = [0,0,head['CCDXIMSI'],head['CCDXIMSI']]
-    ra1, dec1 = f.pixel2world(xpix,ypix)
+    #ra1, dec1 = f.pixel2world(xpix,ypix)
+    ra1, dec1 = w.wcs_pix2world(xpix, ypix, 1) # argument 1 starts from (1,1)
     ra_max = max(ra1)
     dec_max = max(dec1)
     ra_min = min(ra1)
@@ -122,7 +137,8 @@ def findsources(dataid,datapath):
     imagej = dfile.replace('.fits','.png')
     print imagej
     f.save(imagej)
-    x,y = f.world2pixel(t4.RA,t4.DEC)
+    #x,y = f.world2pixel(t4.RA,t4.DEC)
+    x,y = w.wcs_world2pix(t4.RA,t4.DEC)
     for i,val in enumerate(t4.id):
         #print i, val,int(x[i]),int(y[i]),ra,dec
         if (x[i] >0 and y[i] >0):

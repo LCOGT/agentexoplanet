@@ -16,7 +16,6 @@ GNU General Public License for more details.
 
 import os
 import platform
-from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS as TCP
 from django.utils.crypto import get_random_string
 from django.conf import settings
 
@@ -84,13 +83,6 @@ STATICFILES_FINDERS = (
 chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
 SECRET_KEY = get_random_string(50, chars)
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-   #'django.template.loaders.eggs.load_template_source',
-)
-
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -100,13 +92,6 @@ MIDDLEWARE_CLASSES = (
 
 CACHE_MIDDLEWARE_SECONDS = '1'
 
-# Added by TJ to set up caching as per Django documentation
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': 'default-cache'
-    }
-}
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
@@ -117,7 +102,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -126,16 +111,20 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.core.context_processors.static', # Serves static files (added by TJ)
+                'django.core.context_processors.request',
             ],
         },
     },
 ]
+
 
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
+    'grappelli.dashboard', # Grappelli apps must be before django.contrib.admin
+    'grappelli',
     'django.contrib.admin',
     'django.contrib.messages',
     'django.contrib.staticfiles', # Added by TJ to allow static files declaration
@@ -167,3 +156,13 @@ if LOCAL_DEVELOPMENT:
     except ImportError as e:
         if "local_settings" not in str(e):
             raise e
+
+##################
+# GRAPPELLI SETTINGS #
+##################
+
+# Changes default dashboard to Grappelli dashboard
+GRAPPELLI_INDEX_DASHBOARD = 'citsciportal.dashboard.CustomIndexDashboard'
+
+# Changes the title of the admin page from Grappelli default
+GRAPPELLI_ADMIN_TITLE = 'Agent Exoplanet Administration Page'
