@@ -31,6 +31,7 @@ from django.shortcuts import render_to_response, render
 from django.template import RequestContext
 from django.utils.encoding import smart_unicode
 from itertools import chain
+import logging
 from math import floor,pi,pow
 from math import sin,acos,fabs,sqrt
 from numpy import *
@@ -52,6 +53,8 @@ from agentex.datareduc import *
 #from django.contrib.sessions.models import Session
 
 guestuser = 2
+
+logger = logging.getLogger(__name__)
 
 def home(request):
     ''' Render the Front page of citizen science portal '''

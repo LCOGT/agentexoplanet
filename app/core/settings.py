@@ -24,14 +24,13 @@ CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
 PRODUCTION = True if CURRENT_PATH.startswith('/var/www') else False
 LOCAL_DEVELOPMENT = not PRODUCTION
 
-DEBUG = not PRODUCTION
+DEBUG = True #not PRODUCTION
 
 PREFIX ="/agentexoplanet"
 FORCE_SCRIPT_NAME = PREFIX
 BASE_DIR = os.path.dirname(CURRENT_PATH)
 
 ADMINS = (
-     ('Edward Gomez', 'egomez@lcogt.net'),
 )
 
 MANAGERS = ADMINS
@@ -63,10 +62,11 @@ SITE_ID = 1
 # to load the internationalization machinery.
 USE_I18N = True
 
-
-#MEDIA_ROOT = '/var/www/html/media/'
 MEDIA_ROOT = '/var/www/html/media/'
-MEDIA_URL = '/media/'
+MEDIA_URL = PREFIX + '/media/'
+
+DATA_LOCATION = MEDIA_ROOT + '/data'
+DATA_URL = MEDIA_URL + 'data'
 
 STATIC_ROOT = '/var/www/html/static/'
 STATIC_URL = PREFIX + '/static/'
@@ -137,10 +137,67 @@ LOGIN_URL = 'http://lcogt.net/agentexoplanet/account/login/'
 
 BASE_URL = "/agentexoplanet/"
 
-DATA_LOCATION = CURRENT_PATH + '/media/data'
-DATA_URL = '/agentexoplanet/media/data'
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 1025
 
 ALLOWED_HOSTS = ['*']
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'verbose': {
+            'format' : "[%(asctime)s] %(levelname)s %(message)s",
+            'datefmt' : "%d/%b/%Y %H:%M:%S"
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        }
+    },
+    'handlers': {
+        'mail_admins': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler'
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'agentex.log',
+            'formatter': 'verbose',
+            'filters': ['require_debug_false']
+        },
+        'console': {
+            'level': 'ERROR',
+            'class': 'logging.StreamHandler',
+        }
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'django': {
+            'handlers':['file'],
+            'propagate': True,
+            'level':'ERROR',
+        },
+        'core' : {
+            'handlers' : ['file','console'],
+            'level'    : 'DEBUG',
+        },
+        'agentex' : {
+            'handlers' : ['file','console'],
+            'level'    : 'DEBUG',
+        }
+    }
+}
 
 ##################
 # LOCAL SETTINGS #
