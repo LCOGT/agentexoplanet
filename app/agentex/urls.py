@@ -18,8 +18,6 @@ from django.conf import settings
 
 urlpatterns = [
     url(r'^$',index, name='index'),
-    url(r'^account/login/$', login, {'template_name': 'login.html'}, name='login'),
-    url(r'^account/logout/$', logout, {'template_name': 'logout.html'}, name='logout'),
     url(r'^account/register/$', register, name='register'),
     url(r'^account/$', editaccount, name='editaccount'),
     url(r'^profile/$',profile, name='profile'),

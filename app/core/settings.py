@@ -27,7 +27,7 @@ LOCAL_DEVELOPMENT = not PRODUCTION
 DEBUG = not PRODUCTION
 
 PREFIX ="/agentexoplanet"
-FORCE_SCRIPT_NAME = PREFIX
+FORCE_SCRIPT_NAME = None #PREFIX
 BASE_DIR = os.path.dirname(CURRENT_PATH)
 
 ADMINS = (
@@ -38,11 +38,11 @@ MANAGERS = ADMINS
 
 DATABASES = {
  'default' : {
-    'ENGINE': 'django.db.backends.mysql',
+    'ENGINE'    : 'django.db.backends.mysql',
     'NAME'      : os.environ.get('CITSCI_DB_NAME',''),
-    "USER": os.environ.get('CITSCI_DB_USER',''),
-    "PASSWORD": os.environ.get('CITSCI_DB_PASSWD',''),
-    "HOST": os.environ.get('CITSCI_DB_HOST',''),
+    "USER"      : os.environ.get('CITSCI_DB_USER',''),
+    "PASSWORD"  : os.environ.get('CITSCI_DB_PASSWD',''),
+    "HOST"      : os.environ.get('CITSCI_DB_HOST',''),
 }
 }
 
@@ -124,14 +124,13 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
-    'grappelli.dashboard', # Grappelli apps must be before django.contrib.admin
-    'grappelli',
+    #'grappelli.dashboard', # Grappelli apps must be before django.contrib.admin
+    #'grappelli',
     'django.contrib.admin',
     'django.contrib.messages',
     'django.contrib.staticfiles', # Added by TJ to allow static files declaration
     'core',
     'agentex',
-    'showmestars',
 )
 
 LOGIN_REDIRECT_URL = 'http://lcogt.net/agentexoplanet/'

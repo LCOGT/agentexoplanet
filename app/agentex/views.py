@@ -12,44 +12,40 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 '''
-import json
-from django.utils.encoding import smart_unicode
+from astropy.io import fits 
+from calendar import timegm
+from datetime import datetime,timedelta
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.admin.models import LogEntry, ADDITION
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 from django.core.serializers import serialize
+from django.core.urlresolvers import reverse
+from django.db import connection
+from django.db.models import Count,Avg,Min,Max,Variance, Q, Sum
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render_to_response, render
 from django.template import RequestContext
-from django.http import HttpResponse, HttpResponseRedirect, Http404
-from django.core.urlresolvers import reverse
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.admin.models import LogEntry, ADDITION
-from django.db.models import Count,Avg,Min,Max,Variance, Q, Sum
-from django.contrib import messages
-from django.db import connection
-import urllib2
-from xml.dom.minidom import parse
+from django.utils.encoding import smart_unicode
+from itertools import chain
+from math import floor,pi,pow
 from math import sin,acos,fabs,sqrt
 from numpy import *
-from astropy.io import fits 
-from datetime import datetime,timedelta
-from calendar import timegm
-from time import mktime
-from math import floor,pi,pow
-from itertools import chain
 from numpy import array,nan_to_num
+from time import mktime
+from xml.dom.minidom import parse
+import json
+import urllib2
 
-from django.contrib.auth.models import User
 from agentex.models import Target, Event, Datapoint, DataSource, DataCollection,CatSource, Decision, Achievement, Badge, Observer, AverageSet
 from agentex.models import decisions
 from agentex.forms import DataEntryForm, RegisterForm, CommentForm,RegistrationEditForm
 import agentex.dataset as ds
 
-from django.conf import settings
 from agentex.agentex_settings import planet_level
-
-'''
-Data reduction views have been moved to datareduc.py. This file (views.py) contains only render and page based views (along with views directly associated with them).
-'''
 from agentex.datareduc import *
 
 # Added by TJ to allow logged in query to function (bottom of document)
