@@ -1,3 +1,4 @@
+{% load staticfiles %}
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
@@ -6,11 +7,11 @@
 	<meta name="author" content="Las Cumbres Observatory Global Telescope Network" />
 	{% block meta %}{% endblock %}
 	<link rel="shortcut icon" href="http://lcogt.net/sites/default/themes/zen/lcogt/favicon.ico" type="image/x-icon" />
-	{% block favicon %}<link rel="icon" type="image/png" href="{{STATIC_URL}}images/favicon.png" />{% endblock %}
-	<link rel="stylesheet" href="{{STATIC_URL}}css2/lcogt.css" type="text/css" />
-	<link rel="stylesheet" href="{{STATIC_URL}}css2/portal.css" type="text/css" />{% block css-content %}{% endblock %}
-	<script type="text/javascript" src="{{STATIC_URL}}js/jquery.min.js"></script>
-	<script type="text/javascript" src="{{STATIC_URL}}js/portal.js"></script>{% block script-content %}{% endblock %}
+	{% block favicon %}<link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}" />{% endblock %}
+	<link rel="stylesheet" href="{% static 'css2/lcogt.css' %}" type="text/css" />
+	<link rel="stylesheet" href="{% static 'css2/portal.css' %}" type="text/css" />{% block css-content %}{% endblock %}
+	<script type="text/javascript" src="{% static 'js/jquery.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/portal.js' %}"></script>{% block script-content %}{% endblock %}
 	<script type="text/javascript">
 	<!--
       var _gaq = _gaq || [];
@@ -25,10 +26,10 @@
 	// -->
     </script>
     <style type="text/css">
-		dd.observations{ background: url('{{STATIC_URL}}/images/observations.png') no-repeat left center; }
-		dd.vsky{ background: url('{{STATIC_URL}}/images/vsky.png') no-repeat left center; }
-		dd.activities{ background: url('{{STATIC_URL}}/images/activities.png') no-repeat left center; }
-		dd.forum{ background: url('{{STATIC_URL}}/images/forum.png') no-repeat left center; }
+		dd.observations{ background: url('{% static '/images/observations.png' %}') no-repeat left center; }
+		dd.vsky{ background: url('{% static '/images/vsky.png' %}') no-repeat left center; }
+		dd.activities{ background: url('{% static '/images/activities.png' %}') no-repeat left center; }
+		dd.forum{ background: url('{% static '/images/forum.png' %}') no-repeat left center; }
     </style>
 </head>
 <body class="{% block body-class %}{% endblock %}{% if user.is_authenticated %}{% else %}not-{% endif %}logged-in">
@@ -49,8 +50,8 @@
 					<div id="container">
 		
 					<div id="header">
-						{% block logo-content %}<div id="logo"><a href="{% url 'portal' %}" title="Citizen Science Home" rel="home"><img src="{{STATIC_URL}}images/citsci-logo2.png" alt="Home" id="logo-image" /></a></div>{% endblock %}
-						<div id="logo2"><a href="http://lcogt.net" title="LCOGT Home" rel="home"><img src="{{STATIC_URL}}images/logo-gray-poweredby.png" alt="Home" id="logo-image2" /></a></div>
+						{% block logo-content %}<div id="logo"><img src="{% static 'images/citsci-logo2.png' %}" alt="Home" id="logo-image" /></div>{% endblock %}
+						<div id="logo2"><a href="http://lcogt.net" title="LCOGT Home" rel="home"><img src="{% static 'images/logo-gray-poweredby.png' %}" alt="Home" id="logo-image2" /></a></div>
 					</div>
 		
 					{% block navbar %}
@@ -66,7 +67,7 @@
 					</div>
 {% endblock %}
 					<div class="clear-block"></div>
-					<div id="footer">{% block footer%}{% endblock %} | Copyright &copy; 2012 Las Cumbres Observatory Global Telescope Network. All rights reserved.</div>
+					<div id="footer">{% block footer%}{% endblock %} | Copyright &copy; {% now "Y" %} Las Cumbres Observatory Global Telescope Network. All rights reserved.</div>
 				</div>
 			</div>
 		</div>

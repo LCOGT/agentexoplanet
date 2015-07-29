@@ -27,7 +27,7 @@ LOCAL_DEVELOPMENT = not PRODUCTION
 DEBUG = not PRODUCTION
 
 PREFIX ="/agentexoplanet"
-FORCE_SCRIPT_NAME = None #PREFIX
+FORCE_SCRIPT_NAME = PREFIX
 BASE_DIR = os.path.dirname(CURRENT_PATH)
 
 ADMINS = (
@@ -65,13 +65,12 @@ USE_I18N = True
 
 
 #MEDIA_ROOT = '/var/www/html/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
+MEDIA_ROOT = '/var/www/html/media/'
 MEDIA_URL = '/media/'
 
-#STATIC_ROOT = '/var/www/html/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, "static/")
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR,'agentex'),os.path.join(BASE_DIR,'showmestars')]
+STATIC_ROOT = '/var/www/html/static/'
+STATIC_URL = PREFIX + '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR,'agentex','static')]
 
 # List of finder classes that know how to find static files in
 # various locations.
@@ -150,7 +149,7 @@ ALLOWED_HOSTS = ['*']
 # Allow any settings to be defined in local_settings.py which should be
 # ignored in your version control system allowing for settings to be
 # defined per machine.
-if LOCAL_DEVELOPMENT:
+if not PRODUCTION:
     try:
         from local_settings import *
     except ImportError as e:

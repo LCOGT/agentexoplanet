@@ -14,8 +14,8 @@ admin.autodiscover()
 urlpatterns = [
     #url(r'^grappelli/$', include('grappelli.urls'), name='agentexo_admin_grapp'), # grappelli urls
     url(r'^admin/', include(admin.site.urls), name='agentexo_admin'),
-    url(r'^account/login/$', login, {'template_name': 'login.html'}, name='login'),
-    url(r'^account/logout/$', logout, {'template_name': 'logout.html'}, name='logout'),
+    url(r'^account/login/$', login, {'template_name': 'agentex/login.html'}, name='login'),
+    url(r'^account/logout/$', logout, {'template_name': 'agentex/logout.html'}, name='logout'),
 
     url(r'^admin/calibrators/(?P<planetid>\d+)/id/(?P<calid>\d+)/$',calibrator_check, name='agentex_admin_calib'),
     url(r'^admin/calibrators/(?P<planetid>\d+)/$',allcalibrators_check, name='agentex_all_calib'),

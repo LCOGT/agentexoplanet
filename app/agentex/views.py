@@ -85,13 +85,13 @@ def register(request):
                 print next
                 return HttpResponseRedirect(next)
             else:
-                return HttpResponseRedirect(reverse('portal'))
+                return HttpResponseRedirect(reverse('index'))
         else:
             #return render_to_response("register.html",{'form': form},context_instance=RequestContext(request))
-            return render(request, 'register.html', {'form': form})
+            return render(request, 'agentex/register.html', {'form': form})
     else:
         #return render_to_response("register.html",{'form': RegisterForm()},context_instance=RequestContext(request))
-        return render(request, 'register.html', {'form': RegisterForm()})
+        return render(request, 'agentex/register.html', {'form': RegisterForm()})
         
 @login_required
 def editaccount(request):
