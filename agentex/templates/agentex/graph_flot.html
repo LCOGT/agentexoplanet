@@ -1,15 +1,16 @@
 {% extends 'agentex/base.html' %}
+{% load staticfiles %}
 
 {% block body-class %}full agentex dossier {%endblock%}
 
 {%block header %}My lightcurves for {{event.title}}{%endblock%}
 
 {% block script-content %}
-	<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/agentex.js"></script>
+	<script language="javascript" type="text/javascript" src="{% static 'js/agentex.js' %}"></script>
 	<!--[if lt IE 9]><script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/excanvas.js"></script><![endif]-->
-	<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jquery.min.js"></script>
-	<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jquery.graph.js"></script>
-	<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/lightcurve.js"></script>
+	<script language="javascript" type="text/javascript" src="{% static 'js/jquery.min.js' %}"></script>
+	<script language="javascript" type="text/javascript" src="{% static 'js/jquery.graph.js' %}"></script>
+	<script language="javascript" type="text/javascript" src="{% static 'js/lightcurve.js' %}"></script>
 
 	<script type="text/javascript">
 	<!--
@@ -84,7 +85,7 @@
 		{% if messages %} bubblePopup({id:'message',el:$('#mainplot'),fade:2000,dismiss:true,align:"center",w:200,animate:true});{% endif %}
 	
 			if($('table#datatable').length > 0){
-				$('table#datatable').before('<br /><div id="tabletoggle" style="float:left;cursor:pointer;"><img src="{{STATIC_URL}}images/table_icon&24.png" alt="toggle table" title="Show or hide the data table" style="width:16px;margin-right:0px;" \/> toggle data table<\/div><br style="clear:both;" />')
+				$('table#datatable').before('<br /><div id="tabletoggle" style="float:left;cursor:pointer;"><img src="{% static 'images/table_icon&24.png' %}" alt="toggle table" title="Show or hide the data table" style="width:16px;margin-right:0px;" \/> toggle data table<\/div><br style="clear:both;" />')
 				$('#tabletoggle').bind('click',function(){
 				$('table.accessible').toggle();
 			})
@@ -110,9 +111,9 @@
 			<li><a href="{%url 'super-graph' event.name%}" title="View the final lightcurve from everyone's results"><img src="{{ STATIC_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" />Step 3: Final lightcurve</a></li>
 		</ol>
 -->
-		<div id="mylink" class="tabactive" style="display:none;"><a href="{%url 'my-graph' event.name%}"><img src="{{ STATIC_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" /></a></div>
-		<div id="avlink" style="display:none;"><a href="{%url 'average-graph' event.name%}"><img src="{{ STATIC_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" /></a></div>
-		<div id="sulink" style="display:none;"><a href="{%url 'super-graph' event.name%}"><img src="{{ STATIC_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" /></a></div>
+		<div id="mylink" class="tabactive" style="display:none;"><a href="{%url 'my-graph' event.name%}"><img src="{% static 'images/graph_my.png' %}" alt="My" title="View my measurements as a lightcurve" /></a></div>
+		<div id="avlink" style="display:none;"><a href="{%url 'average-graph' event.name%}"><img src="{% static 'images/graph_ave.png' %}" alt="Classify" title="Classify your lightcurves" /></a></div>
+		<div id="sulink" style="display:none;"><a href="{%url 'super-graph' event.name%}"><img src="{% static 'images/graph_super.png' %}" alt="Final" title="Final lightcurve" /></a></div>
 
 		<p id="progress">You have analysed {{progress.percent}}% of the images for <span class="objectspecific">{{event.title}}</span>. {% if progress.done < progress.total %}You might not be able to see a complete transit event yet. <a href="{% url 'addvalue' event.name %}">Continue analysing?</a> {% else %}Congratulations!{%endif%}</p>
 

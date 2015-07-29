@@ -1,17 +1,18 @@
 {% extends 'agentex/base.html' %}
+{% load staticfiles %}
 
 {% block body-class %}full agentex dossier {%endblock%}
 
 {%block header %}Transit Lightcurve of {{event.title}}{%endblock%}
 
 {% block script-content %}
-	<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/agentex.js"></script>
+	<script language="javascript" type="text/javascript" src="{% static 'js/agentex.js' %}"></script>
 	<!--[if lt IE 9]><script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/excanvas.js"></script><![endif]-->
-	<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jquery.min.js"></script>
-	<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jquery.flot.js"></script>
-	<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jquery.flot.axislabels.js"></script>
-	<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jquery.flot.fillbetween.js"></script>
-	<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/lightcurve.js"></script>
+	<script language="javascript" type="text/javascript" src="{% static 'js/jquery.min.js' %}"></script>
+	<script language="javascript" type="text/javascript" src="{% static 'js/jquery.flot.js' %}"></script>
+	<script language="javascript" type="text/javascript" src="{% static 'js/jquery.flot.axislabels.js' %}"></script>
+	<script language="javascript" type="text/javascript" src="{% static 'js/jquery.flot.fillbetween.js' %}"></script>
+	<script language="javascript" type="text/javascript" src="{% static 'js/lightcurve.js' %}"></script>
 
 	<script type="text/javascript">
 	<!--
@@ -20,7 +21,7 @@
 		{% if user.is_authenticated and sources %}html += '<div id="clickdata">Click a point to edit your measurement<\/div>';{% endif %}
 		html += '<div id="mainplot" style="padding-left:40px;height:450px;width:850px;margin-bottom:10px;"><\/div>';
 		$('h1').after(html);
-		$('#mainplot').after('<div id="tabletoggle" style="float:right;"><img src="{{STATIC_URL}}images/table_icon&24.png" alt="toggle table" title="Show or hide the data table" style="width:16px;margin-right:10px;" \/><\/div>')
+		$('#mainplot').after('<div id="tabletoggle" style="float:right;"><img src="{% static 'images/table_icon&24.png' %}" alt="toggle table" title="Show or hide the data table" style="width:16px;margin-right:10px;" \/><\/div>')
 		$('#tabletoggle').bind('click',function(){
 			$('table.accessible').toggle();
 		})

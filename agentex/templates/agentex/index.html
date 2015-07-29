@@ -1,4 +1,5 @@
 {% extends 'agentex/base.html' %}
+{% load staticfiles %}
 
 {% block body-class %}full agentex dossierfront {%endblock%}
 
@@ -19,7 +20,7 @@
 {% block main-content %}
 
 	<div style="margin:32px;">
-		<div style="height:160px;background-color:black;background-image:url('{{STATIC_URL}}images/banner.png');border:3px solid white;" class="paper"><a href="{% url 'target' %}" style="margin-top:90px;margin-right:20px;float:right;" class="fancybtn btn fancybtnglow">Start the mission <span class="arrow">&nbsp;</span></a></div>
+		<div style="height:160px;background-color:black;background-image:url({% static 'images/banner.png' %});border:3px solid white;" class="paper"><a href="{% url 'target' %}" style="margin-top:90px;margin-right:20px;float:right;" class="fancybtn btn fancybtnglow">Start the mission <span class="arrow">&nbsp;</span></a></div>
 	
 		<div class="lower" style="margin-bottom:16px;"></div>
 	
@@ -28,7 +29,7 @@
 				<div style="margin:24px 24px 0px 24px;">
 					<h1 class="objectspecific" style="margin-bottom:8px;">Mission Brief</h1>
 
-{% if user.is_authenticated %}					<p style="color:black;">Welcome{% if user.first_name %} <a href="{% url agentex.views.profile %}">{{ user.first_name}}</a>{% endif %}.</p>{% endif %}
+{% if user.is_authenticated %}					<p style="color:black;">Welcome{% if user.first_name %} <a href="{% url 'agentex.views.profile' %}">{{ user.first_name}}</a>{% endif %}.</p>{% endif %}
 					
 					<p style="color:black;">Astronomers at Las Cumbres Observatory are investigating exoplanets - planets which orbit stars other than our Sun - and you can too.</p>
 				
