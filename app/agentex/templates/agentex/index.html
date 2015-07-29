@@ -28,7 +28,7 @@
 				<div style="margin:24px 24px 0px 24px;">
 					<h1 class="objectspecific" style="margin-bottom:8px;">Mission Brief</h1>
 
-{% if user.is_authenticated %}					<p style="color:black;">Welcome{% if user.first_name %} <a href="{% url agentex.views.profile %}">{{ user.first_name}}</a>{% endif %}.</p>{% endif %}
+{% if user.is_authenticated %}					<p style="color:black;">Welcome{% if user.first_name %} <a href="{% url 'editaccount' %}">{{ user.first_name}}</a>{% endif %}.</p>{% endif %}
 					
 					<p style="color:black;">Astronomers at Las Cumbres Observatory are investigating exoplanets - planets which orbit stars other than our Sun - and you can too.</p>
 				

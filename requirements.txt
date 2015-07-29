@@ -1,6 +1,0 @@
-Django>1.8,<1.9
-# MySQL-python
-astropy
-django-suit
-APLpy==0.9.8
-ATpy==0.9.5.3
