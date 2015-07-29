@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<items>
+	{% for d in data%}
+	<frame>
+		<id>{{d.id}}</id>
+		<date>{{d.date}}</date>
+	</frame>
+	{% endfor %}
+</items>

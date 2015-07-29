@@ -1,0 +1,6 @@
+Django>1.8,<1.9
+MySQL-python
+astropy
+APLpy
+numpy
+django-grappelli
