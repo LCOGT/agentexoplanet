@@ -21,27 +21,27 @@ from django.conf import settings
 
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
-LOCAL_DEVELOPMENT = False if CURRENT_PATH.startswith('/var/www') else True
-PRODUCTION = True
+PRODUCTION = True if CURRENT_PATH.startswith('/var/www') else False
+LOCAL_DEVELOPMENT = not PRODUCTION
 
-DEBUG = True
+DEBUG = True #not PRODUCTION
 
 PREFIX ="/agentexoplanet"
+FORCE_SCRIPT_NAME = PREFIX
 BASE_DIR = os.path.dirname(CURRENT_PATH)
 
 ADMINS = (
-     ('Edward Gomez', 'egomez@lcogt.net'),
 )
 
 MANAGERS = ADMINS
 
 DATABASES = {
  'default' : {
-    'ENGINE': 'django.db.backends.sqlite3',
+    'ENGINE'    : 'django.db.backends.mysql',
     'NAME'      : os.environ.get('CITSCI_DB_NAME',''),
-    "USER": os.environ.get('CITSCI_DB_USER',''),
-    "PASSWORD": os.environ.get('CITSCI_DB_PASSWD',''),
-    "HOST": os.environ.get('CITSCI_DB_HOST',''),
+    "USER"      : os.environ.get('CITSCI_DB_USER',''),
+    "PASSWORD"  : os.environ.get('CITSCI_DB_PASSWD',''),
+    "HOST"      : os.environ.get('CITSCI_DB_HOST',''),
 }
 }
 
@@ -62,15 +62,15 @@ SITE_ID = 1
 # to load the internationalization machinery.
 USE_I18N = True
 
+MEDIA_ROOT = '/var/www/html/media/'
+MEDIA_URL = PREFIX + '/media/'
 
-#MEDIA_ROOT = '/var/www/html/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
-MEDIA_URL = '/media/'
+DATA_LOCATION = MEDIA_ROOT + '/data'
+DATA_URL = MEDIA_URL + 'data'
 
-#STATIC_ROOT = '/var/www/html/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, "static/")
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR,'agentex'),os.path.join(BASE_DIR,'showmestars')]
+STATIC_ROOT = '/var/www/html/static/'
+STATIC_URL = PREFIX + '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR,'agentex','static')]
 
 # List of finder classes that know how to find static files in
 # various locations.
@@ -123,14 +123,13 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
-    'grappelli.dashboard', # Grappelli apps must be before django.contrib.admin
-    'grappelli',
+    #'grappelli.dashboard', # Grappelli apps must be before django.contrib.admin
+    #'grappelli',
     'django.contrib.admin',
     'django.contrib.messages',
     'django.contrib.staticfiles', # Added by TJ to allow static files declaration
-    'agentex',
-    'showmestars',
     'core',
+    'agentex',
 )
 
 LOGIN_REDIRECT_URL = 'http://lcogt.net/agentexoplanet/'
@@ -138,10 +137,67 @@ LOGIN_URL = 'http://lcogt.net/agentexoplanet/account/login/'
 
 BASE_URL = "/agentexoplanet/"
 
-DATA_LOCATION = CURRENT_PATH + '/media/data'
-DATA_URL = '/agentexoplanet/media/data'
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 1025
 
 ALLOWED_HOSTS = ['*']
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'verbose': {
+            'format' : "[%(asctime)s] %(levelname)s %(message)s",
+            'datefmt' : "%d/%b/%Y %H:%M:%S"
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        }
+    },
+    'handlers': {
+        'mail_admins': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler'
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'agentex.log',
+            'formatter': 'verbose',
+            'filters': ['require_debug_false']
+        },
+        'console': {
+            'level': 'ERROR',
+            'class': 'logging.StreamHandler',
+        }
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'django': {
+            'handlers':['file'],
+            'propagate': True,
+            'level':'ERROR',
+        },
+        'core' : {
+            'handlers' : ['file','console'],
+            'level'    : 'DEBUG',
+        },
+        'agentex' : {
+            'handlers' : ['file','console'],
+            'level'    : 'DEBUG',
+        }
+    }
+}
 
 ##################
 # LOCAL SETTINGS #
@@ -150,7 +206,7 @@ ALLOWED_HOSTS = ['*']
 # Allow any settings to be defined in local_settings.py which should be
 # ignored in your version control system allowing for settings to be
 # defined per machine.
-if LOCAL_DEVELOPMENT:
+if not PRODUCTION:
     try:
         from local_settings import *
     except ImportError as e:

@@ -29,7 +29,11 @@
 				<div style="margin:24px 24px 0px 24px;">
 					<h1 class="objectspecific" style="margin-bottom:8px;">Mission Brief</h1>
 
+<<<<<<< HEAD:agentex/templates/agentex/index.html
 {% if user.is_authenticated %}					<p style="color:black;">Welcome{% if user.first_name %} <a href="{% url 'agentex.views.profile' %}">{{ user.first_name}}</a>{% endif %}.</p>{% endif %}
+=======
+{% if user.is_authenticated %}					<p style="color:black;">Welcome{% if user.first_name %} <a href="{% url 'editaccount' %}">{{ user.first_name}}</a>{% endif %}.</p>{% endif %}
+>>>>>>> 5b9dff5db8fb71d618e9d301d84bbde56d4484c9:app/agentex/templates/agentex/index.html
 					
 					<p style="color:black;">Astronomers at Las Cumbres Observatory are investigating exoplanets - planets which orbit stars other than our Sun - and you can too.</p>
 				
