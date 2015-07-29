@@ -42,7 +42,7 @@ COPY config/uwsgi.ini /etc/uwsgi.ini
 COPY config/nginx/* /etc/nginx/
 COPY config/processes.ini /etc/supervisord.d/processes.ini
 
-# httpd on port 80
+# Listen on port 80
 EXPOSE 80
 
 # we run under supervisord
