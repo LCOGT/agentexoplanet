@@ -1,4 +1,5 @@
 {% extends 'agentex/base.html' %}
+{% load staticfiles %}
 {% load observing_extras %}
 
 {% block body-class %}full agentex dossier {%endblock%}
@@ -11,12 +12,12 @@
 
 		<div class="eventimage">
 			<a href="http://server1.wikisky.org/v2?ra={{object.target.ra|hexangletodec}}&de={{object.target.dec|hexangletodec}}&zoom=10&img_source=DSS2"><img src="{{STATIC_URL}}{{object.event.illustration}}" class="bio" alt="Illustration of {{event.title}}" style="width:200px" ></a>
-			<img src="{{STATIC_URL}}images/paperclip.png" class="paperclip" alt="." />
+			<img src="{% static 'images/paperclip.png' %}" class="paperclip" alt="." />
 			<p class="objectspecific">Digital Sky Survey 2</p>
 		</div>	
-		<div id="mylink" style="display:none;"><a href="{% url 'my-graph' object.event.name %}"><img src="{{ STATIC_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" /></a></div>
-		<div id="avlink" style="display:none;"><a href="{% url 'average-graph' object.event.name %}"><img src="{{ STATIC_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" /></a></div>
-		<div id="sulink" style="display:none;"><a href="{%url 'super-graph' object.event.name%}"><img src="{{ STATIC_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" /></a></div>
+		<div id="mylink" style="display:none;"><a href="{% url 'my-graph' object.event.name %}"><img src="{% static 'images/graph_my.png' %}" alt="My" title="View my measurements as a lightcurve" /></a></div>
+		<div id="avlink" style="display:none;"><a href="{% url 'average-graph' object.event.name %}"><img src="{% static 'images/graph_ave.png' %}" alt="Classify" title="Classify your lightcurves" /></a></div>
+		<div id="sulink" style="display:none;"><a href="{%url 'super-graph' object.event.name%}"><img src="{% static 'images/graph_super.png' %}" alt="Final" title="Final lightcurve" /></a></div>
 		<div class="title">
 			<h1>Name: <span class="objectspecific">{{object.event.title}}</span></h1>
 		</div>
@@ -52,7 +53,7 @@
 			</table>
 		</div>
 		<div class="furtherinfo">
-			<img src="{{STATIC_URL}}images/tape.png" class="tape" alt="." />
+			<img src="{% static 'images/tape.png' %}" class="tape" alt="." />
 			<table>
 			<tr>
 				<th colspan=3>Further information on the web</th>

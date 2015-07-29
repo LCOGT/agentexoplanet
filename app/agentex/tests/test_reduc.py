@@ -32,10 +32,10 @@ class TestCalibratorData(TestCase):
 
     def test_calibrator_data(self):
 
-        calid = [[1.0027368135066828, 1.0132907205041479, 0.96722679141680545, 0.99456124655374001, 0.9678167506492511, 0.97059108507246183, 0.97544481338508437, 0.97548031354646791, 0.98628376039206656, 0.98063447405450066, 0.99786942830874736, 1.0166881513291954, 1.0021880949344202]]
-        code = {'dip': 0, 'total': 2, 'done': 1}
+        calid = None
+        code = 'testing'
 
-        calibrator = calibrator_data(calid,code)
+        d, t, p = calibrator_data(calid,code)
         self.assertNotEqual(calibrator, [])
 
 '''

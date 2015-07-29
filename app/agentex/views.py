@@ -157,7 +157,9 @@ def target(request):
 @login_required
 def addvalue_post(request, person, code):
 
+    # Writes current observer to variable o
     o = Observer.objects.filter(user=person)
+    # Tracks progress of observer
     progress = checkprogress(person,code)
 
     ####### Form data has been submitted
@@ -741,194 +743,273 @@ def updatedataset(request,code):
         
 @login_required  
 def graphview(request,code,mode,calid):
-    #measurement = Datapoint.objects.filter(taken=date,data__event__name=code)
-    #calibrate(measurement)
-    o = personcheck(request)
-    progress = checkprogress(o.user,code)
-    n = 0
-    if mode == 'simple':
-        d1 = ds.Dataset(code,o.user.username)
-        data,points = d1.my_data()#my_data(o,code)
-        dc = DataCollection.objects.filter(person=o.user,planet=d1.planet)
-        if dc.count() > n:
-            n = range(0,dc.count())
-            cats = []
-            for order in n:
-                try:
-                    ## Sometimes the sequence of calibrators is not continuous 0..n  -- BUG
-                    dc0 = dc.filter(calid=order)[0]
-                    c = points.filter(pointtype='C',coorder=dc0)[:1]
-                    valid = c[0].coorder.display
-                    coll = {'order' : order,
-                            'name'  : c[0].coorder.source,
-                            'valid' : valid,
-                            }
-                    cats.append(coll)
-                except:
-                    pass
-        else:
-            cats = None
-        classif = classified(o,code)
-        '''
-        return render_to_response('agentex/graph_flot.html', {'event':d1.planet,
-                                                                'data':data,
-                                                                'n':n,
-                                                                'sources':cats,
-                                                                'classified':classif,
-                                                                'progress' : progress,
-                                                                'target':DataSource.objects.filter(event__name=code)[0].target}, 
-                                                                context_instance=RequestContext(request))
-        '''
-        return render(request, 'agentex/graph_flot.html', {'event':d1.planet,
-                                                                'data':data,
-                                                                'n':n,
-                                                                'sources':cats,
-                                                                'classified':classif,
-                                                                'progress' : progress,
-                                                                'target':DataSource.objects.filter(event__name=code)[0].target})
-    elif mode == 'ave':
-        data = []
-        # get and restructure the average data JS can read it nicely
-        now = datetime.now()
-        cals,normcals,sb,bg,dates,stamps,ids,cats = photometry(code,o.user,progress) 
-        numcals = len(normcals)
-        print normcals
-        for i,id in enumerate(ids):
-            #mycalibs = []
-            calibs = []
-            normcalibs = []
-            for j in range(0,numcals):
-                calibs.append([cals[j][i],cats[j]['order']])
-                #mycalibs.append(mycals[j][i])
-                normcalibs.append(normcals[j][i])
-            line = {
-                    'id'        : id,
-                    'date'      : dates[i],
-                    'datestamp' : stamps[i],
-                    'data'      : { 'source' : sb[i],
-                                    'background' :  bg[i],
-                                    'calibration' :  normcalibs,
-                                    #'mycals'     :  mycalibs,
-                                    'calibrator' : calibs,
-                                },
-                    }
-            data.append(line)
-        planet = Event.objects.filter(name=code)[0]        
-        ### Make sure person gets a different calibrator (that they haven't classified) after each POST
-        currentcal = None
-        dec = Decision.objects.values('source__name').filter(person=o.user,planet__name=code,value__in=['D','N','B','P','R','S'],current=True).annotate(count=Count('source')).order_by('count')
-        if calid:
-            for cat in cats:
-                # Which calibrator is being requested, if one is requested
-                if int(cat['order']) == int(calid)-1:
-                    currentcal = {'order': cat['order'], 'sourcename' : "%s" % cat['sourcename'],'total':len(cats),'progress':dec.count()}  
-        else:
-            if dec.count() == 0 and cats:
-                currentcal = {'order': cats[0]['order'], 'sourcename' : "%s" % cats[0]['sourcename'], 'total':len(cats),'progress':dec.count()}
-            elif dec.count() < len(cats):
-                tmp, declist = zip(*dec.values_list('count','source__name'))
-                for cat in cats:
-                    if (cat['sourcename']  not in declist):
-                        currentcal = {'order': cat['order'], 'sourcename' : "%s" % cat['sourcename'], 'total':len(cats),'progress':dec.count()}
-            elif dec:
-                for cat in cats:
-                    if cat['sourcename'] == dec[0]['source__name']:
-                        currentcal = {'order': cat['order'], 'sourcename' : "%s" % cat['sourcename'], 'total':len(cats),'progress':dec.count()}
-        if currentcal:
-            ## Send decision person made last time they were here
-            mychoice = Decision.objects.values('value').filter(person=o.user,planet__name=code,value__in=['D','N','B','P','R'],source__name=currentcal['sourcename'])
-            if mychoice:
-                choice = mychoice.latest('taken')
-                rev_dec = dict((v,k) for k, v in decisions.iteritems())
-                prev = rev_dec[choice['value']]
-            else:
-                prev = None
-            # How many have I classified
-        elif len(cats) == 0 and calid == None:
-            prev = None
-        else:
-            messages.error(request,'The lightcurve using the selected calibrator is not complete')
-            return HttpResponseRedirect(reverse('average-graph',args=[planet.name]))
-        #print datetime.now() - now
-        classif = classified(o,code)
-        resp = achievementscheck(o.user,planet,0,0,0,len(cats),0)
-        unlock = False
-        nunlock = 0
-        msg = '<br />'
-        
-        for item in resp:
-            if messages.SUCCESS == item['code'] :
-                msg += "<img src=\""+settings.STATIC_URL+item['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />"
-                unlock = True
-                nunlock += 1
 
-        if unlock :
-            if nunlock > 1 : msg = 'Achievements unlocked'+msg
-            else : msg = 'Achievement unlocked'+msg
-            messages.add_message(request, messages.SUCCESS, msg)
-        print classif
-        '''
-        return render_to_response('agentex/graph_average.html', {'event': planet,
-                                                                'data':data,
-                                                                'sources':cats,
-                                                                'cals':json.dumps(cats),
-                                                                'calid': currentcal,
-                                                                'prevchoice' : prev,
-                                                                'classified':classif,
-                                                                'progress' : progress,
-                                                                'target':DataSource.objects.filter(event=planet)[0].target},
-                                                                context_instance=RequestContext(request))
-        '''
-        return render(request, 'agentex/graph_average.html', {'event': planet,
-                                                                'data':data,
-                                                                'sources':cats,
-                                                                'cals':json.dumps(cats),
-                                                                'calid': currentcal,
-                                                                'prevchoice' : prev,
-                                                                'classified':classif,
-                                                                'progress' : progress,
-                                                                'target':DataSource.objects.filter(event=planet)[0].target})
+    if mode == 'simple':
+        return graphview_simple(request,code,mode,calid)
+    elif mode == 'ave':
+        return graphview_ave(request,code,mode,calid)
     elif mode == 'advanced':
-        opt = {'S' :'source','C':'calibrator','B':'sky'}
-        if 'dataid' in request.GET:
-            dataid = request.GET.get('dataid','')
-        else:    
-            dataid = Datapoint.objects.filter(user=o[0].user).order_by('taken')[0].data.id
-        try:
-            s = DataSource.objects.filter(id=dataid)[0]
-        except:
-            raise Http404  
-        ps  = Datapoint.objects.filter(~Q(pointtype = 'R'),data = s).order_by('-pointtype')
-        datalist = [{'mine': ismypoint(o[0],dp.user),'x' : dp.xpos,'y' : dp.ypos, 'r' : dp.radius, 'value' : "%.0f" % dp.value,'type':opt[dp.pointtype]} for dp in ps]
+        return graphview_advanced(request,code,mode,calid)
+
+def graphview_simple(request,code,mode,calid):
+# If graphview is simple
+
+    # Stores the name of the observer from the request in variable o
+    o = personcheck(request)
+
+    # Stores the number of completed datasets with the total
+    progress = checkprogress(o.user,code)
+    
+    # See first if statement
+    n = 0
+
+    # Creates a dataset object for the user
+    d1 = ds.Dataset(code,o.user.username)
+
+    # Returns information in 2 lists for the data being analysed as well as information on the datapoints
+    data,points = d1.my_data()#my_data(o,code)
+
+    # Returns list of data collections based on the exoplanet being analysed
+    dc = DataCollection.objects.filter(person=o.user,planet=d1.planet)
+    
+    # If the number of data collections is greater than 0 (as defined earlier)
+    if dc.count() > n:
+
+        # Overrides n with an array in range 0 to the number of collections in dc
+        n = range(0,dc.count())
+
+        # Empty list 
+        cats = []
+
+        # Goes through each entry in n and tries the following
+        for order in n:
+            try:
+                ## Sometimes the sequence of calibrators is not continuous 0..n  -- BUG
+
+                # Returns the name of the object being analysed
+                dc0 = dc.filter(calid=order)[0]
+
+                # Filter points to return one datapoint
+                c = points.filter(pointtype='C',coorder=dc0)[:1]
+                
+                # Is this datapoint valid? Boolean
+                valid = c[0].coorder.display
+
+                # Create list of the name of the object, its order and whether it is valid
+                coll = {'order' : order,
+                        'name'  : c[0].coorder.source,
+                        'valid' : valid,
+                        }
+
+                # Appends to the empty list cals
+                cats.append(coll)
+            
+            # If cannot try, simply pass
+            except:
+                pass
+
+    # If the count is less than n
+    else:
+
+        # Declare cats as being None (not an empty list)
+        cats = None
+
+    # Stores total number of analyses, those of which are completed and those of which have been classified has having a dip
+    classif = classified(o,code)
+
+    # Render the findings
+    return render(request, 'agentex/graph_flot.html', {'event':d1.planet,
+                                                            'data':data,
+                                                            'n':n,
+                                                            'sources':cats,
+                                                            'classified':classif,
+                                                            'progress' : progress,
+                                                            'target':DataSource.objects.filter(event__name=code)[0].target})
+
+@login_required
+def graphview_ave(request,code,mode,calid):
+    # If the mode is average rather than simple
+
+    # Stores the name of the observer from the request in variable o
+    o = personcheck(request)
+
+    # Stores the number of completed datasets with the total
+    progress = checkprogress(o.user,code)
+    
+    # See first if statement
+    n = 0
+
+    # Define empty list to store data
+    data = []
+
+    # get and restructure the average data JS can read it nicely
+    # Stores the date and time at this instance
+    now = datetime.now()
+
+    # Calls photometry function and stores results
+    cals,normcals,sb,bg,dates,stamps,ids,cats = photometry(code,o.user,progress) 
+
+    # Determines the number of calibrator stars
+    numcals = len(normcals)
+
+    # Prints the normalised calibrators 
+    print 'The normalised calibrator stars are', normcals
+
+    for i,id in enumerate(ids):
+        #mycalibs = []
+
+        # Empty lists to store both calibrators and normalised calibrators
+        calibs = []
+        normcalibs = []
+
+        # Iterate over the number of normalised calibrators
+        for j in range(0,numcals):
+
+            # Appends calibs and normcalibs with the iterated members of cals
+            calibs.append([cals[j][i],cats[j]['order']])
+            #mycalibs.append(mycals[j][i])
+            normcalibs.append(normcals[j][i])
+        
+        # Populates a list with id, datestamps etc
         line = {
-                'id'        : "%i" % s.id,
-                'date'      : s.timestamp.isoformat(" "),
-                'datestamp' : timegm(s.timestamp.timetuple())+1e-6*s.timestamp.microsecond,
-                'data'      : datalist,
+                'id'        : id,
+                'date'      : dates[i],
+                'datestamp' : stamps[i],
+                'data'      : { 'source' : sb[i],
+                                'background' :  bg[i],
+                                'calibration' :  normcalibs,
+                                #'mycals'     :  mycalibs,
+                                'calibrator' : calibs,
+                            },
                 }
-        '''
-        return render_to_response('agentex/graph_advanced.html', {'event':Event.objects.filter(name=code)[0],
-                                                                        'framedata':line,
-                                                                        'target':DataSource.objects.filter(event__name=code)[0].target,
-                                                                        'progress' : progress}, context_instance=RequestContext(request))
-        '''
-        return render_to_response(request, 'agentex/graph_advanced.html', {'event':Event.objects.filter(name=code)[0],
-                                                                        'framedata':line,
-                                                                        'target':DataSource.objects.filter(event__name=code)[0].target,
-                                                                        'progress' : progress})
+
+        # Append data with line and break loop
+        data.append(line)
+
+    # Stores name of planet
+    planet = Event.objects.filter(name=code)[0]
+
+    ### Make sure person gets a different calibrator (that they haven't classified) after each POST
+    
+    # Set current calibrator to None
+    currentcal = None
+
+    # Returns the name of the source and the number of instances of it
+    dec = Decision.objects.values('source__name').filter(person=o.user,planet__name=code,value__in=['D','N','B','P','R','S'],current=True).annotate(count=Count('source')).order_by('count')
+    
+    # Essentially this loop determines which calibrator is being analysed
+    if calid:
+        for cat in cats:
+            # Which calibrator is being requested, if one is requested
+            if int(cat['order']) == int(calid)-1:
+                currentcal = {'order': cat['order'], 'sourcename' : "%s" % cat['sourcename'],'total':len(cats),'progress':dec.count()}  
+    else:
+        if dec.count() == 0 and cats:
+            currentcal = {'order': cats[0]['order'], 'sourcename' : "%s" % cats[0]['sourcename'], 'total':len(cats),'progress':dec.count()}
+        elif dec.count() < len(cats):
+            tmp, declist = zip(*dec.values_list('count','source__name'))
+            for cat in cats:
+                if (cat['sourcename']  not in declist):
+                    currentcal = {'order': cat['order'], 'sourcename' : "%s" % cat['sourcename'], 'total':len(cats),'progress':dec.count()}
+        elif dec:
+            for cat in cats:
+                if cat['sourcename'] == dec[0]['source__name']:
+                    currentcal = {'order': cat['order'], 'sourcename' : "%s" % cat['sourcename'], 'total':len(cats),'progress':dec.count()}
+    if currentcal:
+        ## Send decision person made last time they were here
+        mychoice = Decision.objects.values('value').filter(person=o.user,planet__name=code,value__in=['D','N','B','P','R'],source__name=currentcal['sourcename'])
+        if mychoice:
+            choice = mychoice.latest('taken')
+            rev_dec = dict((v,k) for k, v in decisions.iteritems())
+            prev = rev_dec[choice['value']]
+        else:
+            prev = None
+        # How many have I classified
+    elif len(cats) == 0 and calid == None:
+        prev = None
+    else:
+        messages.error(request,'The lightcurve using the selected calibrator is not complete')
+        return HttpResponseRedirect(reverse('average-graph',args=[planet.name]))
+    #print datetime.now() - now
+    classif = classified(o,code)
+    resp = achievementscheck(o.user,planet,0,0,0,len(cats),0)
+    unlock = False
+    nunlock = 0
+    msg = '<br />'
+    
+    for item in resp:
+        if messages.SUCCESS == item['code'] :
+            msg += "<img src=\""+STATIC_URL+item['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />"
+            unlock = True
+            nunlock += 1
+
+    if unlock :
+        if nunlock > 1 : msg = 'Achievements unlocked'+msg
+        else : msg = 'Achievement unlocked'+msg
+        messages.add_message(request, messages.SUCCESS, msg)
+    print 'The classified objects are', classif
+    return render(request, 'agentex/graph_average.html', {'event': planet,
+                                                            'data':data,
+                                                            'sources':cats,
+                                                            'cals':json.dumps(cats),
+                                                            'calid': currentcal,
+                                                            'prevchoice' : prev,
+                                                            'classified':classif,
+                                                            'progress' : progress,
+                                                            'target':DataSource.objects.filter(event=planet)[0].target})
+
+@login_required
+def graphview_advanced(request,code,mode,calid):
+
+    # Stores the name of the observer from the request in variable o
+    o = personcheck(request)
+
+    # Stores the number of completed datasets with the total
+    progress = checkprogress(o.user,code)
+
+    # Populate with data from the source, the cslibrator and the sky values
+    opt = {'S' :'source','C':'calibrator','B':'sky'}
+    
+    # If dataid is in request.GET, extract the dataid
+    if 'dataid' in request.GET:
+        dataid = request.GET.get('dataid','')
+    else:    
+
+        # Otherwise filter the datapoints to extract
+        dataid = Datapoint.objects.filter(user=o[0].user).order_by('taken')[0].data.id
+
+    # If still no luck, try lesser filter
+    try:
+        s = DataSource.objects.filter(id=dataid)[0]
+
+    # If still not working, raise HTTP 404
+    except:
+        raise Http404  
+    
+    # Filters the datapoints by reverse pointtype
+    ps  = Datapoint.objects.filter(~Q(pointtype = 'R'),data = s).order_by('-pointtype')
+
+    # Populates a list of the data
+    datalist = [{'mine': ismypoint(o[0],dp.user),'x' : dp.xpos,'y' : dp.ypos, 'r' : dp.radius, 'value' : "%.0f" % dp.value,'type':opt[dp.pointtype]} for dp in ps]
+
+    # Brings it all together
+    line = {
+            'id'        : "%i" % s.id,
+            'date'      : s.timestamp.isoformat(" "),
+            'datestamp' : timegm(s.timestamp.timetuple())+1e-6*s.timestamp.microsecond,
+            'data'      : datalist,
+            }
+
+    return render(request, 'agentex/graph_advanced.html', {'event':Event.objects.filter(name=code)[0],
+                                                                    'framedata':line,
+                                                                    'target':DataSource.objects.filter(event__name=code)[0].target,
+                                                                    'progress' : progress})
 
 def graphsuper(request,code):
     # Construct the supercalibrator lightcurve
     ds1 = ds.Dataset(planetid=code,userid=request.user.username)
     data = ds1.final()
     ###### Setting nodata to True and not showing each person their own data, but just for now
-    '''
-    return render_to_response('agentex/graph_super.html', {'event':ds1.planet,
-                                                                'data':data,
-                                                                'numsuper':13,
-                                                                'target':ds1.target,
-                                                                'nodata' : True}, context_instance=RequestContext(request))
-    '''
     return render(request, 'agentex/graph_super.html', {'event':ds1.planet,
                                                                 'data':data,
                                                                 'numsuper':13,

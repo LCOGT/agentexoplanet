@@ -1,18 +1,19 @@
 {% extends 'agentex/base.html' %}
+{% load staticfiles %}
 
 {% block body-class %}full agentex dossier {%endblock%}
 
 {%block header %}Transit Lightcurve of {{event.title}}{%endblock%}
 
 {% block script-content %}
-	<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/agentex.js"></script>
+	<script language="javascript" type="text/javascript" src="{% static 'js/agentex.js' %}"></script>
 	<!--[if lt IE 9]><script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/excanvas.js"></script><![endif]-->
-	<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/sylvester-min.js"></script>
-	<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/optimize.js"></script>
-	<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jquery.graph.js"></script>
-	<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/lightcurve.js"></script>
-	<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/raphael.js"></script>
-	<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/planetarymodel.js"></script>
+	<script language="javascript" type="text/javascript" src="{% static 'js/sylvester-min.js' %}"></script>
+	<script language="javascript" type="text/javascript" src="{% static 'js/optimize.js' %}"></script>
+	<script language="javascript" type="text/javascript" src="{% static 'js/jquery.graph.js' %}"></script>
+	<script language="javascript" type="text/javascript" src="{% static 'js/lightcurve.js' %}"></script>
+	<script language="javascript" type="text/javascript" src="{% static 'js/raphael.js' %}"></script>
+	<script language="javascript" type="text/javascript" src="{% static 'js/planetarymodel.js' %}"></script>
 
 	<script type="text/javascript">
 	<!--
@@ -36,7 +37,7 @@
 		$('.breadcrumb').after(html);
 
 		if($('table#datatable').length > 0){
-			$('table#datatable').before('<div id="tabletoggle" style="float:left;cursor:pointer;"><img src="{{STATIC_URL}}images/table_icon&24.png" alt="toggle table" title="Show or hide the data table" style="width:16px;margin-right:0px;" \/> toggle data table<\/div><br style="clear:both;" />')
+			$('table#datatable').before('<div id="tabletoggle" style="float:left;cursor:pointer;"><img src="{% static 'images/table_icon&24.png' %}" alt="toggle table" title="Show or hide the data table" style="width:16px;margin-right:0px;" \/> toggle data table<\/div><br style="clear:both;" />')
 			$('#tabletoggle').bind('click',function(){
 				$('table.accessible').toggle();
 			})
@@ -120,9 +121,9 @@
 		</ol>
 -->
 		<p class="breadcrumb"></p>
-		<div id="mylink" style="display:none;"><a href="{%url 'my-graph' event.name%}"><img src="{{ STATIC_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" /></a></div>
-		<div id="avlink" style="display:none;"><a href="{%url 'average-graph' event.name%}"><img src="{{ STATIC_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" /></a></div>
-		<div id="sulink" class="tabactive" style="display:none;"><a href="{%url 'super-graph' event.name%}"><img src="{{ STATIC_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" /></a></div>
+		<div id="mylink" style="display:none;"><a href="{%url 'my-graph' event.name%}"><img src="{% static 'images/graph_my.png' %}" alt="My" title="View my measurements as a lightcurve" /></a></div>
+		<div id="avlink" style="display:none;"><a href="{%url 'average-graph' event.name%}"><img src="{% static 'images/graph_ave.png' %}" alt="Classify" title="Classify your lightcurves" /></a></div>
+		<div id="sulink" class="tabactive" style="display:none;"><a href="{%url 'super-graph' event.name%}"><img src="{% static 'images/graph_super.png' %}" alt="Final" title="Final lightcurve" /></a></div>
 {% else %}
 		<p class="breadcrumb">You can contribute measurements to this lightcurve after <a href="{% url 'register' %}?next={{ request.path }}">creating an account.</a> If you already have an account <a href="{% url 'login' %}?next={{ request.path }}">log in</a></p>
 {% endif %}
