@@ -341,7 +341,7 @@ def addvalue_nopost(request, person, code):
             msg = '<br />'
             for item in resp:
                 if messages.SUCCESS == item['code'] :
-                    msg += "<img src=\""+STATIC_URL+item['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />"
+                    msg += "<img src=\""+settings.STATIC_URL+item['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />"
                     messages.success(request,msg)
             
             return HttpResponseRedirect(reverse('my-graph',args=[code]))
@@ -610,7 +610,7 @@ def savemeasurement(person,pointsum,coords,dataid,entrymode):
         msg = '<br />'
         for item in resp:
             if messages.SUCCESS == item['code'] :
-                msg += "<img src=\""+STATIC_URL+item['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />"
+                msg += "<img src=\""+settings.STATIC_URL+item['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />"
                 unlock = True
                 nunlock += 1
 
@@ -628,7 +628,7 @@ def read_manual_check(request):
 		o = personcheck(request)
 		resp = achievementunlock(o.user,None,'manual')
 		if messages.SUCCESS == resp['code'] :
-			messages.add_message(request, messages.SUCCESS, "Achievement unlocked<br /><img src=\""+STATIC_URL+resp['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />")
+			messages.add_message(request, messages.SUCCESS, "Achievement unlocked<br /><img src=\""+settings.STATIC_URL+resp['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />")
 		
 	return HttpResponseRedirect(reverse('agentex.views.target'))
 		
@@ -858,7 +858,7 @@ def graphview(request,code,mode,calid):
         
         for item in resp:
             if messages.SUCCESS == item['code'] :
-                msg += "<img src=\""+STATIC_URL+item['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />"
+                msg += "<img src=\""+settings.STATIC_URL+item['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />"
                 unlock = True
                 nunlock += 1
 
