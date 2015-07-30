@@ -1,5 +1,5 @@
 '''
-Citizen Science Portal: App containing Agent Exoplant and Show Me Stars for Las Cumbres Observatory Global Telescope Network
+Citizen Science Portal: App containing Agent Exoplant for Las Cumbres Observatory Global Telescope Network
 Copyright (C) 2014-2015 LCOGT
 
 This program is free software: you can redistribute it and/or modify
@@ -12,7 +12,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 '''
-# Django settings for observing project.
+# Django settings for Agent Exoplanet
 
 import os
 import platform
@@ -24,7 +24,7 @@ CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
 PRODUCTION = True if CURRENT_PATH.startswith('/var/www') else False
 LOCAL_DEVELOPMENT = not PRODUCTION
 
-DEBUG = True #not PRODUCTION
+DEBUG = not PRODUCTION
 
 PREFIX ="/agentexoplanet"
 FORCE_SCRIPT_NAME = PREFIX
@@ -123,8 +123,8 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
-    #'grappelli.dashboard', # Grappelli apps must be before django.contrib.admin
-    #'grappelli',
+    'grappelli.dashboard', # Grappelli apps must be before django.contrib.admin
+    'grappelli',
     'django.contrib.admin',
     'django.contrib.messages',
     'django.contrib.staticfiles', # Added by TJ to allow static files declaration
@@ -134,6 +134,9 @@ INSTALLED_APPS = (
 
 LOGIN_REDIRECT_URL = 'http://lcogt.net/agentexoplanet/'
 LOGIN_URL = 'http://lcogt.net/agentexoplanet/account/login/'
+
+SESSION_COOKIE_DOMAIN='lcogt.net'
+SESSION_COOKIE_NAME='agentexoplanet.sessionid'
 
 BASE_URL = "/agentexoplanet/"
 
