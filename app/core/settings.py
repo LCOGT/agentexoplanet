@@ -129,11 +129,8 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.messages',
     'django.contrib.staticfiles', # Added by TJ to allow static files declaration
-    'debug_toolbar',
-    'debug_toolbar_line_profiler',
     'core',
     'agentex',
-    'devserver',
 )
 
 DEBUG_TOOLBAR_PANELS = (

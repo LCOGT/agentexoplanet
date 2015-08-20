@@ -23,7 +23,7 @@ def mocking_calave():
 
 '''
 Actual tests live here.
-'''
+
 
 class TestCalibratorData(TestCase):
 
@@ -38,7 +38,6 @@ class TestCalibratorData(TestCase):
         d, t, p = calibrator_data(calid,code)
         self.assertNotEqual(calibrator, [])
 
-'''
 class TestAverageCombine(TestCase):
 
     def setUp(self):
