@@ -38,6 +38,7 @@ MANAGERS = ADMINS
 DATABASES = {
  'default' : {
     'ENGINE'    : 'django.db.backends.mysql',
+    # 'ENGINE'    : 'django.db.backends.sqlite3',
     'NAME'      : os.environ.get('CITSCI_DB_NAME',''),
     "USER"      : os.environ.get('CITSCI_DB_USER',''),
     "PASSWORD"  : os.environ.get('CITSCI_DB_PASSWD',''),
@@ -128,15 +129,36 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.messages',
     'django.contrib.staticfiles', # Added by TJ to allow static files declaration
+    'debug_toolbar',
+    'debug_toolbar_line_profiler',
     'core',
     'agentex',
+    'devserver',
+)
+
+DEBUG_TOOLBAR_PANELS = (
+    'debug_toolbar.panels.versions.VersionsPanel',
+    #'debug_toolbar_line_profiler.panel.ProfilingPanel',
+    'debug_toolbar.panels.timer.TimerPanel',
+    'debug_toolbar.panels.settings.SettingsPanel',
+    'debug_toolbar.panels.headers.HeadersPanel',
+    'debug_toolbar.panels.request.RequestPanel',
+    'debug_toolbar.panels.sql.SQLPanel',
+    'debug_toolbar.panels.templates.TemplatesPanel',
+    'debug_toolbar.panels.staticfiles.StaticFilesPanel',
+    'debug_toolbar.panels.cache.CachePanel',
+    'debug_toolbar.panels.signals.SignalsPanel',
+    'debug_toolbar.panels.logging.LoggingPanel',
+    'debug_toolbar.panels.redirects.RedirectsPanel',
 )
 
 LOGIN_REDIRECT_URL = 'http://lcogt.net/agentexoplanet/'
 LOGIN_URL = 'http://lcogt.net/agentexoplanet/account/login/'
 
+'''
 SESSION_COOKIE_DOMAIN='lcogt.net'
 SESSION_COOKIE_NAME='agentexoplanet.sessionid'
+'''
 
 BASE_URL = "/agentexoplanet/"
 

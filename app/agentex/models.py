@@ -140,6 +140,7 @@ class DataCollection(models.Model):
         return val
     
 class Datapoint(models.Model):
+    ident = models.CharField(max_length=20)
     data = models.ForeignKey(DataSource)
     taken = models.DateTimeField(blank=True, default=datetime.now)
     value = models.FloatField(blank=True,null=True)  
@@ -151,6 +152,7 @@ class Datapoint(models.Model):
     radius = models.IntegerField('aperture radius', blank=True)
     entrymode = models.CharField(blank=False,max_length=1,choices=ENTRYCHOICE,default='W')
     offset = models.FloatField('distance from source',blank=True)
+    tstamp = models.IntegerField('unix timestamp', blank=True)
     class Meta:
         verbose_name = u'data point'
         db_table = u'dataexplorer_datapoint'
