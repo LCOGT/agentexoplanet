@@ -2,12 +2,21 @@ transit/
 *.log
 *.pot
 *.pyc
-local_settings.py
+*.pyx
+*.so
+*.c
+*.o
+app/core/local_settings.py
+app/setup.py
 .DS_Store
 media/data/*
 
 *agentex.json
 
-agentex/static/data/*
+app/agentex/static/data/*
+app/agentex/cython/*
+app/agentex/build/*
+
+citsci.db
 
 docker-compose.yml

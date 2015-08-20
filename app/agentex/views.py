@@ -13,6 +13,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 '''
 from astropy.io import fits 
+from astropy.table import Table
 from calendar import timegm
 from datetime import datetime,timedelta
 from django.conf import settings
@@ -48,9 +49,6 @@ import agentex.dataset as ds
 
 from agentex.agentex_settings import planet_level
 from agentex.datareduc import *
-
-# Added by TJ to allow logged in query to function (bottom of document)
-#from django.contrib.sessions.models import Session
 
 guestuser = 2
 
@@ -526,11 +524,14 @@ def savemeasurement(person,pointsum,coords,dataid,entrymode):
     r = d[0].event.radius
     for k,value in pointtype.iteritems():
         # Background and source
-        data = Datapoint(user=person,
+        data = Datapoint(ident=d[0].event.name,
+                            user=person,
                             pointtype = value,
                             data=d[0], 
                             radius=r,
-                            entrymode=mode[entrymode],)
+                            entrymode=mode[entrymode],
+                            tstamp=mktime(d[0].timestamp.timetuple())
+                            )
         if k == 'sc':
             coord = coords[1]
             data.offset = 0
@@ -584,11 +585,14 @@ def savemeasurement(person,pointsum,coords,dataid,entrymode):
             dcoll.save()
         else:
             dcoll = DataCollection.objects.filter(person=person,planet=d[0].event,calid=i)[0]
-        data = Datapoint(user=person,
+        data = Datapoint(ident=d[0].event.name,
+                            user=person,
                             pointtype = 'C',
                             data=d[0], 
                             radius=r,
-                            entrymode=mode[entrymode])
+                            entrymode=mode[entrymode],
+                            tstamp=mktime(d[0].timestamp.timetuple())
+                            )
         data.value= float(value)
         data.xpos = xpos
         data.ypos = ypos
@@ -939,7 +943,7 @@ def graphview_ave(request,code,mode,calid):
     
     for item in resp:
         if messages.SUCCESS == item['code'] :
-            msg += "<img src=\""+STATIC_URL+item['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />"
+            msg += "<img src=\""+settings.STATIC_URL+item['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />"
             unlock = True
             nunlock += 1
 
@@ -947,7 +951,7 @@ def graphview_ave(request,code,mode,calid):
         if nunlock > 1 : msg = 'Achievements unlocked'+msg
         else : msg = 'Achievement unlocked'+msg
         messages.add_message(request, messages.SUCCESS, msg)
-    print 'The classified objects are', classif
+    print 'The classified objects (number selected to have a dip, total number of calibrator star data sets, number of those datasets are completed)', classif
     return render(request, 'agentex/graph_average.html', {'event': planet,
                                                             'data':data,
                                                             'sources':cats,
@@ -1004,7 +1008,7 @@ def graphview_advanced(request,code,mode,calid):
                                                                     'framedata':line,
                                                                     'target':DataSource.objects.filter(event__name=code)[0].target,
                                                                     'progress' : progress})
-
+'''
 def graphsuper(request,code):
     # Construct the supercalibrator lightcurve
     ds1 = ds.Dataset(planetid=code,userid=request.user.username)
@@ -1015,10 +1019,59 @@ def graphsuper(request,code):
                                                                 'numsuper':13,
                                                                 'target':ds1.target,
                                                                 'nodata' : True})
+'''
+
+def datagen(code,user):
+
+    # Extract name of exoplanet from the dataset
+    event = Event.objects.get(name=code)
+
+    # Collect sources
+    sources = DataSource.objects.filter(event=event).order_by('timestamp')
+
+    numsuper,fz,mycals,std,nodata = supercaldata(user,event)
+    
+    data = []
+
+    for i,s in enumerate(sources):
+        line = {
+                'id'        : "%i" % s.id,
+                'date'      : s.timestamp.isoformat(" "),
+                'datestamp' : timegm(s.timestamp.timetuple())+1e-6*s.timestamp.microsecond,
+                'data'      : {
+                                'mean' : fz[i],
+                                'std'  : std[i],
+                                'mine' : 'null',#myvals[i],
+                    },
+                }
+        data.append(line)
+    return data
+    
+
+def graphsuper(request,code):
+    # Construct the supercalibrator lightcurve
+
+    # Extract name of exoplanet from the dataset
+    event = Event.objects.get(name=code)
+
+    # Extract name of the target star from the dataset
+    target = Target.objects.get(name=event.title[:-1])
+
+    user = request.user
+
+    # Call datagen to generate realtime data
+    data = datagen(code,user)
+
+    ###### Setting nodata to True and not showing each person their own data, but just for now
+    return render(request, 'agentex/graph_super.html', {'event':event,
+                                                                'data':data,
+                                                                'numsuper':13,
+                                                                'target':target,
+                                                                'nodata' : True})
 
 def infoview(request,code):
     ds = DataSource.objects.filter(event__name=code)[:1]
-    
+
     if request.user.is_authenticated():
         person = personcheck(request)
         progress = checkprogress(person.user,code)
@@ -1289,7 +1342,12 @@ def calibratemydata(code,user):
         cals.append(list(vals/maxval)) 
         #mycals.append(list(myvals/maxval))
     return mycals
-    
+  
+'''  
+def myaverages(code,person):
+    return c_myaverages(code,person)
+'''
+ 
 def myaverages(code,person):
     ds = DataSource.objects.filter(event__name=code).order_by('timestamp').values_list('id',flat=True)
     valid_user = False
@@ -1339,9 +1397,7 @@ def myaverages(code,person):
                 return list(normmean/max(normmean))
     # If they have no 'D' decisions
     return [0.]*ds.count()
-    
-
-    
+    c
 
         
 def admin_averagecals(code,person):
@@ -1486,41 +1542,217 @@ def averagecals_async(e):
             print "Updated average sets on planet %s for %s" % (e.title,category)
     return
 
-
-def supercaldata(user,planet):
+def calstats(user,planet,decs):
+    
+    # Create empty list to store calibrators and datapoints
     calibs = []
     mypoints = []
-    ti = 0.
+
+    # Count number of decisions
+    numsuper = decs.count()
+
+    # Lists are created here
+    peoplelst,sourcelst,tmp = zip(*decs)
+
+    # Organise list of people and sources
+    people = set(peoplelst)
+    sources = set(sourcelst)
+
+    # Import entire Datapoint database and sort by timestamp
+    db = Datapoint.objects.filter(ident=planet).values_list().order_by('tstamp')
+
+    # Convert to numpy array
+    dp_array = array(db)
+
+    # Read in all values of calibrators
+    calvals_data = Datapoint.objects.values_list('data','user_id','coorder__source','value').filter(coorder__source__in=sources,pointtype='C',coorder__source__final=True,coorder__complete=True,coorder__display=True).order_by('tstamp')
+
+    # Convert to numpy array
+    calvals_array = array(calvals_data)
+    
+    # Iterate over each person
+    for p in people:
+
+        # Empty list to store calibrators
+        calslist = []
+
+        # Query datapoints to extract all values for given planet        
+        # NB. Both dp_array[:,5] and calvals_array[:,1] extract entries for user_id==p from columns 5 and 1 (different column index is because user_id is stored in different columns for both datasets)
+        vals = dp_array[dp_array[:,5]==p]
+        calvals = calvals_array[calvals_array[:,1]==p]
+
+        # Query vals to extract average values
+        # NB. vals[:,6]=='S' and vals[:,6]=='B' extract the entries from vals that have pointtype=='S' and 'B' in column 6. sc_extract[:,4] and bg_extract[:,4] pulls the exact source and background values for those entries from column 4
+        sc_extract = vals[vals[:,6]=='S']
+        sc = sc_extract[:,4]
+
+        bg_extract = vals[vals[:,6]=='B']
+        bg = bg_extract[:,4]
+
+        # Iterates over the number of sources defined earlier
+        for c in sources:
+
+            # Determines their associated averages
+            # NB. Performs similar routine to above to extract the source type from column 2, and then the values from column 3 
+            calpoints_extract = calvals[calvals[:,2]==c]
+            calpoints = calpoints_extract[:,3]
+
+            # If there are more calibrator points than observations
+            if len(calpoints) == planet.numobs:
+                # Append calpoints
+                calslist.append(list(calpoints))
+
+        # Loops through calslist
+        if len(calslist) > 0:
+            # if settings.LOCAL_DEVELOPMENT: print "\033[94mWe have calibrators\033[1;m"
+
+            # Stacks the values
+            calstack = vstack(calslist)
+            
+            # This throws a wobbly sometimes
+            cc = (sc-bg)/(calstack-bg)
+            calibs.append(cc.tolist())
+
+        else:
+            if settings.LOCAL_DEVELOPMENT:
+                pass
+                #print "\033[1;35mThere are no calibrators in the list!!\033[1;m"
+        #print "%s %s - %s" % (ti, p, datetime.now()-now)
+        #ti += 1
+
+    # Create normalisation function
+    norm_a = lambda a: mean(r_[a[:3],a[-3:]])
+    mycals = []
+    
+    try:
+        # Stacks all of the calibrators
+        cala = vstack(calibs)
+
+        # Normalises stacked calibrators
+        norms = apply_along_axis(norm_a, 1, cala)
+
+        # Determines the length of the stacked calibrators
+        dim = len(cala)
+
+        # Normalises the calibrators
+        norm1 = cala/norms.reshape(dim,1)
+
+        # Empty list to store calibrators
+        mynorm1=[]
+
+        # If mypoints is not an empty list
+        if mypoints != []:
+            #mynorms = apply_along_axis(norm_a, 1, mypoints)
+            # Averages the datapoints
+            myaves = average(mypoints,0)
+            
+            # Averages the normalised points
+            mynorm_val = norm_a(myaves)
+
+            # Normalises the averages
+            mycals = list(myaves/mynorm_val)
+    except Exception, e:
+        print e
+        print "\033[1;35mHave you started again but not removed all the data?\033[1;m"
+        return None,[],[],[],None
+    #if dim != len(mycals):
+    # check if I have a full set of data, if not we need to do all the calibrator averages manually
+    
+    # Performs mean statistics (normalise, variance, standard dev.)
+    norm_alt = mean(norm1,axis=0)
+    variance = var(norm1,axis=0)
+    std = sqrt(variance)
+    fz = list(norm_alt)
+
+    # Final return statements
+    nodata = False
+    if mycals == []:
+        mycals = myaverages(planet,user)
+        nodata = True
+        return numsuper,fz,mycals,list(std),nodata
+    else:
+        return None,[],[],[],None
+
+
+def supercaldata(user,planet):
+
+    # Create empty list to store calibrators and datapoints
+    #calibs = []
+    #mypoints = []
+    #ti = 0.
+
     # assume data which has Decisions forms part of a complete set
     # People and their sources who have Dips in the select planet
-    now = datetime.now()
+    
+    # Store the date and time at the instant of the function call
+    #now = datetime.now()
+
+    # Extract the name of the planet being analysed
     planet = Event.objects.get(name = planet)
+
+    # Pull all of the decisions into an object
     decs = Decision.objects.values_list('person','source').filter(value='D', current=True, planet=planet, source__datacollection__display=True).annotate(Count('source'))
-    numsuper = decs.count()
-    if settings.LOCAL_DEVELOPMENT: print "Number of supercals: %s" % numsuper
+    #decs = Decision.objects.raw('SELECT person,source FROM agentex_decision')
+
+    # Counts the number of decisions
+    #numsuper = decs.count()
+
+    # If code is locally developed, print the number of super calibrators
+    #if settings.LOCAL_DEVELOPMENT: print "Number of supercals: %s" % numsuper
+    
     # Create a lists of sources  and people
     if decs:
+        '''
+        # Lists are created here
         peoplelst,sourcelst,tmp = zip(*decs)
         #print "%s - %s" % (ti, datetime.now()-now)
+        
+        # Count ti in +1 increments
         ti += 1
+
+        # Organise list of people and sorouces
         people = set(peoplelst)
         sources = set(sourcelst)
+
+        # Iterate over each person
         for p in people:
+
+            # Empty list to store calibrators
             calslist = []
+
+            # Query datapoints to extract all values for given planet
             vals = Datapoint.objects.filter(data__event=planet,user=p).order_by('data__timestamp')
+            
+            # Query vals to extract average values
             sourceave = vals.filter(pointtype='S').annotate(mean=Avg('value')).values_list('mean',flat=True)
             bgave = vals.filter(pointtype='B').annotate(mean=Avg('value')).values_list('mean',flat=True)
-            # make into Numpy arrays for easier manipulation
+
+            # Turn into Numpy arrays for easier manipulation
             sc = array(sourceave)
             bg = array(bgave)
+
+            # Pulls out the values for the calibrators 
             calvals = Datapoint.objects.values('data','coorder__source').filter(user= p,coorder__source__in=sources,pointtype='C',coorder__source__final=True,coorder__complete=True,coorder__display=True)
+
+            # Iterates over the number of sources defined earlier
             for c in sources:
+
+                # Determines their associated averages
                 calaves = calvals.filter(coorder__source=c)
+
+                # And then their associated points
                 calpoints = calaves.order_by('data__timestamp').annotate(mean=Avg('value')).values_list('mean',flat=True)
+                
+                # If there are more calibrator points than observations
                 if calpoints.count() == planet.numobs:
+                    # Append calpoints
                     calslist.append(list(calpoints))
+            
+            # Loops through calslist
             if calslist:
                 if settings.LOCAL_DEVELOPMENT: print "\033[94mWe have calibrators\033[1;m"
+
+                # Stacks the values
                 calstack = vstack(calslist)
                 # This throws a wobbly sometimes
                 cc = (sc-bg)/(calstack-bg)
@@ -1529,19 +1761,37 @@ def supercaldata(user,planet):
                 if settings.LOCAL_DEVELOPMENT: print "\033[1;35mThere are no calibrators in the list!!\033[1;m"
             #print "%s %s - %s" % (ti, p, datetime.now()-now)
             ti += 1
+
         # Create normalisation function
         norm_a = lambda a: mean(r_[a[:3],a[-3:]])
         mycals = []
+        
         try:
+            # Stacks all of the calibrators
             cala = vstack(calibs)
+
+            # Normalises stacked calibrators
             norms = apply_along_axis(norm_a, 1, cala)
+
+            # Determines the length of the stacked calibrators
             dim = len(cala)
+
+            # Normalises the calibrators
             norm1 = cala/norms.reshape(dim,1)
+
+            # Empty list to store calibrators
             mynorm1=[]
+
+            # If mypoints is not an empty list
             if mypoints != []:
                 #mynorms = apply_along_axis(norm_a, 1, mypoints)
+                # Averages the datapoints
                 myaves = average(mypoints,0)
+                
+                # Averages the normalised points
                 mynorm_val = norm_a(myaves)
+
+                # Normalises the averages
                 mycals = list(myaves/mynorm_val)
         except Exception, e:
             print e
@@ -1549,17 +1799,24 @@ def supercaldata(user,planet):
             return None,[],[],[],None
         #if dim != len(mycals):
         # check if I have a full set of data, if not we need to do all the calibrator averages manually
+        
+        # Performs mean statistics 
         norm_alt = mean(norm1,axis=0)
         variance = var(norm1,axis=0)
         std = sqrt(variance)
         fz = list(norm_alt)
+
+        # Final return statements
         nodata = False
         if mycals == []:
             mycals = myaverages(planet,user)
             nodata = True
         return numsuper,fz,mycals,list(std),nodata
-    else:
-        return None,[],[],[],None
+        else:
+            return None,[],[],[],None
+        '''
+        return calstats(user,planet,decs)
+
 
 def leastmeasured(code):
     coords = []
@@ -1640,12 +1897,14 @@ def ismypoint(person,datauser):
         return True
     else:
         return False
+
 def personcheck(request):
     if (request.user.is_authenticated()):
-        o = Observer.objects.filter(user=request.user)
+        o = Observer.objects.get(user=request.user)
     else:
         o = Observer.objects.filter(user__id=guestuser)
-    return o[0]
+    #return o[0]
+    return o
     
 def classified(o,code):
     dcs = Decision.objects.values('source').filter(person=o.user,planet__name=code).annotate(last = Max('taken'))
