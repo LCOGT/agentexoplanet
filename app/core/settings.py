@@ -85,6 +85,7 @@ chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
 SECRET_KEY = get_random_string(50, chars)
 
 MIDDLEWARE_CLASSES = (
+    'opbeat.contrib.django.middleware.OpbeatAPMMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -131,7 +132,14 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles', # Added by TJ to allow static files declaration
     'core',
     'agentex',
+    'opbeat.contrib.django',
 )
+
+OPBEAT = {
+    'ORGANIZATION_ID': os.environ.get('OPBEAT_ORGID',''),
+    'APP_ID': os.environ.get('OPBEAT_APPID',''),
+    'SECRET_TOKEN': os.environ.get('OPBEAT_TOKEN',''),
+}
 
 DEBUG_TOOLBAR_PANELS = (
     'debug_toolbar.panels.versions.VersionsPanel',
@@ -152,10 +160,10 @@ DEBUG_TOOLBAR_PANELS = (
 LOGIN_REDIRECT_URL = 'http://lcogt.net/agentexoplanet/'
 LOGIN_URL = 'http://lcogt.net/agentexoplanet/account/login/'
 
-'''
+
 SESSION_COOKIE_DOMAIN='lcogt.net'
 SESSION_COOKIE_NAME='agentexoplanet.sessionid'
-'''
+
 
 BASE_URL = "/agentexoplanet/"
 

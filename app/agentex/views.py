@@ -1580,6 +1580,8 @@ def calstats(user,planet,decs):
         # NB. Both dp_array[:,5] and calvals_array[:,1] extract entries for user_id==p from columns 5 and 1 (different column index is because user_id is stored in different columns for both datasets)
         vals = dp_array[dp_array[:,5]==p]
         calvals = calvals_array[calvals_array[:,1]==p]
+        if not calvals:
+            continue
 
         # Query vals to extract average values
         # NB. vals[:,6]=='S' and vals[:,6]=='B' extract the entries from vals that have pointtype=='S' and 'B' in column 6. sc_extract[:,4] and bg_extract[:,4] pulls the exact source and background values for those entries from column 4
