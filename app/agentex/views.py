@@ -1579,8 +1579,13 @@ def calstats(user,planet,decs):
         # Query datapoints to extract all values for given planet        
         # NB. Both dp_array[:,5] and calvals_array[:,1] extract entries for user_id==p from columns 5 and 1 (different column index is because user_id is stored in different columns for both datasets)
         vals = dp_array[dp_array[:,5]==p]
+        if vals.size == 0:
+            # Jump to the next person if we don't have any values
+            continue
+
         calvals = calvals_array[calvals_array[:,1]==p]
-        if not calvals:
+        if calvals.size == 0:
+            # Jump to the next person if we don't have any calibrator values
             continue
 
         # Query vals to extract average values
