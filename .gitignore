@@ -18,5 +18,6 @@ app/agentex/cython/*
 app/agentex/build/*
 
 citsci.db
+*.sql
 
 docker-compose.yml
