@@ -43,7 +43,7 @@ function Lightcurve(inp){
 	this.cal = (typeof inp.cal=="object") ? inp.cal : { order: 0, name: "" };
 	this.mainplot = $(this.id);
 	this.options = (typeof inp.options=="object") ? inp.options : {};
-	
+
 	// Set defaults for graph options
 	if(!this.options.series) this.options.series = {};
 	if(!this.options.series.lines) this.options.series.lines = { show : false };
@@ -61,10 +61,10 @@ function Lightcurve(inp){
 	if(!this.options.grid) this.options.grid = {};
 	if(!this.options.grid.hoverable) this.options.grid.hoverable = true;
 	if(!this.options.grid.clickable) this.options.grid.clickable = true;
-	
+
 	this.init();
 
-	if(this.type == "old"){	
+	if(this.type == "old"){
 		$("a.mypoints").click(function(){
 			if (mypoints == false){
 				$.plot(mainplot,[
@@ -101,7 +101,7 @@ function Lightcurve(inp){
 				}
 			}
 		});
-	
+
 		$("a#restrictdata").bind('click',{me:this},function(){ event.data.me.calibrate_data(); });
 	}else if(this.type=="calibrators" || this.type=="super"){
 		this.mainplot.bind("plotclick", {me:this}, function (event, pos, item) {
@@ -131,13 +131,13 @@ function Lightcurve(inp){
 			}
 		});
 */
-	}	
+	}
 }
 
 Lightcurve.prototype.init = function(){
 
 	if($('a#restrictdata').length > 0) $('a#restrictdata').addClass('fancybtndisable').hide();
-	
+
 	var _obj = this;
 
 	if(typeof this.data=="object"){
@@ -149,7 +149,7 @@ Lightcurve.prototype.init = function(){
 			_obj.data2plot();
 			_obj.update();
 		});
-	}	
+	}
 }
 Lightcurve.prototype.data2plot = function(){
 	d = this.data;
@@ -199,7 +199,7 @@ Lightcurve.prototype.data2plot = function(){
 			this.dataplot = new Array(d.calibration.length);
 			if(this.used.length == 0){
 				this.used = new Array(d.calibration.length);
-				for(var c=0 ; c < d.calibration.length ; c++) this.used[c] = true;			
+				for(var c=0 ; c < d.calibration.length ; c++) this.used[c] = true;
 			}
 			if(d.source.length == 0) bubblePopup({id:'editmsg',el:$(this.id),w:200,align:'center',html:this.msg.nodata,'padding':2})
 			for(var c=0 ; c < d.calibration.length ; c++){
@@ -239,7 +239,7 @@ Lightcurve.prototype.data2plot = function(){
 	}else if(this.type=="average"){
 
 		if(typeof d=="undefined" || d.length < 1){
-		
+
 		}else if(typeof d[0].date=="undefined"){
 			this.dataplot = new Array(d.calibration.length);
 			this.ys = new Array(d.calibration.length);
@@ -280,8 +280,8 @@ Lightcurve.prototype.data2plot = function(){
 }
 
 // Return the model values
-// This model assumes a linear first order limb darkening and 
-// uses the method defined in Addison, Durrance & Schwieterman 
+// This model assumes a linear first order limb darkening and
+// uses the method defined in Addison, Durrance & Schwieterman
 // http://adsabs.harvard.edu/abs/2010JSARA...3...45A
 Lightcurve.prototype.model = function(p, t) {
 
@@ -294,7 +294,7 @@ Lightcurve.prototype.model = function(p, t) {
 	var tzero = p[2];
 	var period = 1;
 	var inc = 0.0;
-	
+
 	// The fractional drop in intensity caused by the planet
 	var px = 9;	// Half the number of pixels to use for the planet
 	var Fb, i, j, dpix, x, theta, xpos, ypos, result = [], pxstar;
@@ -321,7 +321,7 @@ Lightcurve.prototype.model = function(p, t) {
 
 				// Find distance from star centre to this planet-pixel
 				dpix = Math.sqrt( Math.pow((xpos + rplanetpx*i),2) + Math.pow((ypos + rplanetpx*j),2));
-				
+
 				if(dpix < rstar) Fb += (1 - mu*(1 - Math.sqrt(1 - Math.pow((dpix/rstar),2))));
 
 			}
@@ -375,7 +375,7 @@ Lightcurve.prototype.fit = function(d) {
 	}
 
 	this.graph.addSeries(out);
-	
+
 	this.fitted = { transit: (this.period)/(1000*Math.PI*p1[0]), dip: 1-mn };
 
 	this.triggerEvent("onfit",{ transit:this.fitted.transit, dip: this.fitted.dip });
@@ -409,13 +409,13 @@ Lightcurve.prototype.update = function(a){
 		}else{
 			this.graph = $.graph('mainplot', dataset, {
 				xaxis: { label: this.options.xaxis.axisLabel, mode: 'time', min: d[0].x-t, max: d[d.length-1].x+t },
-				yaxis: { label: this.options.yaxis.axisLabel },
+				yaxis: { label: this.options.yaxis.axisLabel, min:0.9, max:1.05 },
 				grid: { show: true, color:'rgb(150,150,150)', border: 2, clickable: true, hoverable: true }
 			});
 		}
 
 		this.fit(d);
-	
+
 	}else if(this.type=="calibrators"){
 
 		var dataset = [];
@@ -426,7 +426,7 @@ Lightcurve.prototype.update = function(a){
 				dataplot2[d].push({x:this.dataplot[d][i][0],y:this.dataplot[d][i][1],id:this.dataplot[d][i][2],series:(d+1)});
 			}
 		}
-		
+
 		//var colours = ["#edc240", "#afd8f8", "#cb4b4b", "#4da74d", "#9440ed","#c29a2d","#87adc7","#a83f3a","#437e47","#5e2796"]
 		var colours = ["#d62728","#1e77b4","#edc240","#2ba02c","#9467bd","#8f2323","#1b5278","#9e790b","#076b08","#572b7e","#eb7172","#66aada","#f6dc8c","#76d077","#cebcde"];
 		var url = this.url.edit;
@@ -483,7 +483,7 @@ Lightcurve.prototype.update = function(a){
 				}
 			}
 		}
-		
+
 		var r = (mx-mn);
 		mn -= r/10;
 		mx += r/10;
@@ -509,7 +509,7 @@ Lightcurve.prototype.update = function(a){
 
 Lightcurve.prototype.calibrate_data = function(){
 	// Send a server side request for all validated calibrators
-	var querstr = "mode=super"	
+	var querstr = "mode=super"
 	$.getJSON(this.url.xhr+"?"+querystr,function(data){
 		for (i=0;i<data.dates.length;i++){
 			if (typeof data.calibration[i] !='undefined'){
@@ -565,9 +565,9 @@ function getRange(d){
 	// Get minimum value on axis
 	tmin = tmax;
 	do{ i++; tmin -= tinc; }while(tmin > lo);
-	
+
 	if(Math.abs(tmin) < 1E-15) tmin = 0.0;
-	
+
 	// Increase the number of increments
 	while(i < 5) {
 		tinc /= 2.0;
