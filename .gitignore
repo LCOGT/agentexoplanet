@@ -19,5 +19,5 @@ app/agentex/build/*
 
 citsci.db
 *.sql
-
+import_objects.py
 docker-compose.yml
