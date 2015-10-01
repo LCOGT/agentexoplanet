@@ -73,7 +73,7 @@ class Target(models.Model):
         db_table = u'dataexplorer_target'
     def __unicode__(self):
         return self.name
-    
+
 class Event(models.Model):
     name = models.CharField(blank=False, max_length=20, help_text='code, no spaces and no hyphens') # code to be used in URLs i.e. NO spaces
     title = models.CharField(blank=False, max_length=100) # Longer title which can be more wordy
@@ -92,7 +92,7 @@ class Event(models.Model):
         db_table = u'dataexplorer_event'
     def __unicode__(self):
         return self.name
-        
+
 class DataSource(models.Model):
     fits = models.URLField(blank=True)
     image = models.URLField(blank=True, null=True)
@@ -111,7 +111,7 @@ class DataSource(models.Model):
         return timegm(self.timestamp.timetuple())+1e-6*self.timestamp.microsecond
     def isostamp(self):
         return self.timestamp.isoformat()
-    
+
 class CatSource(models.Model):
     name = models.CharField('object name',blank=False,max_length=50)
     data = models.ForeignKey(DataSource)
@@ -124,7 +124,7 @@ class CatSource(models.Model):
         db_table = u'dataexplorer_catsource'
     def __unicode__(self):
         return self.name
-    
+
 class DataCollection(models.Model):
     person = models.ForeignKey(User)
     planet = models.ForeignKey(Event)
@@ -138,12 +138,14 @@ class DataCollection(models.Model):
     def __unicode__(self):
         val = "%s" % self.planet.title
         return val
-    
+
+
 class Datapoint(models.Model):
+    # ident is the identifier to filter by. It is populated by the name field in Event
     ident = models.CharField(max_length=20)
     data = models.ForeignKey(DataSource)
     taken = models.DateTimeField(blank=True, default=datetime.now)
-    value = models.FloatField(blank=True,null=True)  
+    value = models.FloatField(blank=True,null=True)
     user = models.ForeignKey(User)
     pointtype = models.CharField(blank=False,max_length=1,choices=TYPECHOICE)
     coorder = models.ForeignKey(DataCollection,blank=True, null=True, help_text='point order')
@@ -152,6 +154,7 @@ class Datapoint(models.Model):
     radius = models.IntegerField('aperture radius', blank=True)
     entrymode = models.CharField(blank=False,max_length=1,choices=ENTRYCHOICE,default='W')
     offset = models.FloatField('distance from source',blank=True)
+    # tstamp is the unix timestamp converted from timestamp in DataSource
     tstamp = models.IntegerField('unix timestamp', blank=True)
     class Meta:
         verbose_name = u'data point'
@@ -161,7 +164,7 @@ class Datapoint(models.Model):
         search_fields = ('user',)
     def __unicode__(self):
         return self.taken.isoformat()
-            
+
 class Decision(models.Model):
     source = models.ForeignKey(CatSource)
     value = models.CharField('decision',blank=False,max_length=1,choices=DECISIONS)
@@ -174,7 +177,7 @@ class Decision(models.Model):
         db_table = u'dataexplorer_decision'
     def __unicode__(self):
         return self.source.name
-        
+
 class AverageSet(models.Model):
     planet = models.ForeignKey(Event)
     star = models.ForeignKey(CatSource,blank=True,null=True)
@@ -182,12 +185,12 @@ class AverageSet(models.Model):
     settype = models.CharField(blank=False,max_length=1,choices=TYPECHOICE)
     class Meta:
         verbose_name = u'combined lightcurve set'
-    @property 
+    @property
     def data(self):
         return [float(x) for x in self.values.split(';')]
     def __unicode__(self):
         return u"%s" % (self.planet.title)
-        
+
 class Badge(models.Model):
     name = models.CharField(blank=False, max_length=20, help_text='code, no spaces')
     description = models.CharField(blank=False, max_length=200, help_text='brief, publicly readable')
@@ -213,7 +216,7 @@ class Achievement(models.Model):
         else:
             t = "%s - %s" % (self.badge.name,self.person.username)
         return t
-        
+
 class Observer(models.Model):
     user = models.OneToOneField(User, unique=True,)
     tag = models.CharField(max_length=75, blank=False,default="LCO")
@@ -224,4 +227,3 @@ class Observer(models.Model):
         verbose_name = "observer"
     def __unicode__(self):
         return self.user.username
-    

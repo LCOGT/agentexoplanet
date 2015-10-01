@@ -9,6 +9,7 @@ from django.core.urlresolvers import reverse
 # Import Client (acts as a dummy browser allowing testing)
 from django.test import Client
 
+'''
 class TestPage(TestCase):
 
     #def setUp(self):
@@ -21,3 +22,4 @@ class TestPage(TestCase):
         #self.assertValidResponse(response)
         self.assertEqual(response.status_code, 200)
         #self.assertTemplateUsed(response, 'index.html')
+'''
