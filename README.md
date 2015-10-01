@@ -19,8 +19,6 @@ Adding a new dataset
 6. Run `from agentex.models import Event, Target` and then `planet_name = Event.objects.filter(event=‘planet_name’)` where `planet_name` is the name given to the event in 3..
 7. Run `planet_name.event`
 5. In a Terminal window, run `python manage.py loadplanetdata`.
-=======
-First citizen science project for LCOGT. It involves the analysis of exoplanet transit data.
 
 Docker
 ======
