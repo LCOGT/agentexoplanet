@@ -13,10 +13,9 @@ class TestData(TestCase):
         self.client = Client()
 
     def test_data(self):
-        
+
         # Creates dummy entry in database
         dummy = Target.objects.create(name="Dummy-1b")
-        
+
         retrieve = Target.objects.get(name="Dummy-1b")
         self.assertEqual(dummy, retrieve)
-

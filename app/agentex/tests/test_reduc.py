@@ -1,59 +1,54 @@
-# Import TestCase from unittest 
-from django.test import TestCase, Client
+#################################################################################
+############################# TEST IS NON FUNCTIONAL ############################
+#DO NOT USE FOR TESTING: FAILS BECAUSE OF PROBLEMS IMPLEMENTING MOCK/FACTORY BOY#
+#################################################################################
 
-# Import reverse
-from django.core.urlresolvers import reverse
+# Test has issues when encountering DataSource.objects.filter() in function under
+# test (found at the top of datareduc.py). The factory created (DataSourceFactory)
+# has problems with .objects - Python returns that DataSourceFactory has no
+# attribute 'objects'
 
-# Import Client (acts as a dummy browser allowing testing)
-from django.test import client
+'''
+# Import pytest
+import pytest
+
+# Import unittest
+import unittest
+
+# Import factories to use in place of models
+import factories
+
+# Import modules required for some aspects of tests
+import random
+import time
 
 # Import Mock to allow for function calls
-from mock import Mock, patch
+import mock
 
-# Import view required
-from agentex.datareduc import *
-
-'''
-Mock objects live here.
-'''
-
-def mocking_calave():
-    cals, sc, bg, stamps, ids, cats = 1, 1, 1, 1, 1, 1
-    return cals,sc,bg,stamps,ids,cats
-
-'''
-Actual tests live here.
+# Import views and models required
+from agentex.datareduc import calibrator_data
 
 
-class TestCalibratorData(TestCase):
+class TestDataReduction(unittest.TestCase):
 
-    def setUp(self):
-        self.client = Client()
+################################################################################
+############################ Testing calibrator_data ###########################
+################################################################################
 
+    # @mock.patch allows the first argument to be replaced by the second argument.
+    # In this case, the 'real' models DataSource, Datapoint and Decision are
+    # replaced by factories emulating their behaviour from factories.py. These are
+    # then used instead of the first argument whenever the first argument is
+    # called.
+    @mock.patch('agentex.datareduc.DataSource', factories.DataSourceFactory.build())
+    @mock.patch('agentex.datareduc.Datapoint', factories.DatapointFactory.build())
+    @mock.patch('agentex.datareduc.Decision', factories.DecisionFactory.build())
     def test_calibrator_data(self):
 
-        calid = None
-        code = 'testing'
+        calid = 22
+        code = 'trenzalore'
 
-        d, t, p = calibrator_data(calid,code)
-        self.assertNotEqual(calibrator, [])
+        output = calibrator_data(calid,code)
 
-class TestAverageCombine(TestCase):
-
-    def setUp(self):
-        self.client = Client()
-
-    def test_average_combine(self):
-
-
-class TestPhotometry(TestCase):
-    
-    @patch('agentex.datareduc.calibrator_averages', side_effect=mocking_calave)
-    
-    def test_photometry(self, mocking_calave):
-
-        photom = photometry(code=0,person=None)
-        cal_ave = mocking_calave()
- 
-        self.assertNotEqual(cal_ave, photom)
+        assert type(output[0])==type([])
 '''

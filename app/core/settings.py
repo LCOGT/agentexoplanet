@@ -89,8 +89,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware', 
-)  
+    'django.contrib.messages.middleware.MessageMiddleware',
+)
 
 CACHE_MIDDLEWARE_SECONDS = '1'
 
@@ -118,7 +118,6 @@ TEMPLATES = [
         },
     },
 ]
-
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -160,10 +159,10 @@ DEBUG_TOOLBAR_PANELS = (
 LOGIN_REDIRECT_URL = 'http://lcogt.net/agentexoplanet/'
 LOGIN_URL = 'http://lcogt.net/agentexoplanet/account/login/'
 
-
+'''
 SESSION_COOKIE_DOMAIN='lcogt.net'
 SESSION_COOKIE_NAME='agentexoplanet.sessionid'
-
+'''
 
 BASE_URL = "/agentexoplanet/"
 
@@ -239,6 +238,8 @@ LOGGING = {
 if not PRODUCTION:
     try:
         from local_settings import *
+        # This line allows all INSTALLED_APPS in local_settings.py under variable DEBUG_APPS to be appended to the INSTALLED_APPS defined above
+        INSTALLED_APPS += DEBUG_APPS
     except ImportError as e:
         if "local_settings" not in str(e):
             raise e

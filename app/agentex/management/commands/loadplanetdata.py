@@ -17,7 +17,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         e = Event.objects.get(id=int(args[0]))
         target = Target.objects.get(id=int(args[1]))
-        urlj = 'jpgs' 
+        urlj = 'jpgs'
         urlf = 'fits'
         fitsdir = "%s/%s/%s/" % (DATA_LOCATION,e.name,urlf)
         ls = os.listdir(fitsdir)
@@ -40,7 +40,7 @@ class Command(BaseCommand):
                 self.stdout.write('Telescope %s\n' % head['TELESCOP'])
             except:
                 self.stdout.write('Not FTN or FTS\n')
-            if head['TELESCOP'] == 'Faulkes Telescope North' or head['TELESCOP'] == 'Faulkes Telescope South': 
+            if head['TELESCOP'] == 'Faulkes Telescope North' or head['TELESCOP'] == 'Faulkes Telescope South':
                 # FTN/S data
                 timestamp = datetime.strptime(head['DATE-OBS'], "%Y-%m-%dT%H:%M:%S.%f")
                 maxx = int(head['CCDXIMSI'])

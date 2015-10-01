@@ -16,8 +16,18 @@ media/data/*
 app/agentex/static/data/*
 app/agentex/cython/*
 app/agentex/build/*
+data/*
+*.zip
+*.gz
+
 
 citsci.db
 *.sql
-import_objects.py
+
 docker-compose.yml
+
+data/corot18b.tar.gz
+
+data/Wasp12b-20120217.zip
+
+data/wasp13b_20131227.zip
