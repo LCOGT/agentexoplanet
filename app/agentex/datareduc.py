@@ -25,7 +25,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.admin.models import LogEntry, ADDITION
-from django.db.models import Count,Avg,Min,Max,Variance, Q, Sum
+from django.db.models import Count, Avg, Min, Max, Variance, Q, Sum
 from django.contrib import messages
 from django.db import connection
 import urllib2
@@ -41,8 +41,8 @@ from itertools import chain
 from numpy import array,nan_to_num
 
 from django.contrib.auth.models import User
-from agentex.models import Target, Event, Datapoint, DataSource, DataCollection,CatSource, Decision, Achievement, Badge, Observer, AverageSet
-from agentex.models import decisions
+from agentex.models import Target, Event, Datapoint, DataSource, DataCollection,CatSource, Decision, \
+    Achievement, Badge, Observer, AverageSet, decisions
 from agentex.forms import DataEntryForm, RegisterForm, CommentForm,RegistrationEditForm
 import agentex.dataset as ds
 

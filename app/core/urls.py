@@ -5,15 +5,8 @@ from django.contrib.auth.views import login, logout
 from django.contrib.staticfiles import views
 
 from agentex.admin import calibrator_check, allcalibrators_check
-<<<<<<< HEAD
-from agentex.views import index, register, editaccount, profile, target, fitsanalyse, tester, read_manual_check, briefing, addcomment, addvalue, updatedataset, graphview, classifyupdate, graphview, graphsuper, infoview, measurementsummary
-=======
 from agentex.views import index, register, editaccount, profile, target, fitsanalyse, read_manual_check, briefing, addcomment, addvalue, updatedataset, graphview, classifyupdate, graphview, graphsuper, infoview, measurementsummary
-#from agentex.views import tester
->>>>>>> 3804d7483d8563fa9b22e8ba40f9ba4ba34ee223
-#from agentex import urls
 
-#from showmestars.views import newimage, latestimages
 admin.autodiscover()
 
 urlpatterns = [

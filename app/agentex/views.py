@@ -1,7 +1,4 @@
 '''
-<<<<<<< HEAD
-Citizen Science Portal: App containing Agent Exoplant and Show Me Stars for Las Cumbres Observatory Global Telescope Network
-=======
 Citizen Science Portal: App containing Agent Exoplanet and Show Me Stars for Las Cumbres Observatory Global Telescope Network
 Copyright (C) 2014-2015 LCOGT
 
