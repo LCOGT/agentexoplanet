@@ -26,7 +26,7 @@ LOCAL_DEVELOPMENT = not PRODUCTION
 
 DEBUG = not PRODUCTION
 
-PREFIX ="/agentexoplanet"
+PREFIX = os.environ.get('PREFIX', '/agentexoplanet')
 FORCE_SCRIPT_NAME = PREFIX
 BASE_DIR = os.path.dirname(CURRENT_PATH)
 
