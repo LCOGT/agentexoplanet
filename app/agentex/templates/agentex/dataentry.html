@@ -25,11 +25,11 @@
 	var suggested = {{least_data|safe}}
 	var helper = true;		// For the '?' tab
 
-{% if progress.done < 1 %}	
+{% if progress.done < 1 %}
 	var tutorial = true;	// To display the online tutorial
 
 	function getStarted(){
-		// If this is the first time the user has looked at 
+		// If this is the first time the user has looked at
 		// data, we will hand-hold them through it.
 		var l = $('#photometric').offset().left + photo.getX('source')/photo.scale;
 		var t = $('#photometric').offset().top + photo.getY('source',true)/photo.scale;
@@ -103,7 +103,7 @@
 				e.data.plot.setViewBox(0,0,e.data.w,e.data.h,true);
 			});*/
 		}
-		
+
 	}
 
 	function toggleFinderChart(e){
@@ -119,14 +119,14 @@
 			$('#finderchart').remove();
 		}
 	}
-	
+
 	// Bind resize event
 	$(window).resize(function(){
 		// Size progress bar
 		sizeProgressBar();
-	
+
 		// Resize finder
-		
+
 		// Resize main image
 		//$('#photometric').css()
 	});
@@ -201,7 +201,7 @@
 		$('#btn-finetune').bind('click',function(e){
 			photo.fineTune();
 		});
-		
+
 		function enableAnalyze(){
 			if(photo.sizer[4].visible){
 				$('a#getdata').removeClass('fancybtndisable');
@@ -236,11 +236,11 @@
 			photo.bind("sky","onzoom",changeZoom).bind("sky","onmove",moveSizer).bind("source","onzoom",changeZoom).bind("source","onmove",moveSizer).bind("calibrator","onzoom",changeZoom).bind("calibrator","onmove",moveSizer)
 
 {% if progress.done < 1 %}
-			// No points have been set already so we now hide the sky and 
+			// No points have been set already so we now hide the sky and
 			// calibrator and hand-hold people through each step
 			photo.sizer[0].hide();
 			for(var i = 2; i < photo.sizer.length ; i++) photo.sizer[i].hide();
-			
+
 			photo.bind("sky","ondrop", function() {
 				// If the calibrator wasn't visible, make it.
 				if(!photo.sizer[2].visible){
@@ -256,7 +256,7 @@
 				enableAnalyze();
 				limit.resize(photo.getView())
 			}).bind("sky","onclick",changeSource);
-			
+
 			photo.bind("source","ondrop", function() {
 
 				var r = Math.pow(photo.getX("source")-{{data.event.xpos}},2)+Math.pow(photo.getY("source")-{{data.event.ypos}},2)
@@ -272,7 +272,7 @@
 					var l = $('#photometric').offset().left + photo.getX('sky')/photo.scale;
 					var t = $('#photometric').offset().top + photo.getY('sky',true)/photo.scale;
 					var r = photo.getR('source')/photo.scale;
-	
+
 					bubblePopup({id:'helptooltip',el:{x:l,y:t,w:(r*2),h:(r*2)},html:txt,animate:true,align:"top",w:w})
 				}
 				enableAnalyze();
@@ -284,7 +284,7 @@
 					bubblePopup({id:'helptooltip',el:$('#finderthumb'),html:'You can re-display the large finder chart at any time by clicking on this small finder chart.',align:"bottom",animate:true})
 				}
 			}).bind("source","onmove",moveSizer);
-			
+
 			photo.bind("calibrator","ondrop",function () {
 				if(photo.sizer[2].visible && !photo.sizer[3].visible){
 					helpstep++;
@@ -312,7 +312,7 @@
 			}).bind("calibrator","onclick",changeSource);
 
 
-			// If this is the first time the user has looked at 
+			// If this is the first time the user has looked at
 			// data, we will hand-hold them through it.
 			toggleFinderChart({callback:getStarted});
 			var l = $('#photometric').offset().left + {{data.event.xpos}}/photo.scale;
@@ -325,10 +325,10 @@
 {% else %}
 			if($('#message').length == 0) $('body').append('<div id="message"><ul class="messages"><\/ul><\/div>');
 			html_msg = $('#message').html();
-			{% if progress.done = 1 %}
+			{% if progress.done == 1 %}
 			$('#message ul.messages').prepend('<li>This second image will probably be a little offset from the first one you saw. You will need to re-position the markers for the <strong class="source">target<\/strong> and <strong class="calibrator">calibration<\/strong> stars. Check that the <strong class="sky">sky<\/strong> circle is still empty of stars too.<\/li>');
 			bubblePopup({id:'message',el:$('#photometric'),align:"center",w:300,animate:true,dismiss:true,onpop: function(){ bubblePopup({id:'message',el:$('#groupmove'),align:"top",w:200,animate:true,dismiss:true,html:"<strong>Tip:<\/strong> If all your markers seem to be offset in the same way, you can choose to move them all together rather than one-by-one. You can also do this by keeping the shift key pressed."}); } });
-			{% else %}{% if progress.done = 2 %}
+			{% else %}{% if progress.done == 2 %}
 			$('#message ul.messages').prepend('<li>This is your third image. Remember to make sure all your markers are lined up properly. Hopefully you are getting the hang of this now.<\/li>');
 			bubblePopup({id:'message',el:$('#photometric'),align:"center",w:200,animate:true,dismiss:true})
 			{% else %}
@@ -406,7 +406,7 @@
 			$('#btn-update').hide();
 			e.preventDefault();
 		});
-		
+
 		// Add help hints
 		addHelpHint($('h1 a'),'This is the name of the exoplanet you are investigating.');
 		addHelpHint($('.progress'),'This shows how far you have got in in analyzing the images for this object. {% if user.is_authenticated %}{% ifequal complete 1 %}It looks as though you\'ve already completed measurements for this planet.{% else %}It looks as though you\'ve completed {{progress.percent}}% of the measurements{% endifequal %}{% else %}{% endif %}');
@@ -540,7 +540,7 @@
 					<div class="fbtn"><a href="{{data_url}}{{data.fits}}" class="fancybtngrey btns" id="btn-download" title="Download data file (FITS format)"><img src="{% static 'images/download_icon&16.png' %}" style="width:16px;height:16px;" alt="." /> Download data</a></div>
 				</div>{% endifnotequal %}
 {%endblock%}
-    
+
 {% block main-content %}
 
 				<div class="page stackedpaper">
@@ -670,7 +670,7 @@
 								</div>
 								{% endfor %}
 								{% endif %}
-								
+
 							</div>
 							{% if update %}<input type="submit" value="Update my measurement" class="fancybtn" id="btn-update">{% else %}<input type="submit" value="Save my measurement" class="fancybtn" id="btn-update">{% endif%}
 						</form>

@@ -51,6 +51,14 @@ from agentex.agentex_settings import planet_level
 
 from agentex.views import *
 
+def personcheck(request):
+    if (request.user.is_authenticated()):
+        o = Observer.objects.get(user=request.user)
+    else:
+        o = Observer.objects.filter(user__id=guestuser)
+    #return o[0]
+    return o
+
 def calibrator_data(calid,code):
     data = []
     sources, times = zip(*DataSource.objects.filter(event__name=code).values_list('id','timestamp').order_by('timestamp'))

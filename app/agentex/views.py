@@ -1918,13 +1918,6 @@ def ismypoint(person,datauser):
     else:
         return False
 
-def personcheck(request):
-    if (request.user.is_authenticated()):
-        o = Observer.objects.get(user=request.user)
-    else:
-        o = Observer.objects.filter(user__id=guestuser)
-    #return o[0]
-    return o
 def classified(o,code):
     dcs = Decision.objects.values('source').filter(person=o.user,planet__name=code).annotate(last = Max('taken'))
     dips = Decision.objects.filter(taken__in=[d['last'] for d in dcs],person=o.user,planet__name=code,value='D').count()

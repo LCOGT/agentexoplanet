@@ -9,9 +9,6 @@
 # To push to repo
 # docker push docker.lcogt.net/agentex:latest
 #
-# To start docker container
-# docker run -d -p 8900:80 --name=agentex  -m="128m" --restart=always -v /net/mfs/data4/agentexoplanet:/var/www/agentexoplanet/media/data docker.lcogt.net/citsciportal:latest
-#
 ######################################
 
 FROM centos:centos7

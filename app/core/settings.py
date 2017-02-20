@@ -80,7 +80,8 @@ STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.AppDirectoriesFinder"
  )
 
-SECRET_KEY = os.environ.get('SECRET_KEY','')
+chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
+SECRET_KEY = get_random_string(50, chars)
 
 MIDDLEWARE_CLASSES = (
     'opbeat.contrib.django.middleware.OpbeatAPMMiddleware',
@@ -106,12 +107,10 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-                'django.core.context_processors.static', # Serves static files (added by TJ)
-                'django.core.context_processors.request',
+            'django.template.context_processors.debug',
+            'django.template.context_processors.request',
+            'django.contrib.auth.context_processors.auth',
+            'django.contrib.messages.context_processors.messages',
             ],
         },
     },
@@ -122,13 +121,10 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
-    'grappelli.dashboard', # Grappelli apps must be before django.contrib.admin
-    'grappelli',
     'django.contrib.admin',
     'django.contrib.messages',
     'django.contrib.staticfiles', # Added by TJ to allow static files declaration
-    'core',
-    'agentex',
+    'agentex.apps.AgentConfig',
     'opbeat.contrib.django',
 )
 
@@ -157,10 +153,10 @@ DEBUG_TOOLBAR_PANELS = (
 LOGIN_REDIRECT_URL = 'http://lcogt.net/agentexoplanet/'
 LOGIN_URL = 'http://lcogt.net/agentexoplanet/account/login/'
 
-'''
+
 SESSION_COOKIE_DOMAIN='lcogt.net'
 SESSION_COOKIE_NAME='agentexoplanet.sessionid'
-'''
+
 
 BASE_URL = "/agentexoplanet/"
 
@@ -236,8 +232,6 @@ LOGGING = {
 if not PRODUCTION:
     try:
         from local_settings import *
-        # This line allows all INSTALLED_APPS in local_settings.py under variable DEBUG_APPS to be appended to the INSTALLED_APPS defined above
-        INSTALLED_APPS += DEBUG_APPS
     except ImportError as e:
         if "local_settings" not in str(e):
             raise e
