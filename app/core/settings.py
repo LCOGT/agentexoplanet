@@ -119,11 +119,11 @@ TEMPLATES = [
 ]
 
 INSTALLED_APPS = (
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
-    'django.contrib.admin',
     'django.contrib.messages',
     'django.contrib.staticfiles', # Added by TJ to allow static files declaration
     'agentex.apps.AgentConfig',
@@ -136,27 +136,12 @@ OPBEAT = {
     'SECRET_TOKEN': os.environ.get('OPBEAT_TOKEN',''),
 }
 
-DEBUG_TOOLBAR_PANELS = (
-    'debug_toolbar.panels.versions.VersionsPanel',
-    #'debug_toolbar_line_profiler.panel.ProfilingPanel',
-    'debug_toolbar.panels.timer.TimerPanel',
-    'debug_toolbar.panels.settings.SettingsPanel',
-    'debug_toolbar.panels.headers.HeadersPanel',
-    'debug_toolbar.panels.request.RequestPanel',
-    'debug_toolbar.panels.sql.SQLPanel',
-    'debug_toolbar.panels.templates.TemplatesPanel',
-    'debug_toolbar.panels.staticfiles.StaticFilesPanel',
-    'debug_toolbar.panels.cache.CachePanel',
-    'debug_toolbar.panels.signals.SignalsPanel',
-    'debug_toolbar.panels.logging.LoggingPanel',
-    'debug_toolbar.panels.redirects.RedirectsPanel',
-)
 
-LOGIN_REDIRECT_URL = 'http://lcogt.net/agentexoplanet/'
-LOGIN_URL = 'http://lcogt.net/agentexoplanet/account/login/'
+LOGIN_REDIRECT_URL = 'http://lco.global/agentexoplanet/'
+LOGIN_URL = 'http://lco.global/agentexoplanet/account/login/'
 
 
-SESSION_COOKIE_DOMAIN='lcogt.net'
+SESSION_COOKIE_DOMAIN='lco.global'
 SESSION_COOKIE_NAME='agentexoplanet.sessionid'
 
 
@@ -209,16 +194,16 @@ LOGGING = {
             'propagate': True,
         },
         'django': {
-            'handlers':['file'],
+            'handlers':['console'],
             'propagate': True,
-            'level':'ERROR',
+            'level':'DEBUG',
         },
         'core' : {
-            'handlers' : ['file','console'],
+            'handlers' : ['console'],
             'level'    : 'DEBUG',
         },
         'agentex' : {
-            'handlers' : ['file','console'],
+            'handlers' : ['console'],
             'level'    : 'DEBUG',
         }
     }

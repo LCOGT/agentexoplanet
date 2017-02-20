@@ -21,7 +21,7 @@
 	$(document).ready(function(){
 		html = '<div id="mainplot"><\/div>';
 		$('.decisiontree').before(html);
-	
+
 		// Define help
 		addHelpHint($('#mainplot'),'Here are complete sets that you have contributed to. Select the button which matches your points. The dark line is the average made from everyone\'s measurements of this calibrator.');
 		addHelpHint($('#dip'),'Select if the lightcurve shows a dip which looks like a transit.');
@@ -32,7 +32,7 @@
 		addHelpHint($('#mylink'),'View your measurements as <a href="{% url 'briefing' %}#lightcurve">lightcurves<\/a>','left');
 		addHelpHint($('#avlink'),'This is the page you are looking at.','left');
 		addHelpHint($('#sulink'),'View the combined <a href="{% url 'briefing' %}#lightcurve">lightcurves<\/a> created using everybody\'s classifications.','left');
-	
+
 		if($('table#datatable').length > 0){
 			$('table#datatable').before('<div id="tabletoggle" style="float:left;cursor:pointer;"><img src="{% static 'images/table_icon&24.png' %}" alt="toggle table" title="Show or hide the data table" style="width:16px;margin-right:0px;" \/> toggle data table<\/div><br style="clear:both;" />')
 			$('#tabletoggle').bind('click',function(){
@@ -60,11 +60,11 @@
 		$('#blip a').attr("tabindex",114);
 		$('#periodic a').attr("tabindex",115);
 		$('#other a').attr("tabindex",116);
-	
+
 		$('.choice2').hide();
 		$('.radio input').hide();
 		$('legend').hide();
-		
+
 		lcurve = new Lightcurve({
 			id:'#mainplot',
 			type:'average',
@@ -180,7 +180,7 @@
 
 			// Update the name in the lightcurve
 			lcurve.cal.name = sources[lcurve.cal.order].sourcename;
-			
+
 
 			// Now update the plot
 			lcurve.update();
@@ -214,9 +214,9 @@
 	{% if calid.progress >= calid.total %}
 		bubblePopup({id:'helptooltip',el:$('a#nextstep'),align:"top",w:200,animate:true,dismiss:true,html:$('#completedmessage').html()})
 	{% endif %}
-	
+
 		{% if messages %}bubblePopup({id:'message',el:$('#mainplot'),fade:3000,dismiss:true,align:"center",w:200,animate:true});{% endif %}
-	
+
 	})
 	// -->
 	</script>
@@ -237,7 +237,7 @@
 		<div id="mylink" style="display:none;"><a href="{%url 'my-graph' event.name%}"><img src="{% static 'images/graph_my.png' %}" alt="My" title="View my measurements as a lightcurve" /></a></div>
 		<div id="avlink" class="tabactive" style="display:none;"><a href="{%url 'average-graph' event.name%}"><img src="{% static 'images/graph_ave.png' %}" alt="Classify" title="Classify your lightcurves" /></a></div>
 		<div id="sulink" style="display:none;"><a href="{%url 'super-graph' event.name%}"><img src="{% static 'images/graph_super.png' %}" alt="Final" title="Final lightcurve" /></a></div>
-		
+
 		<p>Here are complete lightcurves made by combining your measurements with those of volunteers who used the same calibrators. The graphs below show the average values per calibrator and may look different from the previous graph, which contained only your values.</p>
 		{% if progress.done < progress.total %}<p class="warning" style="padding:4px;">You have only analyzed {{progress.percent}}% of the images for <span class="objectspecific">{{event.title}}</span>. The graphs below might look a bit strange - <a href="{% url 'addvalue' event.name %}">Continue analysing?</a></p>{%endif%}
 		<p> You have classified <span id="classifiedprogress">{{calid.progress}} out of {{calid.total}}</span> calibrators which have full datasets that you have contributed to.</p>
@@ -249,9 +249,9 @@
 			{% if prevchoice %}
 			Your previous choice for this curve was ...
 			{% else%}
-			Select the picture which is the closest match for this graph. 
+			Select the picture which is the closest match for this graph.
 			{% endif %}
-			<form id="decision" method="POST" action='{% url 'agentex.views.updatedataset' event.name %}?mode=valid'>
+			<form id="decision" method="POST" action='{% url 'updatedataset' event.name %}?mode=valid'>
 				{% csrf_token %}
 				<input type="hidden" name="planet" value="{{event.name}}">
 				<input type="hidden" name="calid" id="calid" value="{{calid.order}}">
@@ -272,7 +272,7 @@
 				</div>
 			</form>
 			<div style="text-align:center;">
-				<a href="{%url 'super-graph' event.name%}" class="fancybtn" id="nextstep">Step 3: Final lightcurve<span class="arrow">&nbsp;</span></a> 
+				<a href="{%url 'super-graph' event.name%}" class="fancybtn" id="nextstep">Step 3: Final lightcurve<span class="arrow">&nbsp;</span></a>
 			</div>
 		</div>
 

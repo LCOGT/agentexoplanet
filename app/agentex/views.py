@@ -86,7 +86,6 @@ def register(request):
             login(request, new_user)
             next = request.GET.get('next','')
             if next:
-                print next
                 return HttpResponseRedirect(next)
             else:
                 return HttpResponseRedirect(reverse('index'))
@@ -106,7 +105,6 @@ def editaccount(request):
         user = p.user
         if form.is_valid():
             f = form.cleaned_data
-            print f
             user.first_name=f['firstname']
             user.last_name=f['lastname']
             user.email=f['emailaddress']
@@ -117,11 +115,11 @@ def editaccount(request):
             messages.success(request,"Your account has been updated")
         # data = {'firstname' : p.user.first_name,'lastname' : p.user.last_name,'emailaddress':p.user.email,'password':p.user.password,'username':p.user.username}
         #return render_to_response("register.html",{'form': form,'edit':True},context_instance=RequestContext(request))
-        return render(request, 'register.html', {'form': form,'edit':True})
+        return render(request, 'agentex/register.html', {'form': form,'edit':True})
     else:
         form = RegistrationEditForm({'firstname' : p.user.first_name,'lastname' : p.user.last_name,'emailaddress':p.user.email,'password':p.user.password})
         #return render_to_response("register.html",{'form': form,'edit':True},context_instance=RequestContext(request))
-        return render(request, 'register.html', {'form': form,'edit':True})
+        return render(request, 'agentex/register.html', {'form': form,'edit':True})
 
 @login_required
 def profile(request):
@@ -263,7 +261,6 @@ def addvalue_nopost(request, person, code):
         ##### The page is being displayed with data for editing
         points = Datapoint.objects.filter(data__id=id,user=person)
         if nextcal=='cal':
-            print "*******"
             dp = Datapoint.objects.filter(pointtype='S',user=person,data__id=id)
             dd = dp[0].data.timestamp
             ds = Datapoint.objects.filter(pointtype='S',user=person,data__timestamp__gt=dd).order_by('data__timestamp')
@@ -364,7 +361,6 @@ def addvalue_nopost(request, person, code):
         else:
             planet = Event.objects.get(name=code)
             mylist = Datapoint.objects.filter(user=person,pointtype='S',data__event=planet).values_list('data',flat=True)
-            print mylist
             ### if person does not have a DataCollection it is their first measurement
             if (DataCollection.objects.filter(planet=planet,person=person).count() == 0):
                 d = DataSource.objects.filter(event=planet,id=planet.finder)[0]
@@ -390,7 +386,6 @@ def addvalue_nopost(request, person, code):
                     did = d[0]
                     first = False
                 except Exception,e:
-                    print e
                     messages.error(request,"User has a data collection but no points!")
                     raise Http404
             cals = Datapoint.objects.values_list('xpos','ypos').filter(data=dold,pointtype='C',user=person).order_by('coorder__calid')
@@ -497,7 +492,7 @@ def savemeasurement(person,pointsum,coords,dataid,entrymode):
             o.update(dataexploreview=True)
             messages.success(request, "Setting changed to use web view")
     except:
-        print "Having problems with"
+        logger.debug("Having problems with")
     mode = {'dataexplorer':'W','manual':'M'}
     pointtype = {'sc':'S','bg':'B'}
     d = DataSource.objects.filter(id=int(dataid))
@@ -855,8 +850,8 @@ def graphview_ave(request,code,mode,calid):
 
     # Prints the normalised calibrators
 
-    print 'The normalised calibrator stars are', normcals
-
+    logger.error('The normalised calibrator stars are {}'.format(normcals))
+    logger.error(dates)
     for i,id in enumerate(ids):
         #mycalibs = []
 
@@ -932,7 +927,7 @@ def graphview_ave(request,code,mode,calid):
     else:
         messages.error(request,'The lightcurve using the selected calibrator is not complete')
         return HttpResponseRedirect(reverse('average-graph',args=[planet.name]))
-    #print datetime.now() - now
+    #logger.debug(datetime.now() - now)
     classif = classified(o,code)
     resp = achievementscheck(o.user,planet,0,0,0,len(cats),0)
     unlock = False
@@ -949,7 +944,7 @@ def graphview_ave(request,code,mode,calid):
         if nunlock > 1 : msg = 'Achievements unlocked'+msg
         else : msg = 'Achievement unlocked'+msg
         messages.add_message(request, messages.SUCCESS, msg)
-    print 'The classified objects (number selected to have a dip, total number of calibrator star data sets, number of those datasets are completed)', classif
+    logger.debug('The classified objects (number selected to have a dip, total number of calibrator star data sets, number of those datasets are completed) {}'.format(classif))
     return render(request, 'agentex/graph_average.html', {'event': planet,
                                                             'data':data,
                                                             'sources':cats,
@@ -1089,7 +1084,7 @@ def fitsanalyse(request):
     else:
         person = User.objects.filter(id=guestuser)[0]
     # Flag poor quality result
-    #print datetime.now() - now
+    #logger.debug(datetime.now() - now)
     flag = ''
     # Extract variables passed from the image
     # Order of variables sent is 'bg','source','cal1','cal2'...
@@ -1123,12 +1118,12 @@ def fitsanalyse(request):
             response = {'message' : 'Please make sure your circles are fully within the image'}
             return HttpResponse(json.dumps(response),content_type='application/javascript')
 
-    #print datetime.now() - now
+    #logger.debug(datetime.now() - now)
     # Grab a fits file
     dfile = "%s%s" % (settings.DATA_LOCATION,d[0].fits)
-    #print dfile
+    #logger.debug(dfile)
     dc = fits.getdata(dfile,header=False)
-    #print datetime.now() - now
+    #logger.debug(datetime.now() - now)
 
     # Find all the pixels a radial distance r from x0,y0
     for co in coords:
@@ -1153,13 +1148,13 @@ def fitsanalyse(request):
                     hline.append(float(dc[y][x]))
                 if (y == y0):
                     vline.append(float(dc[y][x]))
-                    #print "x = %s, y= %s val=%s" % (x,y,float(dc[y][x]))
+                    logger.debug("x = %s, y= %s val=%s" % (x,y,float(dc[y][x])))
                 numpix += 1
             y += 1
         linex.append(hline)
         liney.append(vline)
         counts.append(sum)
-    #print datetime.now() - now
+    #logger.debug(datetime.now() - now)
 
     # Send back the raw total counts. Analysis can be done when the graph is produced.
     pointsum = {'bg' :  '%.2f' % counts[0], 'sc' : '%.2f' % counts[1], 'cal' : counts[2:]}
@@ -1183,7 +1178,7 @@ def fitsanalyse(request):
                'pixelcount' : numpix,
                 },
             }
-    #print (datetime.now() - now)
+    #logger.debug((datetime.now() - now))
     # save measurement data on the backend automatically
     entrymode = request.POST.get('entrymode','M')
     resp = savemeasurement(person,pointsum,coords,dataid,entrymode)
@@ -1416,7 +1411,7 @@ def admin_averagecals(code,person):
         dc = DataCollection.objects.filter(~Q(source=None),planet__name=code).values_list('source__id',flat=True).distinct()
         cs = CatSource.objects.filter(id__in=[c for c in dc]).annotate(count=Count('datacollection__datapoint')).filter(count__gte=e.numobs).values_list('id',flat=True).distinct()
         dcall = DataCollection.objects.filter(planet=e,source__in=cs).values_list('id',flat=True)
-        # print "** Collections %s" % dcall.count()
+        logger.debug("** Collections %s" % dcall.count())
         if cs.count() > 0:
             # Only use ones where we have more than numobs
             for c in dc:
@@ -1442,7 +1437,7 @@ def admin_averagecals(code,person):
         dc = DataCollection.objects.filter(~Q(source=None),person=person,planet__name=code).order_by('calid')
         cs = CatSource.objects.filter(id__in=[c.source.id for c in dc]).annotate(count=Count('datacollection__datapoint')).filter(count__gte=e.numobs).values_list('id',flat=True).distinct()
         dcall = DataCollection.objects.filter(planet=e,source__in=cs).values_list('id',flat=True)
-        # print "** Collections %s" % dcall.count()
+        logger.debug("** Collections %s" % dcall.count())
         if cs.count() > 0:
             # Only use ones where we have more than numobs
             for c in dc:
@@ -1523,7 +1518,7 @@ def averagecals_async(e):
                 a = AverageSet.objects.get_or_create(star=CatSource.objects.get(id=cat[0]),planet=e,settype='C')
                 a[0].values = ";".join([str(i) for i in values])
                 a[0].save()
-                print "Updated average sets on planet %s for %s" % (e.title,CatSource.objects.get(id=cat[0]))
+                logger.debug("Updated average sets on planet %s for %s" % (e.title,CatSource.objects.get(id=cat[0])))
     # Make averages for Source star and Background
     for category in ['S','B']:
         dps = Datapoint.objects.filter(data__event=e, pointtype=category).order_by('data__timestamp').values_list('data').annotate(Avg('value'))
@@ -1533,7 +1528,7 @@ def averagecals_async(e):
             a = AverageSet.objects.get_or_create(planet=e,settype=category)
             a[0].values = ";".join([str(i) for i in values])
             a[0].save()
-            print "Updated average sets on planet %s for %s" % (e.title,category)
+            logger.debug("Updated average sets on planet %s for %s" % (e.title,category))
     return
 
 def calstats(user,planet,decs):
@@ -1607,12 +1602,12 @@ def calstats(user,planet,decs):
 
         # Loops through calslist
         if len(calslist) > 0:
-            # if settings.LOCAL_DEVELOPMENT: print "\033[94mWe have calibrators\033[1;m"
+            # if settings.LOCAL_DEVELOPMENT: logger.debug("\033[94mWe have calibrators\033[1;m")
 
             # Stacks the values
             calstack = array([])
             calstack = vstack(calslist)
-            #print 'calstack=',calstack
+            #logger.debug('calstack=',calstack)
 
             # This throws a wobbly sometimes
             cc = (sc-bg)/(calstack-bg)
@@ -1621,33 +1616,33 @@ def calstats(user,planet,decs):
         else:
             if settings.LOCAL_DEVELOPMENT:
                 pass
-                #print "\033[1;35mThere are no calibrators in the list!!\033[1;m"
-        #print "%s %s - %s" % (ti, p, datetime.now()-now)
+                #logger.debug("\033[1;35mThere are no calibrators in the list!!\033[1;m")
+        #logger.debug("%s %s - %s" % (ti, p, datetime.now()-now))
         #ti += 1
 
     # Create normalisation function
     norm_a = lambda a: mean(r_[a[:3],a[-3:]])
     mycals = []
 
-    #print 'calibs=', calibs
+    #logger.debug('calibs=', calibs)
 
     try:
         # Stacks all of the calibrators
         cala = vstack(calibs)
-        #print 'cala=', cala
+        #logger.debug('cala=', cala)
 
         # Normalises stacked calibrators
         norms = apply_along_axis(norm_a, 1, cala)
-        #print 'norms=', norms
+        #logger.debug('norms=', norms)
 
         # Determines the length of the stacked calibrators
         dim = len(cala)
-        #print 'dim=', dim
+        #logger.debug('dim=', dim)
 
         # Normalises the calibrators
         norm1 = cala/norms.reshape(dim,1)
-        #print 'norms.reshape(dim,1)=', norms.reshape(dim,1)
-        #print 'norm1=', norm1
+        #logger.debug('norms.reshape(dim,1)=', norms.reshape(dim,1))
+        #logger.debug('norm1=', norm1)
 
         # Empty list to store calibrators
         mynorm1=[]
@@ -1663,8 +1658,8 @@ def calstats(user,planet,decs):
             # Normalises the averages
             mycals = list(myaves/mynorm_val)
     except Exception, e:
-        print e
-        print "\033[1;35mHave you started again but not removed all the data?\033[1;m"
+        logger.error(e)
+        logger.error("\033[1;35mHave you started again but not removed all the data?\033[1;m")
         return None,[],[],[],None
     #if dim != len(mycals):
     # check if I have a full set of data, if not we need to do all the calibrator averages manually
@@ -1709,128 +1704,7 @@ def supercaldata(user,planet):
 
     # Pull all of the decisions into an object
     decs = Decision.objects.values_list('person','source').filter(value='D', current=True, planet=planet, source__datacollection__display=True).annotate(Count('source'))
-    #print 'decs=', decs
-    #print len(decs)
-    #decs = Decision.objects.raw('SELECT person,source FROM agentex_decision')
-
-    # Counts the number of decisions
-    #numsuper = decs.count()
-
-    # If code is locally developed, print the number of super calibrators
-    #if settings.LOCAL_DEVELOPMENT: print "Number of supercals: %s" % numsuper
-    # Create a lists of sources  and people
     if decs:
-        '''
-        # Lists are created here
-        peoplelst,sourcelst,tmp = zip(*decs)
-        #print "%s - %s" % (ti, datetime.now()-now)
-        # Count ti in +1 increments
-        ti += 1
-
-        # Organise list of people and sorouces
-        people = set(peoplelst)
-        sources = set(sourcelst)
-
-        # Iterate over each person
-        for p in people:
-
-            # Empty list to store calibrators
-            calslist = []
-
-            # Query datapoints to extract all values for given planet
-            vals = Datapoint.objects.filter(data__event=planet,user=p).order_by('data__timestamp')
-            # Query vals to extract average values
-            sourceave = vals.filter(pointtype='S').annotate(mean=Avg('value')).values_list('mean',flat=True)
-            bgave = vals.filter(pointtype='B').annotate(mean=Avg('value')).values_list('mean',flat=True)
-
-            # Turn into Numpy arrays for easier manipulation
-            sc = array(sourceave)
-            bg = array(bgave)
-
-            # Pulls out the values for the calibrators
-            calvals = Datapoint.objects.values('data','coorder__source').filter(user= p,coorder__source__in=sources,pointtype='C',coorder__source__final=True,coorder__complete=True,coorder__display=True)
-
-            # Iterates over the number of sources defined earlier
-            for c in sources:
-
-                # Determines their associated averages
-                calaves = calvals.filter(coorder__source=c)
-
-                # And then their associated points
-                calpoints = calaves.order_by('data__timestamp').annotate(mean=Avg('value')).values_list('mean',flat=True)
-
-                # If there are more calibrator points than observations
-                if calpoints.count() == planet.numobs:
-                    # Append calpoints
-                    calslist.append(list(calpoints))
-
-            # Loops through calslist
-            if calslist:
-                if settings.LOCAL_DEVELOPMENT: print "\033[94mWe have calibrators\033[1;m"
-
-                # Stacks the values
-                calstack = vstack(calslist)
-                # This throws a wobbly sometimes
-                cc = (sc-bg)/(calstack-bg)
-                calibs.append(cc.tolist())
-            else:
-                if settings.LOCAL_DEVELOPMENT: print "\033[1;35mThere are no calibrators in the list!!\033[1;m"
-            #print "%s %s - %s" % (ti, p, datetime.now()-now)
-            ti += 1
-
-        # Create normalisation function
-        norm_a = lambda a: mean(r_[a[:3],a[-3:]])
-        mycals = []
-        try:
-            # Stacks all of the calibrators
-            cala = vstack(calibs)
-
-            # Normalises stacked calibrators
-            norms = apply_along_axis(norm_a, 1, cala)
-
-            # Determines the length of the stacked calibrators
-            dim = len(cala)
-
-            # Normalises the calibrators
-            norm1 = cala/norms.reshape(dim,1)
-
-            # Empty list to store calibrators
-            mynorm1=[]
-
-            # If mypoints is not an empty list
-            if mypoints != []:
-                #mynorms = apply_along_axis(norm_a, 1, mypoints)
-                # Averages the datapoints
-                myaves = average(mypoints,0)
-
-                # Averages the normalised points
-                mynorm_val = norm_a(myaves)
-
-                # Normalises the averages
-                mycals = list(myaves/mynorm_val)
-        except Exception, e:
-            print e
-            print "\033[1;35mHave you started again but not removed all the data?\033[1;m"
-            return None,[],[],[],None
-        #if dim != len(mycals):
-        # check if I have a full set of data, if not we need to do all the calibrator averages manually
-
-        # Performs mean statistics
-
-        norm_alt = mean(norm1,axis=0)
-        variance = var(norm1,axis=0)
-        std = sqrt(variance)
-        fz = list(norm_alt)
-
-        # Final return statements
-        nodata = False
-        if mycals == []:
-            mycals = myaverages(planet,user)
-            nodata = True
-        return numsuper,fz,mycals,list(std),nodata
-        else:
-            return None,[],[],[],None
-        '''
         return calstats(user,planet,decs)
 
 
@@ -1838,12 +1712,6 @@ def leastmeasured(code):
     coords = []
     e = Event.objects.filter(name=code)[:1]
     dc = DataCollection.objects.values('source').filter(~Q(source=None),planet__name=code).annotate(count = Count('source')).order_by('count')[:4]
-        # e = Event.objects.filter(name=code)
-        # finderdp = Datapoint.objects.values_list('xpos','ypos').filter(user=person,data__id=e[0].finder,pointtype='C',coorder__calid__lt=3).order_by('coorder__calid')
-        # finder = basiccoord - array(finderdp)
-        # t = transpose(finder)
-        # xmean = mean(t[0])
-        # ymean = mean(t[1])
     for coll in dc:
         s = CatSource.objects.get(id=coll['source'])
         coords.append({'x':int(s.xpos),'y':int(s.ypos),'r':int(e[0].radius)})
@@ -1867,18 +1735,6 @@ def update_web_pref(request,setting):
     else:
         return HttpResponse("Setting unchanged")
 
-
-'''
-Tester has been commented out to allow py.test to run (peculiar error was encountered
-when trying to run with it: apps aren't loaded yet). If required for any reason, simply
-uncomment both this function and the url in urls.py (don't forget the import statements
-at the top of urls.py).
-
-def tester(request):
-    #return render_to_response('agentex/test.html')
-    return render(request, 'agentex/test.html', {})
-'''
-
 def average_sources(code):
     typep = ('S','C','B')
     ds = DataSource.objects.filter(name=code)
@@ -1899,7 +1755,7 @@ def calibrate_update(code):
         reduced = measurement.filter(pointtype='R')[0]
         reduced.value = value
         reduced.save()
-        print "Reduced %s" % date
+        logger.debug("Reduced %s" % date)
 def calibrate(measurement):
     source = measurement.filter(pointtype='S')
     calib = measurement.filter(pointtype='C')
@@ -1998,7 +1854,6 @@ def update_final_display():
     for d in decs:
         dc = DataCollection.objects.filter(person=d.person,source=d.source)
         dc.update(display=True)
-        print d.planet, d.person
 
 def update_cat_sources(username,planetcode):
     event = Event.objects.get(name=planetcode)
@@ -2008,8 +1863,6 @@ def update_cat_sources(username,planetcode):
         dc = p.coorder
         if cats:
             dc.source=cats[0]
-            print dc.id,dc.source.data.event
         else:
             dc.source=None
-            print dc.id, 'No catsource found'
         dc.save()

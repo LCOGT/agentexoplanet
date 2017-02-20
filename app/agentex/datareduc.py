@@ -51,6 +51,10 @@ from agentex.agentex_settings import planet_level
 
 from agentex.views import *
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 def personcheck(request):
     if (request.user.is_authenticated()):
         o = Observer.objects.get(user=request.user)
@@ -136,6 +140,7 @@ def calibrator_averages(code,person=None,progress=False):
         sc = array(averages.filter(star=None,settype='S')[0].data)
         bg = array(averages.filter(star=None,settype='B')[0].data)
     # Make a combined list of all calibration stars used by 'person'
+    print(dc)
     for calibrator in dc:
         if person:
             measurements = dps.filter(pointtype='C',coorder=calibrator)
@@ -166,6 +171,8 @@ def photometry(code,person,progress=False,admin=False):
     # Empty lists to store normalised calibrators and maximum values
     normcals = []
     maxvals = []
+    dates = []
+    stamps = []
 
     # Call in averages
     cals,sc,bg,times,ids,cats = calibrator_averages(code,person,progress)
@@ -196,6 +203,7 @@ def photometry(code,person,progress=False,admin=False):
     if admin:
         return normcals,stamps,indexes,cats
     return cals,normcals,list(sc),list(bg),dates,stamps,indexes,cats
+
 
 
 def measure_offset(d,person,basiccoord):
