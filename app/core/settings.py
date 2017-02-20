@@ -26,7 +26,7 @@ LOCAL_DEVELOPMENT = not PRODUCTION
 
 DEBUG = not PRODUCTION
 
-PREFIX ="/agentexoplanet"
+PREFIX = os.environ.get('PREFIX', '/agentexoplanet')
 FORCE_SCRIPT_NAME = PREFIX
 BASE_DIR = os.path.dirname(CURRENT_PATH)
 
@@ -80,8 +80,10 @@ STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.AppDirectoriesFinder"
  )
 
-chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
-SECRET_KEY = get_random_string(50, chars)
+SECRET_KEY = os.environ.get('SECRET_KEY','')
+if not SECRET_KEY:
+    chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
+    SECRET_KEY = get_random_string(50, chars)
 
 MIDDLEWARE_CLASSES = (
     'opbeat.contrib.django.middleware.OpbeatAPMMiddleware',
@@ -235,13 +237,3 @@ if not PRODUCTION:
     except ImportError as e:
         if "local_settings" not in str(e):
             raise e
-
-##################
-# GRAPPELLI SETTINGS #
-##################
-
-# Changes default dashboard to Grappelli dashboard
-GRAPPELLI_INDEX_DASHBOARD = 'citsciportal.dashboard.CustomIndexDashboard'
-
-# Changes the title of the admin page from Grappelli default
-GRAPPELLI_ADMIN_TITLE = 'Agent Exoplanet Administration Page'
