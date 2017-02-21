@@ -43,7 +43,7 @@ DATABASES = {
     "USER"      : os.environ.get('CITSCI_DB_USER',''),
     "PASSWORD"  : os.environ.get('CITSCI_DB_PASSWD',''),
     "HOST"      : os.environ.get('CITSCI_DB_HOST',''),
-}
+    }
 }
 
 # Local time zone for this installation. Choices can be found here:
@@ -137,8 +137,8 @@ OPBEAT = {
 }
 
 
-LOGIN_REDIRECT_URL = 'http://lco.global/agentexoplanet/'
-LOGIN_URL = 'http://lco.global/agentexoplanet/account/login/'
+LOGIN_REDIRECT_URL = 'https://lco.global/agentexoplanet/'
+LOGIN_URL = 'https://lco.global/agentexoplanet/account/login/'
 
 
 SESSION_COOKIE_DOMAIN='lco.global'
@@ -147,8 +147,14 @@ SESSION_COOKIE_NAME='agentexoplanet.sessionid'
 
 BASE_URL = "/agentexoplanet/"
 
-EMAIL_HOST = 'localhost'
-EMAIL_PORT = 1025
+EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS       = True
+EMAIL_HOST          = 'smtp.gmail.com'
+EMAIL_HOST_USER     = os.environ.get('EMAIL_USERNAME','')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD','')
+EMAIL_PORT          =  587
+DEFAULT_FROM_EMAIL  = 'Agent Exoplanet <agentexoplanet@lco.global>'
+EMAIL_REPLYTO       = 'agentexoplanet@lco.global'
 
 ALLOWED_HOSTS = ['*']
 

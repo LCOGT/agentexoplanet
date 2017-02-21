@@ -5,7 +5,10 @@ from django.contrib.auth.views import login, logout
 from django.contrib.staticfiles import views
 
 from agentex.admin import calibrator_check, allcalibrators_check
-from agentex.views import index, register, editaccount, profile, target, fitsanalyse, read_manual_check, briefing, addcomment, addvalue, updatedataset, graphview, classifyupdate, graphview, graphsuper, infoview, measurementsummary
+from agentex.views import index, target, fitsanalyse, \
+    read_manual_check, addvalue, updatedataset, graphview, \
+    classifyupdate, graphview, graphsuper, infoview, measurementsummary
+from agentex.users import register, editaccount, profile, briefing, feedback
 
 admin.autodiscover()
 
@@ -25,7 +28,7 @@ urlpatterns = [
     #url(r'^test',tester, name='tester'),
     url(r'^briefing/read/$',read_manual_check, name='read_manual_check'),
     url(r'^briefing/$',briefing, name='briefing'),
-    url(r'^comment/$',addcomment, name='addcomment'),
+    url(r'^comment/$',feedback, name='addcomment'),
     url(r'^(?P<code>\w+)/view/$',addvalue, name='addvalue'),
     url(r'^(?P<code>\w+)/graph/update/$',updatedataset, name='updatedataset'),
     url(r'^(?P<code>\w+)/lightcurve/advanced/$',graphview, {'mode' : 'advanced','calid':None}, name='advanced-graph'),
