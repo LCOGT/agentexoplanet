@@ -535,7 +535,15 @@
 
 
 {% block lower-menu%}{% ifnotequal complete 1 %}
-				<div class="polaroid"><div id="finderthumb"><a href="{{ STATIC_URL }}{{data.target.finderchart}}"><img src="{{ STATIC_URL }}{{data.target.finderchart_tb}}" class="snap" alt="Finder chart for {{data.event.title}}" title="Finder chart" /></a><p>Finder chart</p></div></div>
+				<div class="polaroid"><div id="finderthumb">
+          {% with data.target.finderchart as lg_finder %}
+          <a href="{% static lg_finder %}">
+            {% endwith %}
+          {% with data.target.finderchart_tb as sm_finder %}
+            <img src="{% static sm_finder %}" class="snap" alt="Finder chart for {{data.event.title}}" title="Finder chart" />
+            {% endwith %}
+          </a>
+          <p>Finder chart</p></div></div>
 				<div id="toolbar">
 					<div class="fbtn"><a href="{{data_url}}{{data.fits}}" class="fancybtngrey btns" id="btn-download" title="Download data file (FITS format)"><img src="{% static 'images/download_icon&16.png' %}" style="width:16px;height:16px;" alt="." /> Download data</a></div>
 				</div>{% endifnotequal %}

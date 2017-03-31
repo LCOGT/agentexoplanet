@@ -11,10 +11,13 @@
 	<div class="page stackedpaper">
 
 		<div class="eventimage">
-			<a href="http://server1.wikisky.org/v2?ra={{object.target.ra|hexangletodec}}&de={{object.target.dec|hexangletodec}}&zoom=10&img_source=DSS2"><img src="{{STATIC_URL}}{{object.event.illustration}}" class="bio" alt="Illustration of {{event.title}}" style="width:200px" ></a>
+			<a href="http://server1.wikisky.org/v2?ra={{object.target.ra|hexangletodec}}&de={{object.target.dec|hexangletodec}}&zoom=10&img_source=DSS2">
+        {% with object.event.illustration.name as image_static %}
+        <img src="{% static image_static %}" class="bio" alt="Illustration of {{event.title}}" style="width:200px" ></a>
+        {% endwith %}
 			<img src="{% static 'images/paperclip.png' %}" class="paperclip" alt="." />
 			<p class="objectspecific">Digital Sky Survey 2</p>
-		</div>	
+		</div>
 		<div id="mylink" style="display:none;"><a href="{% url 'my-graph' object.event.name %}"><img src="{% static 'images/graph_my.png' %}" alt="My" title="View my measurements as a lightcurve" /></a></div>
 		<div id="avlink" style="display:none;"><a href="{% url 'average-graph' object.event.name %}"><img src="{% static 'images/graph_ave.png' %}" alt="Classify" title="Classify your lightcurves" /></a></div>
 		<div id="sulink" style="display:none;"><a href="{%url 'super-graph' object.event.name%}"><img src="{% static 'images/graph_super.png' %}" alt="Final" title="Final lightcurve" /></a></div>
@@ -24,7 +27,7 @@
 
 		<p>{{object.target.description|safe}}</p>
 		<!--
-		<ul class="icons">	
+		<ul class="icons">
 			<li><a class="target" href="{% url 'addvalue' object.event.name %}">Analyze images for this exoplanet</a></li>
 		</ul>
 		-->
@@ -66,7 +69,7 @@
 			</tr>
 			<tr>
 				<td>Exoplanet Transit Database</td>
-				<!-- td><a href="http://var2.astro.cz/ETD/etd.php?STARNAME={{object.target.name}}">Host star</a></td --> 
+				<!-- td><a href="http://var2.astro.cz/ETD/etd.php?STARNAME={{object.target.name}}">Host star</a></td -->
 				<td colspan="2"><a href="http://var2.astro.cz/ETD/etd.php?STARNAME={{object.target.name}}&PLANET=b">Planet</a></td>
 			</tr>
 			<tr>
@@ -74,7 +77,7 @@
 				<td><a href="http://simbad.u-strasbg.fr/simbad/sim-id?Ident={{object.target.name}}b">Planet</a></td>
 				<td><a href="http://simbad.u-strasbg.fr/simbad/sim-id?Ident={{object.target.name}}">Host star</a></td>
 			</tr>
-			
+
 			</tbody></table>
 		</div>
 		<div class="column">
