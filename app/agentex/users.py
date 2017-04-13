@@ -4,10 +4,12 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.core.mail import EmailMessage
 from django.shortcuts import redirect, render, render_to_response
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.template import Context
 from django.template.loader import get_template
 from django.core.urlresolvers import reverse
 from django.conf import settings
+from django.db.models import Count
 
 from agentex.models import Target, Event, Datapoint, DataSource, DataCollection,CatSource, Decision, Achievement, Badge, Observer, AverageSet
 from agentex.forms import RegisterForm, CommentForm, RegistrationEditForm

@@ -24,6 +24,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
+from django.core.cache import cache
 from django.core.serializers import serialize
 from django.core.urlresolvers import reverse
 from django.db import connection
@@ -36,8 +37,8 @@ from itertools import chain
 import logging
 from math import floor,pi,pow
 from math import sin,acos,fabs,sqrt
-from numpy import *
-from numpy import array,nan_to_num
+import numpy as np
+#from numpy import array,nan_to_num
 from time import mktime
 from xml.dom.minidom import parse
 import json
@@ -54,7 +55,7 @@ from agentex.datareduc import *
 
 guestuser = 2
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('agentex')
 
 def home(request):
     ''' Render the Front page of citizen science portal '''
@@ -432,8 +433,8 @@ def savemeasurement(person,pointsum,coords,dataid,entrymode):
     s_x = float(coords[1][0])
     s_y = float(coords[1][1])
     if d[0].id == d[0].event.finder:
-        xvar = abs(s_x - d[0].event.xpos)
-        yvar = abs(s_y - d[0].event.ypos)
+        xvar = np.abs(s_x - d[0].event.xpos)
+        yvar = np.abs(s_y - d[0].event.ypos)
         if (xvar > 3 or yvar > 3):
           # Remove previous values for this point
           return {'msg': 'Target marker not correctly aligned', 'code': messages.ERROR}
@@ -464,7 +465,7 @@ def savemeasurement(person,pointsum,coords,dataid,entrymode):
             data.offset = 0
         elif k == 'bg':
             coord = coords[0]
-            data.offset = int(sqrt((s_x - float(coord[0]))**2 + (s_y - float(coord[1]))**2))
+            data.offset = int(np.sqrt((s_x - float(coord[0]))**2 + (s_y - float(coord[1]))**2))
         data.value= float(pointsum[k])
         data.xpos = int(float(coord[0]))
         data.ypos = int(float(coord[1]))
@@ -475,7 +476,7 @@ def savemeasurement(person,pointsum,coords,dataid,entrymode):
             return {'msg': 'Error saving data point', 'code': messages.ERROR}
     # Slice coord data so we only have calibration stars
     coord = coords[2:]
-    basiccoord = array(coord[:3])
+    basiccoord = np.array(coord[:3])
     nocals = len(coord)
     sc_cal = float(pointsum['sc']) - float(pointsum['bg'])
     # Find out if means have been calculated already, if not do it for the source
@@ -485,8 +486,8 @@ def savemeasurement(person,pointsum,coords,dataid,entrymode):
         # check the source is within this tolerance too
         sc_xpos = d[0].event.xpos
         sc_ypos = d[0].event.ypos
-        xvar = abs(abs(sc_xpos-s_x)-abs(xmean))
-        yvar = abs(abs(sc_ypos-s_y)-abs(ymean))
+        xvar = np.abs(np.abs(sc_xpos-s_x)-np.abs(xmean))
+        yvar = np.abs(np.abs(sc_ypos-s_y)-np.abs(ymean))
         if (xvar > 5 or yvar > 5):
             # Remove previous values for this point
             oldpoints = Datapoint.objects.filter(data__id=int(dataid),user=person)
@@ -523,7 +524,7 @@ def savemeasurement(person,pointsum,coords,dataid,entrymode):
         data.value= float(value)
         data.xpos = xpos
         data.ypos = ypos
-        data.offset = int(sqrt((s_x - float(coord[i][0]))**2 + (s_y - float(coord[i][1]))**2))
+        data.offset = int(np.sqrt((s_x - float(coord[i][0]))**2 + (s_y - float(coord[i][1]))**2))
         data.taken=datestamp
         data.coorder = dcoll
         try:
@@ -703,7 +704,7 @@ def graphview_simple(request,code,mode,calid):
     # If the number of data collections is greater than 0 (as defined earlier)
     if dc.count() > n:
 
-        # Overrides n with an array in range 0 to the number of collections in dc
+        # Overrides n with an np.array in range 0 to the number of collections in dc
         n = range(0,dc.count())
 
         # Empty list
@@ -1075,8 +1076,8 @@ def fitsanalyse(request):
         vline = list()
         hline = list()
         while (y < ye):
-            angle = fabs(1.*(y-y0)/r)
-            dx = int(sin(acos(angle))*r)
+            angle = np.fabs(1.*(y-y0)/r)
+            dx = int(np.sin(np.acos(angle))*r)
             x = xs = x0 - dx
             xe = x0 + dx
             while (x < xe):
@@ -1150,9 +1151,9 @@ def measurementsummary(request,code,format):
             dates.append(d.data.timestamp.isoformat(" "))
             stamps.append(timegm(d.data.timestamp.timetuple())+1e-6*d.data.timestamp.microsecond)
             timestamps.append(d.data.timestamp)
-        sources = array(mypoints.filter(pointtype='S').values_list('value',flat=True))
+        sources = np.array(mypoints.filter(pointtype='S').values_list('value',flat=True))
         ids = mypoints.filter(pointtype='S').values_list('data__id',flat=True)
-        bg = array(mypoints.filter(pointtype='B').values_list('value',flat=True))
+        bg = np.array(mypoints.filter(pointtype='B').values_list('value',flat=True))
         sb = sources -bg
         cs = mypoints.filter(pointtype='C').order_by('coorder__calid')
         maxcals = cs.aggregate(Max('coorder__calid'))['coorder__calid__max']
@@ -1309,7 +1310,7 @@ def myaverages(code,person):
                     v = Datapoint.objects.filter(coorder__source=c.source.id,pointtype='C',user=person).order_by('data__timestamp').values_list('data__id','value')
                     cals.append(dict(v))
             if cals:
-                # Only proceed if we have calibrators in the list (i.e. arrays of numobs)
+                # Only proceed if we have calibrators in the list (i.e. np.arrays of numobs)
                 points = Datapoint.objects.filter(user=person,data__event__name=code).order_by('data__timestamp')
                 scA = points.filter(pointtype='S').values_list('data__id','value')
                 bgA = points.filter(pointtype='B').values_list('data__id','value')
@@ -1317,12 +1318,12 @@ def myaverages(code,person):
                 sc=dict(scA)
                 bg=dict(bgA)
                 sc = dictconv(sc,ds)
-                sc = array(sc)
+                sc = np.array(sc)
                 bg = dictconv(bg,ds)
-                bg = array(bg)
+                bg = np.array(bg)
                 for cal in cals:
-                    val = (sc - bg)/(array(dictconv(cal,ds))-bg)
-                    val = nan_to_num(val)
+                    val = (sc - bg)/(np.array(dictconv(cal,ds))-bg)
+                    val = np.nan_to_num(val)
                     normcals.append(val)
                 normmean = mean(normcals,axis=0)
                 return list(normmean/max(normmean))
@@ -1396,7 +1397,7 @@ def admin_averagecals(code,person):
                         cats.append(cat_item)
                         callist.append(c.source.id)
     if callist:
-        # Only proceed if we have calibrators in the list (i.e. arrays of numobs)
+        # Only proceed if we have calibrators in the list (i.e. np.arrays of numobs)
         ds = DataSource.objects.filter(event=e).order_by('timestamp')
         users = DataCollection.objects.filter(id__in=dcall).values_list('person',flat=True).distinct()
         maxnum = ds.count()
@@ -1422,11 +1423,11 @@ def admin_averagecals(code,person):
             else:
                 tmp,sc=zip(*sc_my)
                 tmp,bg=zip(*bg_my)
-        # Convert to numpy arrays to allow simple calibrations
-        sc = array(sc)
-        bg = array(bg)
+        # Convert to numpy np.arrays to allow simple calibrations
+        sc = np.array(sc)
+        bg = np.array(bg)
         for cal in cals:
-            val = (sc - bg)/(array(cal)-bg)
+            val = (sc - bg)/(np.array(cal)-bg)
             maxval = mean(r_[val[:3],val[-3:]])
             maxvals.append(maxval)
             norm = val/maxval
@@ -1486,16 +1487,20 @@ def calstats(user,planet,decs):
     sources = set(sourcelst)
 
     # Import entire Datapoint database and sort by timestamp
-    db = Datapoint.objects.filter(ident=planet).values_list().order_by('tstamp')
+    cache_name = '{}_datapoints'.format(planet)
+    db = cache.get(cache_name)
+    if not db:
+        db = Datapoint.objects.filter(ident=planet).values_list('user_id','coorder__source','value','pointtype').order_by('tstamp')
+        cache.set(cache_name, db, 120)
 
-    # Convert to numpy array
-    dp_array = array(db)
+    # Convert to numpy np.array
+    dp_array = np.array(db)
 
     # Read in all values of calibrators
-    calvals_data = Datapoint.objects.values_list('data','user_id','coorder__source','value').filter(coorder__source__in=sources,pointtype='C',coorder__source__final=True,coorder__complete=True,coorder__display=True).order_by('tstamp')
+    calvals_data = Datapoint.objects.values_list('user_id','coorder__source','value').filter(coorder__source__in=sources,pointtype='C',coorder__source__final=True,coorder__complete=True,coorder__display=True).order_by('tstamp')
 
-    # Convert to numpy array
-    calvals_array = array(vstack(calvals_data))
+    # Convert to numpy np.array
+    calvals_array = np.array(vstack(calvals_data))
 
     # Iterate over each person
     for p in people:
@@ -1505,13 +1510,13 @@ def calstats(user,planet,decs):
 
 
         # Query datapoints to extract all values for given planet
-        # Both dp_array[:,5] and calvals_array[:,1] extract entries for user_id==p from columns 5 and 1 (different column index is because user_id is stored in different columns for both datasets)
-        vals = dp_array[dp_array[:,5]==p]
+        # Both dp_array[:,1] and calvals_array[:,0] extract entries for user_id==p from column 0
+        vals = dp_array[dp_array[:,0]==p]
         if vals.size == 0:
             # Jump to the next person if we don't have any values
             continue
 
-        calvals = calvals_array[calvals_array[:,1]==p]
+        calvals = calvals_array[calvals_array[:,0]==p]
         if calvals.size == 0:
             # Jump to the next person if we don't have any calibrator values
             continue
@@ -1519,19 +1524,18 @@ def calstats(user,planet,decs):
         # Query vals to extract average values
 
         # vals[:,6]=='S' and vals[:,6]=='B' extract the entries from vals that have pointtype=='S' and 'B' in column 6. sc_extract[:,4] and bg_extract[:,4] pulls the exact source and background values for those entries from column 4
-        sc_extract = vals[vals[:,6]=='S']
-        sc = sc_extract[:,4]
+        sc_extract = vals[vals[:,3]=='S']
+        sc = sc_extract[:,2]
 
-        bg_extract = vals[vals[:,6]=='B']
-        bg = bg_extract[:,4]
-
+        bg_extract = vals[vals[:,3]=='B']
+        bg = bg_extract[:,2]
         # Iterates over the number of sources defined earlier
         for c in sources:
 
             # Determines their associated averages
             # Performs similar routine to above to extract the source type from column 2, and then the values from column 3
-            calpoints_extract = calvals[calvals[:,2]==c]
-            calpoints = calpoints_extract[:,3]
+            calpoints_extract = calvals[calvals[:,1]==c]
+            calpoints = calpoints_extract[:,2]
 
             # If there are more calibrator points than observations
             if len(calpoints) == planet.numobs:
@@ -1543,7 +1547,7 @@ def calstats(user,planet,decs):
             # if settings.LOCAL_DEVELOPMENT: logger.debug("\033[94mWe have calibrators\033[1;m")
 
             # Stacks the values
-            calstack = array([])
+            calstack = np.array([])
             calstack = vstack(calslist)
             #logger.debug('calstack=',calstack)
 
@@ -1604,7 +1608,7 @@ def calstats(user,planet,decs):
     # Performs mean statistics (normalise, variance, standard dev.)
     norm_alt = mean(norm1,axis=0)
     variance = var(norm1,axis=0)
-    std = sqrt(variance)
+    std = np.sqrt(variance)
     fz = list(norm_alt)
 
     # Final return statements

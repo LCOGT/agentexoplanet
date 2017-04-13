@@ -142,6 +142,7 @@ class DataCollection(models.Model):
 
 class Datapoint(models.Model):
     # ident is the identifier to filter by. It is populated by the name field in Event
+    # planetid = models.IntegerField(default=1, db_index=True)
     ident = models.CharField(max_length=20)
     data = models.ForeignKey(DataSource)
     taken = models.DateTimeField(blank=True, default=datetime.now)
