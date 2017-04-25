@@ -30,7 +30,10 @@
               {% if line.completed == line.event.numobs %}
               <span class="polaroidtriangle"><img src="{% static 'images/label_complete.png' %}" alt="completed" title="Completed" /></span>
               {% else %}
-                {% if line.level %}<span class="polaroidtriangle"><img src="{{STATIC_URL}}images/label_{{line.level}}.png" alt="{{line.level}}" title="{{line.level}}" /></span>
+                {% if line.level %}
+                {% with "images/label_"|add:line.level|add:".png" as level_static  %}
+                <span class="polaroidtriangle"><img src="{% static level_static %}" alt="{{line.level}}" title="{{line.level}}" /></span>
+                {% endwith %}
                 {% endif %}
               {% endif %}
               <a href="{% url 'infoview' line.event.name %}">

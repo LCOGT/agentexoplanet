@@ -1077,7 +1077,7 @@ def fitsanalyse(request):
         hline = list()
         while (y < ye):
             angle = np.fabs(1.*(y-y0)/r)
-            dx = int(np.sin(np.acos(angle))*r)
+            dx = int(np.sin(np.arccos(angle))*r)
             x = xs = x0 - dx
             xe = x0 + dx
             while (x < xe):

@@ -38,22 +38,22 @@
 
 	<div id="page-wrapper">
 		<div id="page">
-		
+
 			<div id="lcogt-bar">
 				{% block login %}<div id="login" class="block">{% if user.is_authenticated %}<a href="{% url 'editaccount' %}">{% if user.first_name %}{{ user.first_name }}{% else %}{{user.username}}{% endif %}</a> | <a href="{% url 'logout' %}">Logout</a>{% else %}<a href="{% url 'login' %}">Login</a> | <a href="{% url 'register' %}?next={{ request.path }}">Register</a>{% endif %}</div>{% endblock %}
 				<div>
-					<a href="http://lcogt.net/" title="LCOGT Home">Las Cumbres Observatory Global Telescope Network</a>
+					<a href="https://lco.global" title="Las Cumbres Observatory">Las Cumbres Observatory</a>
 				</div>
 			</div>
 
 			<div id="screen">
 					<div id="container">
-		
+
 					<div id="header">
 						{% block logo-content %}<div id="logo"><img src="{% static 'images/citsci-logo2.png' %}" alt="Home" id="logo-image" /></div>{% endblock %}
-						<div id="logo2"><a href="http://lcogt.net" title="LCOGT Home" rel="home"><img src="{% static 'images/logo-gray-poweredby.png' %}" alt="Home" id="logo-image2" /></a></div>
+						<div id="logo2"><a href="https://lco.global" title="Las Cumbres Observatory" rel="home"><img src="{% static 'images/LCO_logo_powered_by.png' %}" alt="Home" id="logo-image2" /></a></div>
 					</div>
-		
+
 					{% block navbar %}
 					{% endblock %}
 					<div id="main">
@@ -67,7 +67,7 @@
 					</div>
 {% endblock %}
 					<div class="clear-block"></div>
-					<div id="footer">{% block footer%}{% endblock %} | Copyright &copy; {% now "Y" %} Las Cumbres Observatory Global Telescope Network. All rights reserved.</div>
+					<div id="footer">{% block footer%}{% endblock %} | Copyright &copy; {% now "Y" %} Las Cumbres Observatory. All rights reserved.</div>
 				</div>
 			</div>
 		</div>
