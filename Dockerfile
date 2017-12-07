@@ -6,16 +6,14 @@ ENTRYPOINT [ "/init" ]
 
 # install and update packages
 RUN yum -y install epel-release \
-        && yum -y install gcc make mysql-devel python-devel python-pip \
-                python-matplotlib nginx supervisor \
+        && yum -y install gcc make mysql-devel python-devel python-pip uwsgi-plugin-python nginx supervisor \
         && yum -y update \
         && yum -y clean all
 
 COPY app/requirements.txt /var/www/apps/agentexoplanet/requirements.txt
 
 # install Python packages
-RUN pip install --upgrade 'pip>=8.1.1' \
-        && pip install 'uwsgi==2.0.13.1' \
+RUN pip install --upgrade pip \
         && pip install -r /var/www/apps/agentexoplanet/requirements.txt \
         && rm -rf /root/.pip /root/.cache
 
