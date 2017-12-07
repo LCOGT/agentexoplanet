@@ -35,7 +35,7 @@
 	<div class="page stackedpaper">
 		<div class="padder">
 					<h1 class="objectspecific">Mission Briefing</h1>
-					
+
 					<div class="spacer"></div>
 					<h2>Introduction</h2>
 
@@ -44,7 +44,7 @@
 					<p>Discovering exoplanets is tricky since they are so faint compared to the stars they orbit. It requires detective work. Your mission, should you choose to accept it, is to look through a sequence of images recently taken by our telescopes in Hawaii, Australia and California and help us to spot these exoplanets and measure their size.</p>
 
 					<div class="spacer"></div>
-					<iframe width="560" height="315" src="http://www.youtube.com/embed/qY1N-v4TwOg" frameborder="0" allowfullscreen></iframe>
+					<iframe width="560" height="315" src="https://www.youtube.com/embed/qY1N-v4TwOg" frameborder="0" allowfullscreen></iframe>
 					<div class="spacer"></div>
 					<!-- Don't blink -->
 					<h2 id="blink">Blinking stars</h2>
@@ -62,10 +62,10 @@
 
 					<div class="spacer"></div>
 					<h2 id="analysis">Analyzing images with the Light Monitor</h2>
-					
+
 					<div class="polaroid polaroid-right"><img src="{% static 'images/briefing/ss-analysis.jpg' %}" alt="light monitor" title="Light Monitor illustration"><p>Light Monitor</p></div>
 					<p>The first thing you will see is an area of sky in the middle of the screen. On the left you will see a smaller image, called a finder chart, of this same patch of sky. On the finder chart is a crosshairs that indicates the star in the image that has the known exoplanet - the target star. At any time you can click on this finder chart, and it will appear over the top of your working image so that you can see which is the target star. Click on either the finder chart or the main image to see your working image again.</p>
-	
+
 					<h3>Select the target</h3>
 					<p>On your working image you will see a small circle with the word <strong class="source">Target</strong> next to it. Click on the word and drag the circle over the target star. When you begin to drag, the image will zoom in. This makes it easier for you to place the circle exactly where you want it. You may need to drop and pick up the marker a couple of times if you want to move it across the whole image.</p>
 					<blockquote>It is <em>very important</em> that you select the correct star as the target (you can remind yourself which one is the target star at any time, by clicking the finder chart image).</blockquote>
@@ -79,7 +79,7 @@
 					<p>Two more calibrators will appear. Do the same as above with those but position them over different stars. Once you have placed your calibrators, you may choose to place one or even several more. Click on the <em>+ Calibrator</em> button to the left of the image and a new marker will appear. You can move this to another star in the image. You may continue this for as many calibrator stars in the image as you want.</p>
 
 					<p>Using more calibrators will help make your results more accurate, but only if they are placed on the stars you have used throughout your set! If you decide you have too many calibrators, you can remove them one at a time by clicking the (-) Calibrator button. The last calibrator added will be removed.</p>
-					    
+
 					<h3>Analyze this</h3>
                     <div class="polaroid polaroid-right"><img src="{% static 'images/briefing/ss-graphs.jpg' %}" alt="analyzing stars" title="Illustration of analyzing stars"><p>Analyzing stars</p></div>
 					<p>When you have placed your target, blank sky and calibrator circles, you can click the “Analyze Image” button to the left of the image. When you do this, you will see small graphs pop up near each of your circles.</p>
@@ -95,11 +95,11 @@
 					<p>A lightcurve is what we call the graph of the brightness you have measured in each image, plotted against the time the observation was made. These are a really useful tool because they show you very simply where the dip in brightness is how deep the dip is.</p>
 					<div class="polaroid polaroid-left"><img src="{% static 'images/briefing/ss-tabs.jpg' %}" alt="light curve tabs" title="Lightcurve tabs"><p>Lightcurve tabs</p></div>
 					<p>Just below the help "<strong>?</strong>" there are 3 tabs. These are links to the lightcurves.</p>
-					    
+
 					<h3 id="mymeasurements">My measurements</h3>
 					<img src="{% static 'images/graph_my.png' %}" style="float:left;padding-right:5px;" alt="my graph" title="My measurements"><p>Here you will see all of the measurements you have made. Each point shows the ratio of your target measurement and one of your calibrators e.g. if you chose 3 calibrators, you will have 3 different colored lines. If you notice one of your points is very different to other points at the same time, you may have not placed the calibrator marker completely over the star. You can click the point to edit it.
 					<p>Now move on to....</p>
-					
+
 					<h3 id="classify">Classify your lightcurves</h3>
 					<div class="polaroid polaroid-right"><img src="{% static 'images/briefing/ss-classify.jpg' %}" alt="classify" title="Classify lightcurves"><p>Lightcurve classification</p></div>
 					<img src="{% static 'images/graph_ave.png' %}" style="float:left;padding-right:5px;" alt="Average graph" title="Average graph">
@@ -109,12 +109,12 @@
 
 					<h3 id="finalresult">Final Result</h3>
 					<img src="{% static 'images/graph_super.png' %}" style="float:left;padding-right:5px;" alt="final result" title="Final lightcurve"><p>Here you will see the combined results of everyone who is analyzing this exoplanet transit. If more people analyze the images of this transit the better quality the final result will be. The final result will show you how big this exoplanet is.</p>
-					
+
 					<div class="spacer"></div>
 					<h2 class="clear-block">Briefing Complete</h2>
 					<p>Whether you choose lots of calibrators and analyze all the images in the time-series, or if you choose 3 calibrators and a couple of images, all of your measurements are valuable and make the final lightcurve more accurate.</p>
 					<p>You are now ready to begin.</p>
-	
+
 					<form action="{% url 'read_manual_check' %}" method="POST">
 					{% csrf_token %}
 					<input type="hidden" name="read_manual" value="true" />
