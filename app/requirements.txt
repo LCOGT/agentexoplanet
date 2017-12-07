@@ -4,3 +4,4 @@ numpy
 astropy
 numpy
 opbeat
+uwsgi

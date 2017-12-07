@@ -4,6 +4,13 @@ MAINTAINER Edward Gomez <egomez@lcogt.net>
 EXPOSE 80
 ENTRYPOINT [ "/init" ]
 
+# setup the Python Django environment
+ENV PYTHONPATH /var/www/apps
+ENV DJANGO_SETTINGS_MODULE core.settings
+
+# set the PREFIX env variable
+ENV PREFIX /agentexoplanet
+
 # install and update packages
 RUN yum -y install epel-release \
         && yum -y install gcc make mysql-devel python-devel python-pip uwsgi-plugin-python nginx supervisor \
@@ -16,13 +23,6 @@ COPY app/requirements.txt /var/www/apps/agentexoplanet/requirements.txt
 RUN pip install --upgrade pip \
         && pip install -r /var/www/apps/agentexoplanet/requirements.txt \
         && rm -rf /root/.pip /root/.cache
-
-# setup the Python Django environment
-ENV PYTHONPATH /var/www/apps
-ENV DJANGO_SETTINGS_MODULE core.settings
-
-# set the PREFIX env variable
-ENV PREFIX /agentexoplanet
 
 # copy configuration files
 COPY config/uwsgi.ini /etc/uwsgi.ini
