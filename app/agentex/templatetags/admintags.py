@@ -3,8 +3,7 @@ from django.contrib.admin.models import LogEntry, ADDITION
 from datetime import date, datetime, timedelta
 import time
 
-from agentex.models import Target, Event, Datapoint, DataSource, DataCollection,CatSource, Decision, Achievement, Badge, Observer
-from django.contrib.auth.models import User
+from agentex.models import Target, Event, Datapoint, DataSource, DataCollection,CatSource, Decision, Achievement, Badge, User
 
 register = Library()
 
@@ -17,7 +16,7 @@ def agentex_info():
         name = p.title
         num = cols.filter(planet=p).count()
         completes.append({'name':name,'subtotal':num,'id':p.id})
-    volunteers = Observer.objects.all()
+    volunteers = User.objects.all()
     readmanual = Achievement.objects.filter(badge__name='manual').count()
     params = { 'planets' : planets.count(),
                'completes'  : {'total': cols.count(),
@@ -41,7 +40,7 @@ def get_last_login():
     users = []
 
     #Gets the last 10 users to have signed in
-    last = User.objects.all().order_by('-last_login')[:10] 
+    last = User.objects.all().order_by('-last_login')[:10]
 
     #Loops through last 10 users and appends their usernames
     for i in last:

@@ -14,35 +14,28 @@ GNU General Public License for more details.
 
 All non render/page based views are stored here, rather than views.py.
 '''
-import json
-from django.utils.encoding import smart_unicode
+from astropy.io import fits
+from calendar import timegm
+from datetime import datetime,timedelta
+from django.contrib import messages
+from django.contrib.admin.models import LogEntry, ADDITION
+from django.contrib.auth.decorators import login_required
+from django.contrib.contenttypes.models import ContentType
 from django.core.serializers import serialize
+from django.db import connection
+from django.db.models import Count, Avg, Min, Max, Variance, Q, Sum
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render_to_response, render
 from django.template import RequestContext
-from django.http import HttpResponse, HttpResponseRedirect, Http404
-from django.core.urlresolvers import reverse
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.admin.models import LogEntry, ADDITION
-from django.db.models import Count, Avg, Min, Max, Variance, Q, Sum
-from django.contrib import messages
-from django.db import connection
-import urllib2
-from xml.dom.minidom import parse
-from math import sin,acos,fabs,sqrt
-from numpy import *
-from astropy.io import fits
-from datetime import datetime,timedelta
-from calendar import timegm
-from time import mktime
-from math import floor,pi,pow
+from django.urls import reverse
 from itertools import chain
+from math import sin,acos,fabs,sqrt, floor,pi,pow
+from numpy import *
 from numpy import array,nan_to_num
+from time import mktime
+import json
 
-from django.contrib.auth.models import User
-from agentex.models import Target, Event, Datapoint, DataSource, DataCollection,CatSource, Decision, \
-    Achievement, Badge, Observer, AverageSet, decisions
+from agentex.models import *
 from agentex.forms import DataEntryForm, RegisterForm, CommentForm,RegistrationEditForm
 import agentex.dataset as ds
 
@@ -56,10 +49,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 def personcheck(request):
-    if (request.user.is_authenticated()):
-        o = Observer.objects.get(user=request.user)
+    if (request.user.is_authenticated):
+        o = request.user
     else:
-        o = Observer.objects.filter(user__id=guestuser)
+        o = guestuser
     #return o[0]
     return o
 
@@ -78,7 +71,7 @@ def calibrator_data(calid,code):
         sc_norm = dict(norm.items() + sc.items())
         bg_norm = dict(norm.items() + bg.items())
         c_norm = dict(norm.items() + c.items())
-        #print sc_norm,bg_norm,c_norm
+        #print(sc_norm,bg_norm,c_norm)
         for v in sources:
             try:
                 cal.append((sc_norm[v]- bg_norm[v])/(c_norm[v] - bg_norm[v]))
@@ -97,8 +90,8 @@ def average_combine(measurements,averages,ids,star,category,progress,admin=False
             try:
                 my_ids = [ids.index(x) for x in mine[0]]
                 ave[my_ids] = mine[1]
-            except Exception, e:
-                print e
+            except Exception as e:
+                print(e)
             return ave
         else:
             return array([])
@@ -106,10 +99,10 @@ def average_combine(measurements,averages,ids,star,category,progress,admin=False
         mine = array(measurements.values_list('value',flat=True))
         return mine
     elif not progress:
-        print "No progress was passed"
+        print("No progress was passed")
         return array([])
     else:
-        print "Error - too many measurements: %s %s" % (measurements.count() , numobs)
+        print("Error - too many measurements: %s %s" % (measurements.count() , numobs))
         return array([])
 
 def calibrator_averages(code,person=None,progress=False):

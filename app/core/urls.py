@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
-from django.contrib.auth.views import login, logout
+from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.staticfiles import views
 
 from agentex.admin import calibrator_check, allcalibrators_check
@@ -13,9 +13,9 @@ from agentex.users import register, editaccount, profile, briefing, feedback
 admin.autodiscover()
 
 urlpatterns = [
-    url(r'^admin/', include(admin.site.urls), name='agentexo_admin'),
-    url(r'^account/login/$', login, {'template_name': 'agentex/login.html'}, name='login'),
-    url(r'^account/logout/$', logout, {'template_name': 'agentex/logout.html'}, name='logout'),
+    url(r'^admin/', admin.site.urls),
+    url(r'^account/login/$', LoginView.as_view(template_name= 'agentex/login.html'), name='login'),
+    url(r'^account/logout/$', LogoutView.as_view(template_name='agentex/logout.html'), name='logout'),
 
     url(r'^admin/calibrators/(?P<planetid>\d+)/id/(?P<calid>\d+)/$',calibrator_check, name='agentex_admin_calib'),
     url(r'^admin/calibrators/(?P<planetid>\d+)/$',allcalibrators_check, name='agentex_all_calib'),
@@ -45,9 +45,3 @@ if settings.DEBUG:
     urlpatterns += [
         url(r'^static/(?P<path>.*)$', views.serve),
     ]
-
-# if settings.DEBUG:
-#     import debug_toolbar
-#     urlpatterns = [
-#         url(r'^__debug__/', include(debug_toolbar.urls)),
-#     ] + urlpatterns

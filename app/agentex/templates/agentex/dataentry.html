@@ -109,7 +109,7 @@
 	function toggleFinderChart(e){
 		if(e && typeof e.preventDefault=="function") e.preventDefault();
 		if($('#finderchart').length == 0){
-			$('#photometric').append('<img id="finderchart" src="{% static '{{data.target.finderchart}}' %}" />')
+			$('#photometric').append('<img id="finderchart" src="'+{{data.target.finderchart}}+'" />')
 			$('#finderchart').css({position:'absolute','z-index':3,left:0,top:0,width:$('#photometric').outerWidth(),height:$('#photometric').outerHeight(),opacity:1});//.animate({opacity:1},1000);
 			$('#finderchart').bind('click',{e:e}, function(e){
 				$('#finderchart').remove();

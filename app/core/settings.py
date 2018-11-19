@@ -85,15 +85,15 @@ if not SECRET_KEY:
     chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
     SECRET_KEY = get_random_string(50, chars)
 
-MIDDLEWARE_CLASSES = (
-    'opbeat.contrib.django.middleware.OpbeatAPMMiddleware',
-    # 'debug_toolbar.middleware.DebugToolbarMiddleware',
-    'django.middleware.common.CommonMiddleware',
+MIDDLEWARE= [
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-
-)
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    ]
 
 CACHE_MIDDLEWARE_SECONDS = '1'
 
@@ -128,17 +128,8 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles', # Added by TJ to allow static files declaration
-    # 'debug_toolbar',
     'agentex.apps.AgentConfig',
-    'opbeat.contrib.django',
 )
-
-OPBEAT = {
-    'ORGANIZATION_ID': os.environ.get('OPBEAT_ORGID',''),
-    'APP_ID': os.environ.get('OPBEAT_APPID',''),
-    'SECRET_TOKEN': os.environ.get('OPBEAT_TOKEN',''),
-}
-
 
 LOGIN_REDIRECT_URL = 'https://lco.global/agentexoplanet/'
 LOGIN_URL = 'https://lco.global/agentexoplanet/account/login/'
@@ -200,7 +191,7 @@ LOGGING = {
         'django': {
             'handlers':['console'],
             'propagate': True,
-            'level':'DEBUG',
+            'level':'ERROR',
         },
         'core' : {
             'handlers' : ['console'],
@@ -220,9 +211,9 @@ LOGGING = {
 # Allow any settings to be defined in local_settings.py which should be
 # ignored in your version control system allowing for settings to be
 # defined per machine.
-if not PRODUCTION:
+if not CURRENT_PATH.startswith('/var/www'):
     try:
-        from local_settings import *
+        from .local_settings import *
     except ImportError as e:
         if "local_settings" not in str(e):
             raise e

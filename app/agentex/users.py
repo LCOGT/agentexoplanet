@@ -7,11 +7,11 @@ from django.shortcuts import redirect, render, render_to_response
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.template import Context
 from django.template.loader import get_template
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.conf import settings
 from django.db.models import Count
 
-from agentex.models import Target, Event, Datapoint, DataSource, DataCollection,CatSource, Decision, Achievement, Badge, Observer, AverageSet
+from agentex.models import *
 from agentex.forms import RegisterForm, CommentForm, RegistrationEditForm
 
 def briefing(request):
@@ -27,8 +27,6 @@ def register(request):
             user.first_name=form.cleaned_data['firstname']
             user.last_name=form.cleaned_data['lastname']
             user.save()
-            o = Observer(user=user)
-            o.save()
             messages.success(request,"Your account has been created")
             new_user = authenticate(username=form.cleaned_data['username'],
                                     password=form.cleaned_data['password'])

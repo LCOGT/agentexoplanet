@@ -1,7 +1,0 @@
-Django>1.10,<1.11
-MySQL-python
-numpy
-astropy
-numpy
-opbeat
-uwsgi

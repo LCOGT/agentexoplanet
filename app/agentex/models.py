@@ -12,11 +12,12 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 '''
-from django.db import models
+from calendar import timegm
 from datetime import datetime
 from django.contrib.auth.models import User
-from calendar import timegm
+from django.db import models
 from json import dumps,loads
+
 TYPECHOICE = (
 ('S','Source'),
 ('C','Calibration'),
@@ -98,8 +99,8 @@ class DataSource(models.Model):
     image = models.URLField(blank=True, null=True)
     timestamp = models.DateTimeField(null=True, blank=True)
     telescopeid = models.CharField(blank=True, max_length=100)
-    event = models.ForeignKey(Event)
-    target = models.ForeignKey(Target)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    target = models.ForeignKey(Target, on_delete=models.CASCADE)
     max_x = models.IntegerField('max pixels (x)',blank=False)
     max_y = models.IntegerField('max pixels (y)',blank=False)
     class Meta:
@@ -114,7 +115,7 @@ class DataSource(models.Model):
 
 class CatSource(models.Model):
     name = models.CharField('object name',blank=False,max_length=50)
-    data = models.ForeignKey(DataSource)
+    data = models.ForeignKey(DataSource, on_delete=models.CASCADE)
     xpos = models.IntegerField('x position on finder image', blank=True)
     ypos = models.IntegerField('y position on finder image', blank=True)
     catalogue = models.CharField('catalogue name',blank=False,max_length=20)
@@ -126,12 +127,12 @@ class CatSource(models.Model):
         return self.name
 
 class DataCollection(models.Model):
-    person = models.ForeignKey(User)
-    planet = models.ForeignKey(Event)
+    person = models.ForeignKey(User, on_delete=models.CASCADE)
+    planet = models.ForeignKey(Event, on_delete=models.CASCADE)
     display = models.BooleanField(default=False)
     complete = models.BooleanField(default=False)
     calid = models.IntegerField('calibrator order',blank=False,null=False)
-    source = models.ForeignKey(CatSource,blank=True, null=True)
+    source = models.ForeignKey(CatSource,blank=True, null=True, on_delete=models.CASCADE)
     class Meta:
         verbose_name = u'data collection'
         db_table = u'dataexplorer_datacollection'
@@ -144,12 +145,12 @@ class Datapoint(models.Model):
     # ident is the identifier to filter by. It is populated by the name field in Event
     # planetid = models.IntegerField(default=1, db_index=True)
     ident = models.CharField(max_length=20)
-    data = models.ForeignKey(DataSource)
+    data = models.ForeignKey(DataSource, on_delete=models.CASCADE)
     taken = models.DateTimeField(blank=True, default=datetime.now)
     value = models.FloatField(blank=True,null=True)
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     pointtype = models.CharField(blank=False,max_length=1,choices=TYPECHOICE)
-    coorder = models.ForeignKey(DataCollection,blank=True, null=True, help_text='point order')
+    coorder = models.ForeignKey(DataCollection,blank=True, null=True, help_text='point order', on_delete=models.CASCADE)
     xpos = models.IntegerField('x position', blank=True)
     ypos = models.IntegerField('y position', blank=True)
     radius = models.IntegerField('aperture radius', blank=True)
@@ -167,10 +168,10 @@ class Datapoint(models.Model):
         return self.taken.isoformat()
 
 class Decision(models.Model):
-    source = models.ForeignKey(CatSource)
+    source = models.ForeignKey(CatSource, on_delete=models.CASCADE)
     value = models.CharField('decision',blank=False,max_length=1,choices=DECISIONS)
-    person = models.ForeignKey(User)
-    planet = models.ForeignKey(Event)
+    person = models.ForeignKey(User, on_delete=models.CASCADE)
+    planet = models.ForeignKey(Event, on_delete=models.CASCADE)
     taken = models.DateTimeField(default=datetime.now,blank=False)
     current = models.BooleanField(default=False)
     class Meta:
@@ -180,8 +181,8 @@ class Decision(models.Model):
         return self.source.name
 
 class AverageSet(models.Model):
-    planet = models.ForeignKey(Event)
-    star = models.ForeignKey(CatSource,blank=True,null=True)
+    planet = models.ForeignKey(Event, on_delete=models.CASCADE)
+    star = models.ForeignKey(CatSource,blank=True,null=True, on_delete=models.CASCADE)
     values = models.TextField(null=True,blank=True)
     settype = models.CharField(blank=False,max_length=1,choices=TYPECHOICE)
     class Meta:
@@ -203,10 +204,10 @@ class Badge(models.Model):
         return self.name
 
 class Achievement(models.Model):
-    person = models.ForeignKey(User)
+    person = models.ForeignKey(User, on_delete=models.CASCADE)
     awarded = models.DateTimeField(blank=True, default=datetime.now)
-    badge = models.ForeignKey(Badge)
-    planet = models.ForeignKey(Event,blank=True, null=True,help_text='planet')
+    badge = models.ForeignKey(Badge, on_delete=models.CASCADE)
+    planet = models.ForeignKey(Event,blank=True, null=True,help_text='planet', on_delete=models.CASCADE)
     class Meta:
         verbose_name = u'achievement unlocked'
         verbose_name_plural = u'achievements unlocked'
@@ -217,14 +218,3 @@ class Achievement(models.Model):
         else:
             t = "%s - %s" % (self.badge.name,self.person.username)
         return t
-
-class Observer(models.Model):
-    user = models.OneToOneField(User, unique=True,)
-    tag = models.CharField(max_length=75, blank=False,default="LCO")
-    organization = models.CharField(max_length=150, blank=True)
-    dataexploreview = models.BooleanField("use web interface for dataexplorer", default=True)
-    class Meta:
-        db_table = u'observer'
-        verbose_name = "observer"
-    def __unicode__(self):
-        return self.user.username

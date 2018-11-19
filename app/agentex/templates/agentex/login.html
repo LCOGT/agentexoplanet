@@ -24,8 +24,8 @@ Portal Login
 {% if form.errors %}
 							<div class="row error">The username or password was not recognized. Please try again.</div>
 {% endif %}
-            
-							<form action="" method="post"  id="customForm" >
+
+							<form action="{% url 'login' %}" method="post"  id="customForm" >
 								{% csrf_token %}
 								<label for="username">User name:</label>
 								<input type="text" name="username" value="" id="username">

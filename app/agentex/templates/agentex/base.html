@@ -2,7 +2,7 @@
 {% load staticfiles %}
 
 	{% block css-content %}
-	<link rel="stylesheet" href="{% static 'css2/agentex.css' %}" type="text/css" media="screen,print" />
+	<link rel="stylesheet" href="{% static 'css/agentex.css' %}" type="text/css" media="screen,print" />
 	<!-- link rel="stylesheet" href="{{STATIC_URL}}css2/print.css" type="text/css" media="print"-->{% endblock %}
 
 	{% block favicon %}{% endblock %}
@@ -31,10 +31,9 @@
 	{% endblock %}
 
 	{% block body-class %}agentex {%endblock%}
-	
+
 	{% block username %}<a href="{% url 'profile' %}">{{ user.username }}</a>{% endblock %}
 
 	{% block logo-content %}<div class="agentex" id="logo"><a rel="home" title="Citizen Science Home" href="{% url 'index' %}"><img id="logo-image" alt="Home" src="{% static 'images/agentex-logo-beta.png' %}"></a></div>{% endblock %}
-	
-	{% block footer%}<a href="{% url 'addcomment' %}">Comments &amp; Suggestions</a>{% endblock %}
 
+	{% block footer%}<a href="{% url 'addcomment' %}">Comments &amp; Suggestions</a>{% endblock %}

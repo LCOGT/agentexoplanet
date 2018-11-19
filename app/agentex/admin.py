@@ -12,7 +12,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 '''
-from agentex.models import Target, Event, Datapoint, DataSource, Badge, Achievement, DataCollection,Decision,CatSource, Observer, AverageSet
+from agentex.models import Target, Event, Datapoint, DataSource, Badge, Achievement, DataCollection,Decision,CatSource, AverageSet
 from agentex.views import photometry, calibrator_data, admin_averagecals
 from django.contrib import admin
 from django.shortcuts import render_to_response, render
@@ -27,7 +27,7 @@ class DatapointAd(admin.ModelAdmin):
         return '%s' % obj.coorder.source
     get_source.allow_tags = True
     get_source.short_description = 'Cat Source'
-    
+
 class DCAdmin(admin.ModelAdmin):
     list_display = ['planet','person','calid','display','complete']
     list_filter = ['display','complete','planet','person']
@@ -43,19 +43,19 @@ class CatAdmin(admin.ModelAdmin):
         return '%s' % obj.data.event.title
     get_planet.allow_tags = True
     get_planet.short_description = 'Planet'
-      
+
 class DSAdmin(admin.ModelAdmin):
     list_filter = ['event','target']
     list_display = ['timestamp','event','target']
-    
+
 class EventAdmin(admin.ModelAdmin):
-    list_display = ['title','name','start','midpoint','end','numobs','xpos','ypos','enabled']    
+    list_display = ['title','name','start','midpoint','end','numobs','xpos','ypos','enabled']
 class TargetAdmin(admin.ModelAdmin):
     list_display = ['name','ra','dec','period','rstar','mass','ap','inclination']
-    
+
 class SetAdmin(admin.ModelAdmin):
     list_display = ['planet','star','settype']
-    
+
 def allcalibrators_check(request,planetid):
     # Uses and SQL statement to try to speed up the query for averaging data points
     e = Event.objects.filter(id=planetid)[0]
@@ -77,13 +77,13 @@ def allcalibrators_check(request,planetid):
                                                                     'dates':dates,
                                                                     'calids':[int(i) for i in ids],
                                                                     'cats':c},context_instance=RequestContext(request))
-    
+
 def calibrator_check(request,planetid,calid):
     planet = Event.objects.get(id=planetid)
     dcs = DataCollection.objects.filter(source__id=calid)
     if request.POST:
         people = request.POST.getlist('user')
-        dcs.update(display=False)  
+        dcs.update(display=False)
         include = request.POST.get('include','none')
         cs = CatSource.objects.filter(id=calid)
         if include == 'false':
@@ -101,7 +101,7 @@ def calibrator_check(request,planetid,calid):
             'include'    : list(include),
             }
     return HttpResponse(json.dumps(resp,indent=2),content_type='application/javascript')
-    
+
 admin.site.register(Target, TargetAdmin)
 admin.site.register(Event,EventAdmin)
 admin.site.register(Datapoint, DatapointAd)
@@ -109,7 +109,6 @@ admin.site.register(DataSource,DSAdmin)
 admin.site.register(Badge)
 admin.site.register(Decision,DecAdmin)
 admin.site.register(Achievement)
-admin.site.register(Observer)
 admin.site.register(CatSource,CatAdmin)
 admin.site.register(DataCollection,DCAdmin)
 admin.site.register(AverageSet,SetAdmin)

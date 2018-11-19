@@ -20,32 +20,27 @@ from datetime import datetime,timedelta
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.models import LogEntry, ADDITION
-from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.core.serializers import serialize
-from django.core.urlresolvers import reverse
 from django.db import connection
 from django.db.models import Count,Avg,Min,Max,Variance, Q, Sum
+from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render_to_response, render
 from django.template import RequestContext
-from django.utils.encoding import smart_unicode
+from django.urls import reverse
+from django.utils.encoding import smart_text
 from itertools import chain
-import logging
-from math import floor,pi,pow
-from math import sin,acos,fabs,sqrt
-import numpy as np
-#from numpy import array,nan_to_num
+from math import floor,pi,pow,sin,acos,fabs,sqrt
 from time import mktime
-from xml.dom.minidom import parse
 import json
-import urllib2
-from django.db.models import Q
+import logging
+import numpy as np
 
-from agentex.models import Target, Event, Datapoint, DataSource, DataCollection,CatSource, Decision, Achievement, Badge, Observer, AverageSet
+from agentex.models import *
 from agentex.models import decisions
 from agentex.forms import DataEntryForm
 import agentex.dataset as ds
@@ -70,7 +65,7 @@ def target(request):
     data = []
     events = Event.objects.filter(enabled=True)
     for e in events:
-        if (request.user.is_authenticated()):
+        if (request.user.is_authenticated):
             person = request.user
             completed = Datapoint.objects.filter(user=person, data__event__name=e,pointtype='S').count()
         else:
@@ -90,7 +85,7 @@ def target(request):
 def addvalue_post(request, person, code):
 
     # Writes current observer to variable o
-    o = Observer.objects.filter(user=person)
+    o = person
     # Tracks progress of observer
     progress = checkprogress(person,code)
 
@@ -157,7 +152,7 @@ def addvalue_nopost(request, person, code):
     # Call DataEntryForm from agentex.forms
     form = DataEntryForm()
 
-    o = Observer.objects.filter(user=person)
+    o = person
     progress = checkprogress(person,code)
     ############ This condition is active when a user edits the frame
     # Find the data sources for the given code
@@ -259,7 +254,7 @@ def addvalue_nopost(request, person, code):
                                                                 'data_url':settings.DATA_URL})
     else:
         ######## User is being given a new frame not editing data
-        o = Observer.objects.filter(user=person)
+        o = person
         progress = checkprogress(person,code)
         complete = 0
         if  (progress['done'] >= progress['total'] and person != guestuser):
@@ -319,7 +314,7 @@ def addvalue_nopost(request, person, code):
                     d = available[0]
                     did = d[0]
                     first = False
-                except Exception,e:
+                except Exception:
                     messages.error(request,"User has a data collection but no points!")
                     raise Http404
             cals = Datapoint.objects.values_list('xpos','ypos').filter(data=dold,pointtype='C',user=person).order_by('coorder__calid')
@@ -377,7 +372,7 @@ def addvalue(request,code):
     # Import pdf and set trace for debug
     #import pdb; pdb.set_trace()
     # If statement to allow admin access to authenticated users
-    if (request.user.is_authenticated()):
+    if (request.user.is_authenticated):
         if request.user.username == 'admin':
             superuser = True
             sudo = request.GET.get('sudo','')
@@ -389,7 +384,7 @@ def addvalue(request,code):
             person = request.user
             superuser = False
 
-    o = Observer.objects.filter(user=person)
+    o = person
     progress = checkprogress(person,code)
 
     if (progress['done'] >= progress['total']):
@@ -417,7 +412,7 @@ def addvalue(request,code):
 
 def savemeasurement(person,pointsum,coords,dataid,entrymode):
     # Only update the user's preference if they change it
-    o = Observer.objects.filter(user=person)
+    o = person
     try:
         if (entrymode == 'manual' and o[0].dataexploreview == True):
             o.update(dataexploreview=False)
@@ -558,7 +553,7 @@ def savemeasurement(person,pointsum,coords,dataid,entrymode):
 
 
 def read_manual_check(request):
-	if (request.POST.get('read_manual','')=='true' and request.user.is_authenticated()):
+	if (request.POST.get('read_manual','')=='true' and request.user.is_authenticated):
 		o = personcheck(request)
 		resp = achievementunlock(o.user,None,'manual')
 		if messages.SUCCESS == resp['code'] :
@@ -625,7 +620,7 @@ def achievementunlock(person,planet,typea):
                 user_id         = person.id,
                 content_type_id = ContentType.objects.get_for_model(newa).pk,
                 object_id       = newa.pk,
-                object_repr     = smart_unicode(newa),
+                object_repr     = smart_text(newa),
                 action_flag     = ADDITION,
                 change_message  = 'Achievement automatically unlocked'
             )
@@ -1004,7 +999,7 @@ def graphsuper(request,code):
 def infoview(request,code):
     ds = DataSource.objects.filter(event__name=code)[:1]
 
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         person = personcheck(request)
         progress = checkprogress(person.user,code)
     else:
@@ -1018,7 +1013,7 @@ def infoview(request,code):
 
 def fitsanalyse(request):
     now = datetime.now()
-    if (request.user.is_authenticated()):
+    if (request.user.is_authenticated):
         person=request.user
     else:
         person = User.objects.filter(id=guestuser)[0]
@@ -1133,10 +1128,10 @@ def measurementsummary(request,code,format):
     data = []
     maxpixel = 1024
     csv =""
-    if (request.user.is_authenticated()):
-        o = Observer.objects.filter(user=request.user)
+    if (request.user.is_authenticated):
+        o = request.user
     else:
-        o = Observer.objects.filter(user=guestuser)
+        o = guestuser
     options = request.GET.get('mode','')
     if (format == 'xhr' and options ==''):
         #cals = []
@@ -1284,7 +1279,7 @@ def myaverages(code,person):
     ds = DataSource.objects.filter(event__name=code).order_by('timestamp').values_list('id',flat=True)
     valid_user = False
     if person:
-        if person.is_authenticated():
+        if person.is_authenticated:
             valid_user = True
     if valid_user:
         now = datetime.now()
@@ -1599,7 +1594,7 @@ def calstats(user,planet,decs):
 
             # Normalises the averages
             mycals = list(myaves/mynorm_val)
-    except Exception, e:
+    except Exception as e:
         logger.error(e)
         logger.error("\033[1;35mHave you started again but not removed all the data?\033[1;m")
         return None,[],[],[],None
@@ -1663,11 +1658,11 @@ def leastmeasured(code):
 def update_web_pref(request,setting):
     #################
     # AJAX update user preference for web or  manual input of data
-    if (request.user.is_authenticated()):
+    if (request.user.is_authenticated):
         person = request.user
     else:
         person = guestuser
-    o = Observer.objects.filter(user=person)
+    o = person
     if setting == 'yes':
         o.update(dataexplorview=True)
         return HttpResponse("Setting changed to use web view")
