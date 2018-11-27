@@ -11,8 +11,8 @@
 	<div class="page stackedpaper">
 
 		<div class="eventimage">
-			<a href="http://server1.wikisky.org/v2?ra={{object.target.ra|hexangletodec}}&de={{object.target.dec|hexangletodec}}&zoom=10&img_source=DSS2">
-        {% with object.event.illustration.name as image_static %}
+			<a href="http://server1.wikisky.org/v2?ra={{object.ra|hexangletodec}}&de={{object.dec|hexangletodec}}&zoom=10&img_source=DSS2">
+        {% with object.event.illustration as image_static %}
         <img src="{% static image_static %}" class="bio" alt="Illustration of {{event.title}}" style="width:200px" ></a>
         {% endwith %}
 			<img src="{% static 'images/paperclip.png' %}" class="paperclip" alt="." />
@@ -25,7 +25,7 @@
 			<h1>Name: <span class="objectspecific">{{object.event.title}}</span></h1>
 		</div>
 
-		<p>{{object.target.description|safe}}</p>
+		<p>{{object.description|safe}}</p>
 		<!--
 		<ul class="icons">
 			<li><a class="target" href="{% url 'addvalue' object.event.name %}">Analyze images for this exoplanet</a></li>
@@ -39,15 +39,15 @@
 			</tr>
 			<tr>
 				<td><a href="http://en.wikipedia.org/wiki/Star">Star</a>:</td>
-				<td class="objectspecific"><a href="http://en.wikipedia.org/wiki/Special:Search/{{object.target.name}}">{{object.target.name}}</a></td>
+				<td class="objectspecific"><a href="http://en.wikipedia.org/wiki/Special:Search/{{object.name}}">{{object.name}}</a></td>
 			</tr>
 			<tr>
 				<td><a href="http://en.wikipedia.org/wiki/Constellation">Constellation</a>:</td>
-				<td class="objectspecific"><a href="http://en.wikipedia.org/wiki/Special:Search/{{object.target.constellation}} (constellation)">{{object.target.constellation}}</a></td>
+				<td class="objectspecific"><a href="http://en.wikipedia.org/wiki/Special:Search/{{object.constellation}} (constellation)">{{object.constellation}}</a></td>
 			</tr>
 			<tr>
 				<td><a href="http://en.wikipedia.org/wiki/Right_ascension">Sky Coordinates</a>:</td>
-				<td class="objectspecific"><a href="http://server1.wikisky.org/v2?ra={{object.target.ra|hexangletodec}}&de={{object.target.dec|hexangletodec}}&zoom=10&img_source=DSS2">{{object.target.ra}} {{object.target.dec}}</a></td>
+				<td class="objectspecific"><a href="http://server1.wikisky.org/v2?ra={{object.ra|hexangletodec}}&de={{object.dec|hexangletodec}}&zoom=10&img_source=DSS2">{{object.ra}} {{object.dec}}</a></td>
 			</tr>
 			<tr>
 				<td><a href="http://en.wikipedia.org/wiki/Apparent_magnitude">Apparent magnitude</a> (<i>m<sub>V</sub></i>):</td>
@@ -63,19 +63,19 @@
 			</tr>
 			<tr>
 				<td>Exoplanet Encyclopaedia</td>
-				<td><a href="http://exoplanet.eu/planet.php?p1={{object.target.name}}&p2=b">Planet</a></td>
-				<!-- <td><a href="http://exoplanet.eu/star.php?st={{object.target.name}}">Host star</a></td> -->
-				<td><a href="http://exoplanet.eu/catalog/?f=%27{{object.target.name}}%27+in+name">Host star</a></td>
+				<td><a href="http://exoplanet.eu/planet.php?p1={{object.name}}&p2=b">Planet</a></td>
+				<!-- <td><a href="http://exoplanet.eu/star.php?st={{object.name}}">Host star</a></td> -->
+				<td><a href="http://exoplanet.eu/catalog/?f=%27{{object.name}}%27+in+name">Host star</a></td>
 			</tr>
 			<tr>
 				<td>Exoplanet Transit Database</td>
-				<!-- td><a href="http://var2.astro.cz/ETD/etd.php?STARNAME={{object.target.name}}">Host star</a></td -->
-				<td colspan="2"><a href="http://var2.astro.cz/ETD/etd.php?STARNAME={{object.target.name}}&PLANET=b">Planet</a></td>
+				<!-- td><a href="http://var2.astro.cz/ETD/etd.php?STARNAME={{object.name}}">Host star</a></td -->
+				<td colspan="2"><a href="http://var2.astro.cz/ETD/etd.php?STARNAME={{object.name}}&PLANET=b">Planet</a></td>
 			</tr>
 			<tr>
 				<td>Simbad</td>
-				<td><a href="http://simbad.u-strasbg.fr/simbad/sim-id?Ident={{object.target.name}}b">Planet</a></td>
-				<td><a href="http://simbad.u-strasbg.fr/simbad/sim-id?Ident={{object.target.name}}">Host star</a></td>
+				<td><a href="http://simbad.u-strasbg.fr/simbad/sim-id?Ident={{object.name}}b">Planet</a></td>
+				<td><a href="http://simbad.u-strasbg.fr/simbad/sim-id?Ident={{object.name}}">Host star</a></td>
 			</tr>
 
 			</tbody></table>

@@ -12,7 +12,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 '''
-from agentex.models import Event, AverageSet, Decision, Datapoint, DataSource, Target
+from agentex.models import Event, AverageSet, Decision, Datapoint, DataSource
 import agentex as ax
 
 ####
@@ -94,7 +94,7 @@ class Dataset(object):
                 try:
                     line['data']['background'] = [bg[d[0]]]
                 except:
-                    line['data']['background'] = 'null' 
+                    line['data']['background'] = 'null'
                 data.append(line)
             return data,points
         else:
@@ -154,4 +154,3 @@ class Dataset(object):
         #     return numsuper,fz,mycals,list(std),nodata
         # else:
         #     print "No average sets"
-        

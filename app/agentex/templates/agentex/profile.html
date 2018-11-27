@@ -1,4 +1,5 @@
 {% extends 'agentex/base.html' %}
+{% load static %}
 
 {% block body-class %}full agentex dossier profile {%endblock%}
 
@@ -31,7 +32,7 @@
 					<h3>Achievements unlocked{% if unlocked|length > 0 %}: <span class="objectspecific">{{ unlocked|length }}</span></h3>{% else %}</h3><p>You have not received any awards yet. You will have to <a href="{% url 'target'  %}">start the mission</a> to receive awards.</p>{% endif %}
 					<ul class="badges">
 						<!-- We have to put them all on one line otherwise some browsers render the whitespace -->
-						{% for badge in unlocked %}<li class="medal"><img src="{{ STATIC_URL }}{{ badge.badge.image }}" alt="{{ badge.badge.description }}" title="{{ badge.badge.description }}" /></li>{% endfor %}{% for badge in badges %}<li class="medal locked"><img src="{{ STATIC_URL }}{{ badge.image }}" alt="{{ badge.description }}" title="{{ badge.description }}" /></li>{% endfor %}
+						{% for badge in unlocked %}<li class="medal"><img src="{% static badge.badge.image %}" alt="{{ badge.badge.description }}" title="{{ badge.badge.description }}" /></li>{% endfor %}{% for badge in badges %}<li class="medal locked"><img src="{% static badge.image %}" alt="{{ badge.description }}" title="{{ badge.description }}" /></li>{% endfor %}
 					</ul>
 
 					<div style="clear:both;"></div>

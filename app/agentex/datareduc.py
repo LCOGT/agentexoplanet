@@ -49,12 +49,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 def personcheck(request):
-    if (request.user.is_authenticated):
-        o = request.user
-    else:
-        o = guestuser
-    #return o[0]
-    return o
+    return request.user
 
 def calibrator_data(calid,code):
     data = []

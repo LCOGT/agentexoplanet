@@ -16,7 +16,16 @@ from calendar import timegm
 from datetime import datetime
 from django.contrib.auth.models import User
 from django.db import models
-from json import dumps,loads
+from django.conf import settings
+import os
+
+def list_files(loc):
+    directory = os.path.join(settings.STATIC_ROOT, loc)
+    for name in os.listdir(directory):
+        full_path = os.path.join(directory, name)
+        if os.path.isfile(full_path):
+            yield (os.path.join(loc, name), name)
+
 
 TYPECHOICE = (
 ('S','Source'),
@@ -50,8 +59,9 @@ decisions = {
     'other':'R',
 }
 
-class Target(models.Model):
-    name = models.CharField(blank=True, max_length=100) # Wordy name. should be the name of the host star
+class Event(models.Model):
+    title = models.CharField(max_length=100) # Wordy name. should be the name of the host star
+    slug = models.CharField(max_length=20, help_text='code, no spaces and no hyphens') # code to be used in URLs i.e. NO spaces
     ra = models.CharField('right ascension',blank=True, max_length=100)
     dec = models.CharField('declination',blank=True, max_length=100)
     constellation = models.CharField(blank=True, max_length=100)
@@ -62,51 +72,41 @@ class Target(models.Model):
     ap = models.FloatField('semi-major axis',blank=True,null=True)
     mass = models.FloatField('mass of host star',blank=True,null=True)
     description = models.TextField()
-    finderchart =  models.FileField('Finder chart',upload_to="finderchart", help_text='Image with a clearly marked up target position',blank=True)
-    finderchart_tb =  models.FileField('Finder chart thumbnail',upload_to="finderchart/thumb", help_text='Image with a clearly marked up target position',blank=True)
+    finderchart =  models.CharField('Finder chart',help_text='Image with a clearly marked up target position',blank=True, choices=list_files('finderchart'), max_length=100)
+    finderchart_tb =  models.CharField('Finder chart thumbnail', help_text='Image with a clearly marked up target position',blank=True, choices=list_files('finderchart/thumb'), max_length=100)
     exoplanet_enc_pl = models.URLField('Exoplanet Encyclopaedia: Planet', blank=True, null=True)
     exoplanet_enc_st = models.URLField('Exoplanet Encyclopaedia: Star', blank=True, null=True)
     etd_pl = models.URLField('Exoplanet Transit Database: Planet', blank=True, null=True)
     simbad_pl = models.URLField('Simbad: Planet', blank=True, null=True)
     simbad_st = models.URLField('Simbad: Star', blank=True, null=True)
-    class Meta:
-        verbose_name = u'transiting exoplanet target'
-        db_table = u'dataexplorer_target'
-    def __unicode__(self):
-        return self.name
-
-class Event(models.Model):
-    name = models.CharField(blank=False, max_length=20, help_text='code, no spaces and no hyphens') # code to be used in URLs i.e. NO spaces
-    title = models.CharField(blank=False, max_length=100) # Longer title which can be more wordy
     start = models.DateTimeField(null=True, blank=True, default=datetime.now)
     end = models.DateTimeField(null=True, blank=True, default=datetime.now)
     midpoint = models.DateTimeField(null=True, blank=True)
     numobs = models.IntegerField(blank=True, null=True,default=0)
-    finder = models.IntegerField('id of finder chart source',blank=True)
+    finder = models.IntegerField('id of finder chart source',blank=True, default=1)
     xpos = models.IntegerField('x pos on finder chart',blank=False,default=0)
     ypos = models.IntegerField('y pos on finder chart',blank=False,default=0)
     enabled = models.BooleanField(default=True,help_text='show this event on main site')
-    illustration = models.FileField('illustration',upload_to="illustration", help_text='illustration for this event',blank=True)
+    illustration = models.CharField('illustration', help_text='illustration for this event',blank=True, choices=list_files('illustration'), max_length=100)
     radius = models.IntegerField('aperture radius', blank=False, default=10)
     class Meta:
         verbose_name = u'transit event'
         db_table = u'dataexplorer_event'
-    def __unicode__(self):
-        return self.name
+    def __str__(self):
+        return self.title
 
 class DataSource(models.Model):
-    fits = models.URLField(blank=True)
-    image = models.URLField(blank=True, null=True)
+    fits = models.CharField(max_length=100, blank=True)
+    image = models.CharField(max_length=100, blank=True, null=True, choices=list_files('images/planets'))
     timestamp = models.DateTimeField(null=True, blank=True)
     telescopeid = models.CharField(blank=True, max_length=100)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    target = models.ForeignKey(Target, on_delete=models.CASCADE)
     max_x = models.IntegerField('max pixels (x)',blank=False)
     max_y = models.IntegerField('max pixels (y)',blank=False)
     class Meta:
         verbose_name = u'data source image'
         db_table = u'dataexplorer_datasource'
-    def __unicode__(self):
+    def __str__(self):
         return self.timestamp.isoformat()
     def unixstamp(self):
         return timegm(self.timestamp.timetuple())+1e-6*self.timestamp.microsecond
@@ -123,7 +123,7 @@ class CatSource(models.Model):
     class Meta:
         verbose_name = "catalogue source"
         db_table = u'dataexplorer_catsource'
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 class DataCollection(models.Model):
@@ -136,7 +136,7 @@ class DataCollection(models.Model):
     class Meta:
         verbose_name = u'data collection'
         db_table = u'dataexplorer_datacollection'
-    def __unicode__(self):
+    def __str__(self):
         val = "%s" % self.planet.title
         return val
 
@@ -164,7 +164,7 @@ class Datapoint(models.Model):
     class Admin:
         list_display = ('event',)
         search_fields = ('user',)
-    def __unicode__(self):
+    def __str__(self):
         return self.taken.isoformat()
 
 class Decision(models.Model):
@@ -177,7 +177,7 @@ class Decision(models.Model):
     class Meta:
         verbose_name = u'lightcurve decision'
         db_table = u'dataexplorer_decision'
-    def __unicode__(self):
+    def __str__(self):
         return self.source.name
 
 class AverageSet(models.Model):
@@ -190,17 +190,17 @@ class AverageSet(models.Model):
     @property
     def data(self):
         return [float(x) for x in self.values.split(';')]
-    def __unicode__(self):
+    def __str__(self):
         return u"%s" % (self.planet.title)
 
 class Badge(models.Model):
     name = models.CharField(blank=False, max_length=20, help_text='code, no spaces')
     description = models.CharField(blank=False, max_length=200, help_text='brief, publicly readable')
-    image = models.FileField(upload_to="badge",blank=False)
+    image = models.CharField(blank=False, choices=list_files('badge'), max_length=100)
     class Meta:
         verbose_name = u'badge'
         db_table = u'dataexplorer_badge'
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 class Achievement(models.Model):
@@ -212,7 +212,7 @@ class Achievement(models.Model):
         verbose_name = u'achievement unlocked'
         verbose_name_plural = u'achievements unlocked'
         db_table = u'dataexplorer_achievement'
-    def __unicode__(self):
+    def __str__(self):
         if self.planet:
             t = "%s - %s - %s" % (self.badge.name,self.person.username,self.planet.title)
         else:

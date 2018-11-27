@@ -1,6 +1,5 @@
 {% extends 'agentex/base.html' %}
-{% load staticfiles %}
-{% load observing_extras %}
+{% load static observing_extras %}
 
 {% block body-class %}agentex dossier lightmonitor{% ifequal complete 1 %} full{%endifequal%} {%endblock%}
 
@@ -109,7 +108,7 @@
 	function toggleFinderChart(e){
 		if(e && typeof e.preventDefault=="function") e.preventDefault();
 		if($('#finderchart').length == 0){
-			$('#photometric').append('<img id="finderchart" src="'+{{data.target.finderchart}}+'" />')
+			$('#photometric').append('<img id="finderchart" src="/static/{{data.target.finderchart}}" />')
 			$('#finderchart').css({position:'absolute','z-index':3,left:0,top:0,width:$('#photometric').outerWidth(),height:$('#photometric').outerHeight(),opacity:1});//.animate({opacity:1},1000);
 			$('#finderchart').bind('click',{e:e}, function(e){
 				$('#finderchart').remove();
@@ -155,7 +154,7 @@
 			img = "flag_white.gif";
 			txt = "high";
 		}
-		$('img#dataquality').attr("src", "{% static 'images/' %}"+img);
+		$('img#dataquality').attr("src", "/images/"+img);
 		$('img#dataquality').attr("title", "Using "+nocals+" calibrators will result in "+txt+" quality analysis.");
 	}
 
@@ -186,8 +185,6 @@
 		{% endif %}
 		var dataid;
 
-		// Add the interactive buttons that only make sense if there is CSS and Javascript
-		$('#toolbar').append('<div class="fbtn"><a class="fancybtngrey btns" id="btn-add"><img src="{% static 'images/round_plus_icon&16.png' %}" style="width:16px;height:16px;" alt="Add" title="Add a calibration ring" /> Add calibrator<\/a><\/div><div class="fbtn"><a class="fancybtngrey btns" id="btn-remove" style="display:none;"><img src="{% static 'images/round_minus_icon&16.png' %}" style="width:16px;height:16px;" alt="Remove" title="Remove a calibration ring" /> Zap calibrator<\/a><\/div><div class="fbtn"><a class="fancybtngrey btns" id="btn-finetune"><img src="{% static 'images/round_plus_icon&16.png' %}" style="width:16px;height:16px;" alt="Add" title="Fine tune positions" /> Fine Tune<\/a><\/div>');
 		$('#btn-add').bind('click',function(e){
 			photo.addCalibrator();
 			dataQualityFlag();
@@ -536,17 +533,20 @@
 
 {% block lower-menu%}{% ifnotequal complete 1 %}
 				<div class="polaroid"><div id="finderthumb">
-          {% with data.target.finderchart as lg_finder %}
-          <a href="{% static lg_finder %}">
-            {% endwith %}
-          {% with data.target.finderchart_tb as sm_finder %}
-            <img src="{% static sm_finder %}" class="snap" alt="Finder chart for {{data.event.title}}" title="Finder chart" />
-            {% endwith %}
+          <a href="/static/{{data.target.finderchart}}">
+            <img src="/static/{{data.target.finderchart_tb}}" class="snap" alt="Finder chart for {{data.event.title}}" title="Finder chart" />
           </a>
           <p>Finder chart</p></div></div>
-				<div id="toolbar">
-					<div class="fbtn"><a href="{{data_url}}{{data.fits}}" class="fancybtngrey btns" id="btn-download" title="Download data file (FITS format)"><img src="{% static 'images/download_icon&16.png' %}" style="width:16px;height:16px;" alt="." /> Download data</a></div>
-				</div>{% endifnotequal %}
+        <div class="toolbar">
+          <div class="fbtn">
+            <a class="fancybtngrey btns" id="btn-add"><img src="{% static 'images/round_plus_icon&16.png' %}" style="width:16px;height:16px;" alt="Add" title="Add a calibration ring" /> Add calibrator</a>
+          </div>
+          <div class="fbtn"><a class="fancybtngrey btns" id="btn-remove" style="display:none;"><img src="{% static 'images/round_minus_icon&16.png' %}" style="width:16px;height:16px;" alt="Remove" title="Remove a calibration ring" /> Zap calibrator</a>
+          </div>
+          <div class="fbtn"><a class="fancybtngrey btns" id="btn-finetune"><img src="{% static 'images/round_plus_icon&16.png' %}" style="width:16px;height:16px;" alt="Add" title="Fine tune positions" /> Fine Tune</a>
+          </div>
+        </div>
+{% endifnotequal %}
 {%endblock%}
 
 {% block main-content %}

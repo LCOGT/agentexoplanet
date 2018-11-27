@@ -1,4 +1,4 @@
-{% load staticfiles %}
+{% load static %}
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
@@ -6,8 +6,7 @@
 	<meta charset="UTF-8" />
 	<meta name="author" content="Las Cumbres Observatory Global Telescope Network" />
 	{% block meta %}{% endblock %}
-	<link rel="shortcut icon" href="http://lcogt.net/sites/default/themes/zen/lcogt/favicon.ico" type="image/x-icon" />
-	{% block favicon %}<link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}" />{% endblock %}
+	<link rel="shortcut icon" href="https://cdn.lco.global/mainstyle/img/favicon.ico" type="image/x-icon" />
 	<link rel="stylesheet" href="{% static 'css/lcogt.css' %}" type="text/css" />
 	<link rel="stylesheet" href="{% static 'css/portal.css' %}" type="text/css" />{% block css-content %}{% endblock %}
 	<script type="text/javascript" src="{% static 'js/jquery.min.js' %}"></script>
@@ -25,14 +24,8 @@
       })();
 	// -->
     </script>
-    <style type="text/css">
-		dd.observations{ background: url('{% static '/images/observations.png' %}') no-repeat left center; }
-		dd.vsky{ background: url('{% static '/images/vsky.png' %}') no-repeat left center; }
-		dd.activities{ background: url('{% static '/images/activities.png' %}') no-repeat left center; }
-		dd.forum{ background: url('{% static '/images/forum.png' %}') no-repeat left center; }
-    </style>
 </head>
-<body class="{% block body-class %}{% endblock %}{% if user.is_authenticated %}{% else %}not-{% endif %}logged-in">
+<body data-fits-url="{{DATA_URL}}"  class="{% block body-class %}{% endblock %}{% if user.is_authenticated %}{% else %}not-{% endif %}logged-in">
 
 	<a class="access" href="#main">[Skip to Content]</a>
 

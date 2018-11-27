@@ -12,7 +12,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 '''
-from agentex.models import Target, Event, Datapoint, DataSource, Badge, Achievement, DataCollection,Decision,CatSource, AverageSet
+from agentex.models import Event, Datapoint, DataSource, Badge, Achievement, DataCollection,Decision,CatSource, AverageSet
 from agentex.views import photometry, calibrator_data, admin_averagecals
 from django.contrib import admin
 from django.shortcuts import render_to_response, render
@@ -45,13 +45,11 @@ class CatAdmin(admin.ModelAdmin):
     get_planet.short_description = 'Planet'
 
 class DSAdmin(admin.ModelAdmin):
-    list_filter = ['event','target']
-    list_display = ['timestamp','event','target']
+    list_filter = ['event']
+    list_display = ['timestamp','event']
 
 class EventAdmin(admin.ModelAdmin):
-    list_display = ['title','name','start','midpoint','end','numobs','xpos','ypos','enabled']
-class TargetAdmin(admin.ModelAdmin):
-    list_display = ['name','ra','dec','period','rstar','mass','ap','inclination']
+    list_display = ['title','slug','start','midpoint','end','numobs','xpos','ypos','enabled']
 
 class SetAdmin(admin.ModelAdmin):
     list_display = ['planet','star','settype']
@@ -63,14 +61,6 @@ def allcalibrators_check(request,planetid):
     c = json.dumps(cats)
     # return normcals,stamps,[int(i) for i in ids],cats
     title = 'Check calibrators for %s' % e.title
-    '''
-    return render_to_response('admin/agentex/allcalibrators.html',{'calibrators':normcals,
-                                                                    'title':title,
-                                                                    'planetid':planetid,
-                                                                    'dates':dates,
-                                                                    'calids':[int(i) for i in ids],
-                                                                    'cats':c},context_instance=RequestContext(request))
-    '''
     return render(request, 'admin/agentex/allcalibrators.html',{'calibrators':normcals,
                                                                     'title':title,
                                                                     'planetid':planetid,
@@ -102,7 +92,6 @@ def calibrator_check(request,planetid,calid):
             }
     return HttpResponse(json.dumps(resp,indent=2),content_type='application/javascript')
 
-admin.site.register(Target, TargetAdmin)
 admin.site.register(Event,EventAdmin)
 admin.site.register(Datapoint, DatapointAd)
 admin.site.register(DataSource,DSAdmin)

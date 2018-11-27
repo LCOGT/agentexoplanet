@@ -25,9 +25,9 @@ def convert_ra(value):
     ra = value
     value = ra/15
     return readableangle(value)
-    
+
 @register.filter(name='is_false')
-def is_false(arg): 
+def is_false(arg):
     return arg is False
 
 @register.filter(name='decisionconvert')
@@ -61,10 +61,10 @@ def progress_bars(value):
 
 @register.filter(name='hexangletodec')
 def hexangletodec(value):
-	value = value.split(":")
-	if (int(value[0]) >= 0):
-		sign = 1
-	else :
-		sign = -1
-	return (int(value[0])+(sign*(float(value[1])/60)+(float(value[2])/3600)))
-
+    value = value.split(":")
+    print(value)
+    if (int(value[0]) >= 0):
+        sign = 1
+    else :
+        sign = -1
+    return (int(value[0])+(sign*(float(value[1])/60)+(float(value[2])/3600)))

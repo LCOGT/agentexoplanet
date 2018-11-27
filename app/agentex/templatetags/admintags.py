@@ -3,7 +3,7 @@ from django.contrib.admin.models import LogEntry, ADDITION
 from datetime import date, datetime, timedelta
 import time
 
-from agentex.models import Target, Event, Datapoint, DataSource, DataCollection,CatSource, Decision, Achievement, Badge, User
+from agentex.models import Event, Datapoint, DataSource, DataCollection,CatSource, Decision, Achievement, Badge, User
 
 register = Library()
 

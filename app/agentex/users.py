@@ -13,6 +13,7 @@ from django.db.models import Count
 
 from agentex.models import *
 from agentex.forms import RegisterForm, CommentForm, RegistrationEditForm
+from agentex.datareduc import personcheck
 
 def briefing(request):
     #return render_to_response('agentex/briefing.html', context_instance=RequestContext(request))
@@ -65,7 +66,7 @@ def editaccount(request):
         #return render_to_response("register.html",{'form': form,'edit':True},context_instance=RequestContext(request))
         return render(request, 'agentex/register.html', {'form': form,'edit':True})
     else:
-        form = RegistrationEditForm({'firstname' : p.user.first_name,'lastname' : p.user.last_name,'emailaddress':p.user.email,'password':p.user.password})
+        form = RegistrationEditForm({'firstname' : p.first_name,'lastname' : p.last_name,'emailaddress':p.email,'password':p.password})
         #return render_to_response("register.html",{'form': form,'edit':True},context_instance=RequestContext(request))
         return render(request, 'agentex/register.html', {'form': form,'edit':True})
 
