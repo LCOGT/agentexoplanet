@@ -56,43 +56,52 @@ class DataEntry(DetailView):
     model = DataSource
 
     def get_context_data(self, **kwargs):
-        # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
-        # Add in a QuerySet of all the books
-        context['book_list'] = Book.objects.all()
+        event = self.object.event
+        person = self.request.user
+        context['progress'] = checkprogress(person, event.slug)
+        context['least_data'] = leastmeasured(event.slug)
+        context['coords'] = previous_meas_coords(event, person)
+        context['webinput'] = True
         return context
 
+def previous_meas_coords(event, user):
+    ds = DataSource.objects.filter(event=event, datapoint__user=user).distinct()
+    if ds.count() > 0:
+        cals = Datapoint.objects.values('xpos','ypos').filter(data=ds[0],pointtype='C',user=user).order_by('coorder__calid')
+        prev = Datapoint.objects.values('xpos','ypos').filter(user=user,data=ds[0]).order_by('coorder__calid')
+        data =  { 'source': prev.filter(pointtype='S')[0],
+                             'bg'  : prev.filter(pointtype='B')[0],
+                             'cal'  : list(cals) ,
+                             'id'  : ds[0],
+                             }
+
+        return data
+    else:
+        return False
 
 class EventView(DetailView):
     model = Event
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['progress'] = checkprogress(self.request.user, self.object.slug)
+        return context
+
 class EventList(ListView):
     model = Event
+    queryset = Event.objects.filter(enabled=True)
 
 def index(request):
     #return render_to_response('agentex/index.html', context_instance=RequestContext(request))
     return render(request, 'agentex/index.html', {})
 
-def target(request):
-    data = []
-    events = Target.objects.filter(enabled=True)
-    for e in events:
-        if (request.user.is_authenticated):
-            person = request.user
-            completed = Datapoint.objects.filter(user=person, data__event__name=e,pointtype='S').count()
-        else:
-            person = guestuser
-            completed = 0
-        points =Datapoint.objects.filter(user=person,pointtype='S')
-        try:
-            level = planet_level[e.name]
-        except:
-            level = None
-        line = {'event':e,'points':points,'completed':completed,'level':level}
-        data.append(line)
-    #return render_to_response('agentex/target.html', {'data':data},context_instance=RequestContext(request))
-    return render(request, 'agentex/target_list.html', {'data':data})
-
+def next_datasource(request, slug):
+    try:
+        ds = DataSource.objects.filter(~Q(datapoint__user=request.user), event__slug=slug).latest('pk')
+    except DataSource.DoesNotExist:
+        return HttpResponseRedirect(reverse('my-graph',kwargs={'slug' : slug}))
+    return HttpResponseRedirect(reverse('addvalue',kwargs={'pk':ds.pk}))
 
 @login_required
 def addvalue(request, code):
@@ -1517,11 +1526,11 @@ def supercaldata(user,planet):
 
 def leastmeasured(code):
     coords = []
-    e = Event.objects.filter(name=code)[:1]
-    dc = DataCollection.objects.values('source').filter(~Q(source=None),planet__name=code).annotate(count = Count('source')).order_by('count')[:4]
+    e = Event.objects.get(slug=code)
+    dc = DataCollection.objects.values('source').filter(~Q(source=None),planet=e).annotate(count = Count('source')).order_by('count')[:4]
     for coll in dc:
         s = CatSource.objects.get(id=coll['source'])
-        coords.append({'x':int(s.xpos),'y':int(s.ypos),'r':int(e[0].radius)})
+        coords.append({'x':int(s.xpos),'y':int(s.ypos),'r':int(e.radius)})
     return coords
 
 
@@ -1587,9 +1596,10 @@ def classified(o,code):
     classifications = Decision.objects.values('source').filter(person=o,planet__name=code).annotate(Count('value')).count()
     totalcalibs = DataCollection.objects.values('source').filter(person=o,planet__name=code).annotate(Count('display')).count()
     return {'total' : totalcalibs, 'done':classifications,'dip':dips}
+
 def checkprogress(person,code):
-    n_analysed = Datapoint.objects.filter(user=person, data__event__name=code,pointtype='S').count()
-    n_sources = DataSource.objects.filter(event__name=code).count()
+    n_analysed = Datapoint.objects.filter(user=person, data__event__slug=code,pointtype='S').count()
+    n_sources = DataSource.objects.filter(event__slug=code).count()
     if (n_sources == 0):
         progress = {'percent'   : "0.0",
                 'done'      : n_analysed,

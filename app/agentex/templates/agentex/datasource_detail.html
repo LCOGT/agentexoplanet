@@ -3,7 +3,7 @@
 
 {% block body-class %}agentex dossier lightmonitor{% ifequal complete 1 %} full{%endifequal%} {%endblock%}
 
-{%block header %}Light Monitor for {{data.event.title}}{%endblock%}
+{%block header %}Light Monitor for {{object.event.title}}{%endblock%}
 
 {% block script-content %}{% ifnotequal complete 1 %}
 	<script type="text/javascript" src="{% static 'js/agentex.js' %}"></script>
@@ -17,12 +17,13 @@
 	<script type="text/javascript" charset="utf-8">
 	<!--
 	var gotcss = (typeof document.styleSheets[0]=="undefined") ? false : true;
-	var source = {x:{{data.event.xpos}},y:{{data.event.ypos}}}
+	var source = {x:{{object.event.xpos}},y:{{object.event.ypos}}}
 	var cur = {x:0,y:0};
 	var changed = true;
-	var calibrators = [];//{{calibrators|safe}};
-	var suggested = {{least_data|safe}}
+	var calibrators = [];
+	var suggested = {{least_data|safe}};
 	var helper = true;		// For the '?' tab
+  var finderchart_img = "{% static object.event.finderchart %}";
 
 {% if progress.done < 1 %}
 	var tutorial = true;	// To display the online tutorial
@@ -108,7 +109,7 @@
 	function toggleFinderChart(e){
 		if(e && typeof e.preventDefault=="function") e.preventDefault();
 		if($('#finderchart').length == 0){
-			$('#photometric').append('<img id="finderchart" src="/static/{{data.target.finderchart}}" />')
+			$('#photometric').append('<img id="finderchart" src="'+finderchart_img+'" />')
 			$('#finderchart').css({position:'absolute','z-index':3,left:0,top:0,width:$('#photometric').outerWidth(),height:$('#photometric').outerHeight(),opacity:1});//.animate({opacity:1},1000);
 			$('#finderchart').bind('click',{e:e}, function(e){
 				$('#finderchart').remove();
@@ -162,18 +163,18 @@
 
 		makeProgressBar();
 
-		{% if points %}
-		var s_x = {{points.source.x|safe}};
-		var s_y = {{points.source.y|safe}};
+		{% if coords %}
+		var s_x = {{coords.source.xpos|safe}};
+		var s_y = {{coords.source.ypos|safe}};
 		var c_x = new Array();
 		var c_y = new Array();
-		{% for point in points.cal %}
-		c_x[{{forloop.counter0}}] = {{point.x}};
-		c_y[{{forloop.counter0}}] = {{point.y}};
+		{% for point in coords.cal %}
+		c_x[{{forloop.counter0}}] = {{point.xpos}};
+		c_y[{{forloop.counter0}}] = {{point.ypos}};
 		{% endfor %}
-		var b_x = {{points.bg.x}};
-		var b_y = {{points.bg.y}};
-		var start_r = {{points.radius}};
+		var b_x = {{coords.bg.xpos}};
+		var b_y = {{coords.bg.ypos}};
+		var start_r = {{object.event.radius}};
 		{% else %}
 		var s_x = source.x-50;
 		var s_y = source.y+50;
@@ -184,6 +185,9 @@
 		var start_r = 10;
 		{% endif %}
 		var dataid;
+
+    // Add the interactive buttons that only make sense if there is CSS and Javascript
+    		$('#toolbar').append('<div class="fbtn"><a class="fancybtngrey btns" id="btn-add"><img src="{% static 'images/round_plus_icon&16.png' %}" style="width:16px;height:16px;" alt="Add" title="Add a calibration ring" /> Add calibrator<\/a><\/div><div class="fbtn"><a class="fancybtngrey btns" id="btn-remove" style="display:none;"><img src="{% static 'images/round_minus_icon&16.png' %}" style="width:16px;height:16px;" alt="Remove" title="Remove a calibration ring" /> Zap calibrator<\/a><\/div><div class="fbtn"><a class="fancybtngrey btns" id="btn-finetune"><img src="{% static 'images/round_plus_icon&16.png' %}" style="width:16px;height:16px;" alt="Add" title="Fine tune positions" /> Fine Tune<\/a><\/div>');
 
 		$('#btn-add').bind('click',function(e){
 			photo.addCalibrator();
@@ -216,8 +220,8 @@
 				changed = true;
 			}
 		}
-
-		$('#toolbar').append('<div class="fbtn"><a class="fancybtn fancybtndisable btns" href="#photometric" id="getdata" dataid="{{data.id}}" style="display:none;font-size:1.3em;">Analyze image<\/a><\/div><div class="fbtn"><a class="fancybtn fancybtndisable btns" href="{% if next %}?dataid={{next.id}}&next=cal{%else%}?next{% endif %}" id="nextimg">Next image <span class="arrow">&nbsp;<\/span><\/a><\/div>');
+    console.log("line 223")
+		$('#toolbar').append('<div class="fbtn"><a class="fancybtn fancybtndisable btns" href="#photometric" id="getdata" dataid="{{data.id}}" style="display:none;font-size:1.3em;">Analyze image<\/a><\/div><div class="fbtn"><a class="fancybtn fancybtndisable btns" href="{% url 'next_addvalue' object.event.slug %}" id="nextimg">Next image <span class="arrow">&nbsp;<\/span><\/a><\/div>');
 		$('#inputtype').html('<div id="groupmove" style="float:right;"><form><input type="checkbox" name="group" value="groupmove">Move all tags<\/form><\/div><span id="manualdata" style="display:none;margin-top:5px;"><span class="manualdata"><a href="?input=manual">Add data manually<\/a><\/span> (e.g. <a href="http://lcogt.net/book/photometry-exoplanet-transit-salsaj">using SalsaJ<\/a>)<\/span><span id="dataexplorer" style="display:none;margin-top:5px;"><a href="?input=dataexplorer">Add data using the web interface<\/a><\/span>');
 		// For links we need to disable them but allow for them to be re-enabled later
 		$('.fancybtndisable').bind('click',function(e){ if($(this).is('.fancybtndisable')) e.preventDefault(); });
@@ -231,7 +235,7 @@
 			}
 
 			photo.bind("sky","onzoom",changeZoom).bind("sky","onmove",moveSizer).bind("source","onzoom",changeZoom).bind("source","onmove",moveSizer).bind("calibrator","onzoom",changeZoom).bind("calibrator","onmove",moveSizer)
-
+      console.log("line 238")
 {% if progress.done < 1 %}
 			// No points have been set already so we now hide the sky and
 			// calibrator and hand-hold people through each step
@@ -256,7 +260,7 @@
 
 			photo.bind("source","ondrop", function() {
 
-				var r = Math.pow(photo.getX("source")-{{data.event.xpos}},2)+Math.pow(photo.getY("source")-{{data.event.ypos}},2)
+				var r = Math.pow(photo.getX("source")-{{object.event.xpos}},2)+Math.pow(photo.getY("source")-{{object.event.ypos}},2)
 				if(Math.sqrt(r) > 10) return;
 
 				if(!photo.sizer[0].visible){
@@ -312,14 +316,15 @@
 			// If this is the first time the user has looked at
 			// data, we will hand-hold them through it.
 			toggleFinderChart({callback:getStarted});
-			var l = $('#photometric').offset().left + {{data.event.xpos}}/photo.scale;
-			var t = $('#photometric').offset().top + (photo.im.height-{{data.event.ypos}})/photo.scale;
+			var l = $('#photometric').offset().left + {{object.event.xpos}}/photo.scale;
+			var t = $('#photometric').offset().top + (photo.im.height-{{object.event.ypos}})/photo.scale;
 			var d = 2*photo.getR('source')/photo.scale;
 			bubblePopup({id:'helptooltip',el:{x:l,y:t,w:d,h:d},align:"top",w:240,animate:true,html:'Welcome to the Light Monitor!<br /><br />The cross-hairs show the <strong class="source">target<\/strong> star for this set of observations. To identify the planet we need to monitor how the brightness of this star varies over time.<br /><br />Click anywhere on the large image to hide these cross-hairs and start analysing the observations.'})
 
 			// The calibrator isn't visible yet so we'll disable it
 			if(!photo.sizer[2].visible) $('a#getdata').addClass('fancybtndisable');
 {% else %}
+    console.log("here");
 			if($('#message').length == 0) $('body').append('<div id="message"><ul class="messages"><\/ul><\/div>');
 			html_msg = $('#message').html();
 			{% if progress.done == 1 %}
@@ -342,7 +347,8 @@
 		}
 
 		helpstep = 0;
-		photo = new Photometry({id:'photometric',src:"{{data_url}}{{data.image}}",form:'entryform',width:$('#middle').outerWidth(),source:{x:s_x,y:s_y,r:start_r},sky:{x:b_x,y:b_y,r:start_r,label:'Sky'},calibrator:{x:[c_x[0],c_x[1],c_x[2]],y:[c_y[0],c_y[1],c_y[2]],r:start_r},zoom:2,callback:photoReady,calibrators:calibrators,suggested:suggested});
+    console.log("line 350")
+		photo = new Photometry({id:'photometric',src:"{% static object.image %}",form:'entryform',width:$('#middle').outerWidth(),source:{x:s_x,y:s_y,r:start_r},sky:{x:b_x,y:b_y,r:start_r,label:'Sky'},calibrator:{x:[c_x[0],c_x[1],c_x[2]],y:[c_y[0],c_y[1],c_y[2]],r:start_r},zoom:2,callback:photoReady,calibrators:calibrators,suggested:suggested});
 		$('input.fancybtn').addClass('fancybtndisable');
 		$('input.fancybtn').attr("disabled", "true");
 		$('#entryform').css('display', 'none');
@@ -354,19 +360,9 @@
 			$('#message').delay(5000).fadeOut(500);
 		}
 
-		// if the user prefers to use the web dataexplorer set the field in the data entry form.
-		// zemogle {{ webinput }}
-{% if webinput %}
 		$("input[name='entrytype']").val('dataexplorer');
 		$('#btn-download').hide();
 		$('#btn-update').hide();
-{% else %}
-		$('a#getdata').hide();
-		$('#manualdata').hide();
-		$('#dataexplorer').show();
-		$('#entryform').show();
-		$('#btn-update').show();
-{% endif %}
 
 		$('.manualdata a').bind('click', function(e){
 			$("input[name='entrytype']").val('manual');
@@ -533,19 +529,13 @@
 
 {% block lower-menu%}{% ifnotequal complete 1 %}
 				<div class="polaroid"><div id="finderthumb">
-          <a href="/static/{{data.target.finderchart}}">
-            <img src="/static/{{data.target.finderchart_tb}}" class="snap" alt="Finder chart for {{data.event.title}}" title="Finder chart" />
+          <a href="/static/{{object.event.finderchart}}">
+            <img src="/static/{{object.event.finderchart_tb}}" class="snap" alt="Finder chart for {{object.event.title}}" title="Finder chart" />
           </a>
           <p>Finder chart</p></div></div>
-        <div class="toolbar">
-          <div class="fbtn">
-            <a class="fancybtngrey btns" id="btn-add"><img src="{% static 'images/round_plus_icon&16.png' %}" style="width:16px;height:16px;" alt="Add" title="Add a calibration ring" /> Add calibrator</a>
-          </div>
-          <div class="fbtn"><a class="fancybtngrey btns" id="btn-remove" style="display:none;"><img src="{% static 'images/round_minus_icon&16.png' %}" style="width:16px;height:16px;" alt="Remove" title="Remove a calibration ring" /> Zap calibrator</a>
-          </div>
-          <div class="fbtn"><a class="fancybtngrey btns" id="btn-finetune"><img src="{% static 'images/round_plus_icon&16.png' %}" style="width:16px;height:16px;" alt="Add" title="Fine tune positions" /> Fine Tune</a>
-          </div>
-        </div>
+          <div id="toolbar">
+  					<div class="fbtn"><a href="{{data_url}}{{data.fits}}" class="fancybtngrey btns" id="btn-download" title="Download data file (FITS format)"><img src="{% static 'images/download_icon&16.png' %}" style="width:16px;height:16px;" alt="." /> Download data</a></div>
+  				</div>
 {% endifnotequal %}
 {%endblock%}
 
@@ -565,13 +555,13 @@
 										<div id="avlink"><a href="{%url 'average-graph' event.name%}"><img src="{% static 'images/graph_ave.png' %}" alt="Classify" title="Classify your lightcurves" style="width:1em;" /></a></div>
 										<div id="sulink"><a href="{%url 'super-graph' event.name%}"><img src="{% static 'images/graph_super.png' %}" alt="Final" title="Final lightcurve" style="width:1em;" /></a></div>
 										<span class="dymotape datestamp">Completed</span>
-										<h1>Analysis Complete: <a href="{% url 'infoview' event.name  %}" class="objectspecific">{{event.title}}</a></h1>
+										<h1>Analysis Complete: <a href="{% url 'infoview' object.event.slug  %}" class="objectspecific">{{event.title}}</a></h1>
 										<p>Congratulations! You've analysed all the data for {{event.title}}.<p>
 										<p>Now, have a look at the lightcurves we made from your measurements...</p>
 										<ol class="breadcrumb">
-											<li><a href="{%url 'my-graph' event.name%}"><img src="{% static 'images/graph_my.png' %}" alt="My" title="View my measurements as a lightcurve" /> My measurements</a></li>
-											<li><a href="{%url 'average-graph' event.name%}"><img src="{% static 'images/graph_ave.png' %}" alt="Classify" title="Classify your lightcurves" /> Classify lightcurves</a></li>
-											<li><a href="{%url 'super-graph' event.name%}"><img src="{% static 'images/graph_super.png' %}" alt="Final" title="Final lightcurve" /> Final lightcurve</a></li>
+											<li><a href="{%url 'my-graph' object.event.slug%}"><img src="{% static 'images/graph_my.png' %}" alt="My" title="View my measurements as a lightcurve" /> My measurements</a></li>
+											<li><a href="{%url 'average-graph' object.event.slug%}"><img src="{% static 'images/graph_ave.png' %}" alt="Classify" title="Classify your lightcurves" /> Classify lightcurves</a></li>
+											<li><a href="{%url 'super-graph' object.event.slug%}"><img src="{% static 'images/graph_super.png' %}" alt="Final" title="Final lightcurve" /> Final lightcurve</a></li>
 										</ol>
 										Would you like to edit any of your measurements?
 										<ul class="edit-list">
@@ -582,31 +572,30 @@
 										</p>
 									</div>
 {% else %}
-					<span class="dymotape datestamp" id="obsdate" title="Timestamp of this observation"><span class="accessible">Data timestamp: </span>{{data.timestamp}}</span>
-					<h1>Light Monitor: <a href="{% url 'infoview' data.event.name  %}" class="objectspecific">{{data.event.title}}</a></h1>
+					<span class="dymotape datestamp" id="obsdate" title="Timestamp of this observation"><span class="accessible">Data timestamp: </span>{{object.timestamp}}</span>
+					<h1>Light Monitor: <a href="{% url 'infoview' object.event.slug   %}" class="objectspecific">{{object.event.title}}</a></h1>
 					{% if user.is_authenticated %}<div class="progress" style="width:100%;height:1.5em;background-color:#b3b3b3;margin-bottom:8px;"><div class="progressbar"></div><div class="label" style="padding:0.25em;text-align:center;width:100%;">You've completed {{progress.done}} of {{progress.total}} frames ({{progress.percent}}%)</div></div>{% endif %}
 					<div id="middle">
 						<div id="photometric">
-							<div id="photometric_imageholder_small"><img src="{{data_url}}{{data.image}}" style="width:100%" alt="Image from telescope" /></div>
+							<div id="photometric_imageholder_small"><img src="/static/{{object.image}}" style="width:100%" alt="Image from telescope" /></div>
 						</div>
 					</div>
 					<div id="lower" style="text-align:right;">
-						{% if user.is_authenticated %}{% else %}<p>Please <a href="{% url 'login' %}?next={% url agentex.views.addvalue data.event.name %}">login</a> to see your measurements in the lightcurve for this exoplanet</a>{% endif %}
 						<div id="inputtype" style="text-align:left;"></div>
 						<div>
 							<div class="clear-block"></div>
-							<!--<div class="icons clear-block"><a class="chart" href="{% url 'my-graph' data.event.name %}" class="chart">View lightcurve for this exoplanet</a></div>-->
-							<div id="mylink"><a href="{%url 'my-graph' data.event.name%}"><img src="{% static 'images/graph_my.png' %}" alt="My" title="View my measurements as a lightcurve" style="width:1em;" /></a></div>
-							<div id="avlink"><a href="{%url 'average-graph' data.event.name%}"><img src="{% static 'images/graph_ave.png' %}" alt="Classify" title="Classify your lightcurves" style="width:1em;" /></a></div>
-							<div id="sulink"><a href="{%url 'super-graph' data.event.name%}"><img src="{% static 'images/graph_super.png' %}" alt="Final" title="Final lightcurve" style="width:1em;" /></a></div>
+							<!--<div class="icons clear-block"><a class="chart" href="{% url 'my-graph' object.event.slug  %}" class="chart">View lightcurve for this exoplanet</a></div>-->
+							<div id="mylink"><a href="{%url 'my-graph' object.event.slug %}"><img src="{% static 'images/graph_my.png' %}" alt="My" title="View my measurements as a lightcurve" style="width:1em;" /></a></div>
+							<div id="avlink"><a href="{%url 'average-graph' object.event.slug %}"><img src="{% static 'images/graph_ave.png' %}" alt="Classify" title="Classify your lightcurves" style="width:1em;" /></a></div>
+							<div id="sulink"><a href="{%url 'super-graph' object.event.slug %}"><img src="{% static 'images/graph_super.png' %}" alt="Final" title="Final lightcurve" style="width:1em;" /></a></div>
 						</div>
 						<form method=POST action="">
 							{% csrf_token %}
 							<div id="entryform" style="margin-top:5px;" class="accessible">
 								<input type="hidden" name="calibrators" id="calibrators" value="1">
-								<input type="hidden" name="dataid" value="{{data.id}}">
+								<input type="hidden" name="dataid" value="{{object.pk}}">
 								<input type="hidden" name="entrytype" value="manual">
-								{% if points %}<input type="hidden" name="update" value="1">{% endif %}
+								{% if coords %}<input type="hidden" name="update" value="1">{% endif %}
 								<div class="fieldWrapper">
 									{{form.sourceradius.errors}}
 									<label for="id_sourceradius">{{form.sourceradius.label}}</label>{{form.sourceradius}}
@@ -639,8 +628,8 @@
 									{{form.bgcounts.errors}}
 									<label for="id_bgcounts">{{form.bgcounts.label}}</label>{{form.bgcounts}}
 								</div>
-								{% if points %}
-								{% for cal in points.cal %}
+								{% if coords %}
+								{% for cal in coords.cal %}
 								<div class="fieldWrapper">
 										<label for="id_cal{{forloop.counter}}radius">Aperture Radius (calibrator {{forloop.counter}})</label>
 										<input type="text" id="id_cal{{forloop.counter}}radius"  name="cal{{forloop.counter}}radius">

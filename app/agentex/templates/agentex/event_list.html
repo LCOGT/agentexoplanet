@@ -1,5 +1,5 @@
 {% extends 'agentex/base.html' %}
-{% load static %}
+{% load static observing_extras %}
 
 {% block body-class %}full agentex dossier planets {%endblock%}
 
@@ -27,7 +27,8 @@
 					<ul class="polaroids">
 {% for line in object_list %}
 						<li class="polaroid">
-              {% if line.completed == line.event.numobs %}
+              {% with progress=user|planetprogress:line %}
+              {% if progress == line.numobs %}
               <span class="polaroidtriangle"><img src="{% static 'images/label_complete.png' %}" alt="completed" title="Completed" /></span>
               {% else %}
                 {% if line.level %}
@@ -36,14 +37,16 @@
                 {% endwith %}
                 {% endif %}
               {% endif %}
-              <a href="{% url 'infoview' line.event.name %}">
-                {% with line.event.illustration as image_static %}
-                <img src="{% static image_static %}" alt="Illustration of {{line.event.title}}" title="Click to begin your investigation of {{line.event.title}}">
+              <a href="{% url 'infoview' line.slug %}">
+                {% with line.illustration as image_static %}
+                <img src="{% static image_static %}" alt="Illustration of {{line.title}}" title="Click to begin your investigation of {{line.title}}">
                 {% endwith %}
-                <span class="objectspecific">{{line.event.title}}</span></a><br />
+                <span class="objectspecific">{{line.title}}</span></a><br />
                 <span class="objectspecific">
-                  {% if line.completed %}(Completed {{line.completed}}/{{line.event.numobs}}){% else %}({{line.event.numobs}} images){% endif %}
-                </span></li>
+                  {% if progress %}(Completed {{progress}}/{{line.numobs}}){% else %}({{line.numobs}} images){% endif %}
+                </span>
+                {% endwith %}
+              </li>
 {% endfor %}
 						<li class="polaroid"><a href="#"><img src="{% static 'images/unknown.png' %}" alt="Coming soon" title="Access denied"> <span class="objectspecific">Coming soon</span></a></li>
 					</ul>

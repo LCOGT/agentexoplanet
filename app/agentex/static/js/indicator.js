@@ -37,7 +37,9 @@ function Indicator(inp){
 		if($('#'+this.holder.svg).length==0) $('#'+this.holder.id).append('<div id="'+this.holder.svg+'"></div>');
 
 		this.pos = $('#'+this.holder.id).position();
-	}
+	} else {
+    console.log("Failed")
+  }
 }
 
 

@@ -6,10 +6,10 @@ from django.contrib.staticfiles import views
 from django.urls import include, path
 
 from agentex.admin import calibrator_check, allcalibrators_check
-from agentex.views import index, target, fitsanalyse, \
+from agentex.views import index, fitsanalyse, \
     read_manual_check, addvalue, updatedataset, graphview, \
     classifyupdate, graphview, graphsuper, infoview, measurementsummary, \
-    EventView, EventList
+    EventView, EventList, DataEntry, next_datasource
 from agentex.users import register, editaccount, profile, briefing, feedback
 
 admin.autodiscover()
@@ -31,17 +31,17 @@ urlpatterns = [
     path('briefing/read/',read_manual_check, name='read_manual_check'),
     path('briefing/',briefing, name='briefing'),
     path('comment/',feedback, name='addcomment'),
-    path('target/<slug:code>/view/',addvalue, name='addvalue'),
-    path('target/<slug:code>/view/',addvalue, name='addvalue'),
-    path('target/<slug:code>/graph/update/',updatedataset, name='updatedataset'),
-    path('target/<slug:code>/lightcurve/advanced/',graphview, {'mode' : 'advanced','calid':None}, name='advanced-graph'),
-    path('target/<slug:code>/lightcurve/me/',graphview, {'mode' : 'simple','calid':None}, name='my-graph'),
-    path('target/<slug:code>/lightcurve/calibrator/update/',classifyupdate, name='classifyupdate'),
-    path('target/<slug:code>/lightcurve/calibrator/',graphview, {'mode' : 'ave','calid':None}, name='average-graph'),
-    path('target/<slug:code>/lightcurve/calibrator/<int:calid>/',graphview, {'mode' : 'ave'}, name='calibrator-graph'),
-    path('target/<slug:code>/lightcurve/',graphsuper,name='super-graph'),
-    path('target/<slug:code>/',EventView.as_view(), name='infoview'),
-    path('target/<slug:code>/data.<str:format>',measurementsummary, name='measurementsummary'),
+    path('source/<int:pk>/view/',DataEntry.as_view(), name='addvalue'),
+    path('target/<slug:slug>/next/', next_datasource, name='next_addvalue'),
+    path('target/<slug:slug>/graph/update/',updatedataset, name='updatedataset'),
+    path('target/<slug:slug>/lightcurve/advanced/',graphview, {'mode' : 'advanced','calid':None}, name='advanced-graph'),
+    path('target/<slug:slug>/lightcurve/me/',graphview, {'mode' : 'simple','calid':None}, name='my-graph'),
+    path('target/<slug:slug>/lightcurve/calibrator/update/',classifyupdate, name='classifyupdate'),
+    path('target/<slug:slug>/lightcurve/calibrator/',graphview, {'mode' : 'ave','calid':None}, name='average-graph'),
+    path('target/<slug:slug>/lightcurve/calibrator/<int:calid>/',graphview, {'mode' : 'ave'}, name='calibrator-graph'),
+    path('target/<slug:slug>/lightcurve/',graphsuper,name='super-graph'),
+    path('target/<slug:slug>/',EventView.as_view(), name='infoview'),
+    path('target/<slug:slug>/data.<str:format>',measurementsummary, name='measurementsummary'),
 ]
 
 if settings.DEBUG:

@@ -3,8 +3,14 @@ from django.conf import settings
 from math import fabs,floor
 #from settings import STATIC_URL
 from agentex.agentex_settings import decision_images
+from agentex.models import Datapoint
 
 register = Library()
+
+@register.filter(name="planetprogress")
+def planet_progress(user, planet):
+    completed = Datapoint.objects.filter(user=user, data__event=planet, pointtype='S').count()
+    return completed
 
 @register.filter(name='readableangle')
 def readableangle(value):

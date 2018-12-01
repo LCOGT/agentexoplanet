@@ -251,7 +251,7 @@ Photometry.prototype.flatgaussian = function(inp,x,y){
 	var dy = (y+inp[3]);
 	var diff = Math.sqrt(dx*dx + dy*dy);
 	var r = inp[5] + inp[0] * Math.exp(-0.5 * diff * diff / sig2);
-	if(diff < inp[4] && r > 255) r = 255.0; 
+	if(diff < inp[4] && r > 255) r = 255.0;
 	return r;
 }
 
@@ -292,7 +292,7 @@ Photometry.prototype.makeThumbnail = function(width,height,id){
 			}else{
 				el.setAttribute('width',width);
 				el.setAttribute('height',height);
-			}   
+			}
 		}
 		this.canvas = document.getElementById(id);
 	}else this.canvas = el;
@@ -321,7 +321,7 @@ Photometry.prototype.peakShift = function(ox,oy,counter,iter){
 		this.makeThumbnail(w,h,id);
 		var thumbData = this.ctx[id].createImageData(w,h);
 	}
-	
+
 	var tx,ty;
 	if(!iter || iter > 8) iter = 8;
 
@@ -333,13 +333,13 @@ Photometry.prototype.peakShift = function(ox,oy,counter,iter){
 			if((ox+tx) < 0 || (ox+tx > this.imageData.width) || (oy+ty) < 0 || (oy+ty > this.imageData.height)) continue;
 			p = ((this.imageData.height-Math.round(oy-ty))*this.imageData.width+Math.round(ox+tx))*4;
 			v = (this.imageData.data[p]+this.imageData.data[p+1]+this.imageData.data[p+2])/3;
-			
+
 			diff = (tx*tx + ty*ty);
 			if(diff < w/2 && v > threshold) n++;
 		}
 	}
 	if(n < 10) threshold *= 0.8;
-	
+
 	n = 0;
 
 	// Try to optimize the position
@@ -351,32 +351,32 @@ Photometry.prototype.peakShift = function(ox,oy,counter,iter){
 				if((ox+tx) < 0 || (ox+tx > this.imageData.width) || (oy+ty) < 0 || (oy+ty > this.imageData.height)) continue;
 				p = ((this.imageData.height-Math.round(oy-ty))*this.imageData.width+Math.round(ox+tx))*4;
 				v = (this.imageData.data[p]+this.imageData.data[p+1]+this.imageData.data[p+2])/3;
-				
+
 				diff = (tx*tx + ty*ty);
 				if(diff < 1) diff = 1;
 				v = (v > threshold) ? 255 : 0;
 				if(Math.sqrt(diff) > w/2) v /= 3;	// Only OK within circle
 				cutout[x+w/2][y+h/2] = v;
-	
+
 			}
 		}
-	
+
 		// Fill in holes
 		for(i = 0; i < w ; i++){
 			for(j = 0; j < h ; j++){
 				if(cutout[i][j]==0){
-	
+
 					if(i>w/3 && i < w*2/3 && cutout[i-1][j] == 255 && cutout[i+1][j] == 255) cutout[i][j] = 255;
 					if(j>w/3 && j < h*2/3 && cutout[i][j-1] == 255 && cutout[i][j+1] == 255) cutout[i][j] = 255;
 				}
 			}
 		}
-	
+
 		if(showThumb){
 			// Make the thumbnail
 			for(i = 0; i < w ; i++){
 				for(j = 0; j < h ; j++){
-					p = (w*(j) + (i))*4;		
+					p = (w*(j) + (i))*4;
 					thumbData.data[p] = cutout[i][j];
 					thumbData.data[p+1] = cutout[i][j];
 					thumbData.data[p+2] = cutout[i][j];
@@ -385,7 +385,7 @@ Photometry.prototype.peakShift = function(ox,oy,counter,iter){
 			}
 			this.ctx[id].putImageData(thumbData, 0, 0);
 		}
-	
+
 		// Work out the centre of mass in the x and y directions
 		n = 0;
 		x = 0;
@@ -405,7 +405,7 @@ Photometry.prototype.peakShift = function(ox,oy,counter,iter){
 		if(Math.abs(offx) < 0.3 && Math.abs(offy) < 0.3) iter = loop;
 		dx += offx;
 		dy += offy;
-	
+
 	}
 
 	return [0,0,dx,dy];
@@ -419,7 +419,7 @@ Photometry.prototype.fineTune = function(){
 	var ctx = canvas.getContext("2d");
 	ctx.drawImage(this.im,0,0,this.im.width,this.im.height);
 	if(!this.imageData) this.imageData = ctx.getImageData(0,0,this.im.width,this.im.height);
-	
+
 	var ox,oy,z,dx,dy,d;
 
 	z = this.sizer[0].zoomLevel();
@@ -439,7 +439,7 @@ Photometry.prototype.fineTune = function(){
 }
 Photometry.prototype.addCalibrator = function(x,y,fromfits){
 	var i = this.sizer.length;
-	if(i < 2) return;	// We should have at least 2 Sizer elements: 1 for sky and 1 for source 
+	if(i < 2) return;	// We should have at least 2 Sizer elements: 1 for sky and 1 for source
 
 	// Need to flip in the y-direction because of the FITS file input
 	if(fromfits) y = (this.im.height-y);
