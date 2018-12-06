@@ -197,18 +197,18 @@ Photometry.prototype.getR = function(key){
 	}else return 0;
 }
 Photometry.prototype.getXs = function(){
-	var o = "";
+	var o = Array();
 	for(var i = 0; i < this.sizer.length ; i++){
-		if(i > 0) o += ",";
-		o += (this.sizer[i].x*this.scale);
+		o.push(this.sizer[i].x*this.scale);
 	}
 	return o;
 }
 Photometry.prototype.getYs = function(rev){
-	var o = "";
+	var o = Array();
+  var tmp_val;
 	for(var i = 0; i < this.sizer.length ; i++){
-		if(i > 0) o += ",";
-		o += (!rev) ? (this.im.height-this.sizer[i].y*this.scale) : this.sizer[i].y*this.scale;
+		tmp_val = (!rev) ? (this.im.height-this.sizer[i].y*this.scale) : this.sizer[i].y*this.scale;
+    o.push(tmp_val);
 	}
 	return o;
 }

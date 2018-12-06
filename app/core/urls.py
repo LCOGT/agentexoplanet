@@ -6,9 +6,9 @@ from django.contrib.staticfiles import views
 from django.urls import include, path
 
 from agentex.admin import calibrator_check, allcalibrators_check
-from agentex.views import index, fitsanalyse, \
-    read_manual_check, addvalue, updatedataset, graphview, \
-    classifyupdate, graphview, graphsuper, infoview, measurementsummary, \
+from agentex.views import index, AddValuesView, \
+    read_manual_check, updatedataset, graphview, \
+    classifyupdate, graphview, graphsuper, measurementsummary, \
     EventView, EventList, DataEntry, next_datasource
 from agentex.users import register, editaccount, profile, briefing, feedback
 
@@ -26,7 +26,7 @@ urlpatterns = [
     path('account/', editaccount, name='editaccount'),
     path('profile/',profile, name='profile'),
     path('planets/',EventList.as_view(), name='target'),
-    path('fitsanalyse/',fitsanalyse, name='fitsanalyse'),
+    path('fitsanalyse/',AddValuesView.as_view(), name='fitsanalyse'),
     #path('test',tester, name='tester'),
     path('briefing/read/',read_manual_check, name='read_manual_check'),
     path('briefing/',briefing, name='briefing'),
