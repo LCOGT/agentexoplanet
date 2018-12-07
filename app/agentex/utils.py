@@ -74,3 +74,12 @@ def achievementunlock(person,planet,typea):
             return {'msg' : 'Achievement save error', 'image':"%s" % badge[0].image, 'code': messages.ERROR }
     else:
         return {'msg' : 'Already has this badge', 'image': '', 'code': messages.WARNING }
+
+def dictconv(data,ref):
+    tmp = []
+    for i in ref:
+        try:
+            tmp.append(data[i])
+        except:
+            tmp.append(0.)
+    return tmp

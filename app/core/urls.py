@@ -7,7 +7,7 @@ from django.urls import include, path
 
 from agentex.admin import calibrator_check, allcalibrators_check
 from agentex.views import index, AddValuesView, \
-    read_manual_check, updatedataset, graphview, \
+    read_manual_check, updatedataset, graphview_simple, graphview_advanced, \
     classifyupdate, graphview, graphsuper, measurementsummary, \
     EventView, EventList, DataEntry, next_datasource
 from agentex.users import register, editaccount, profile, briefing, feedback
@@ -34,8 +34,8 @@ urlpatterns = [
     path('source/<int:pk>/view/',DataEntry.as_view(), name='addvalue'),
     path('target/<slug:slug>/next/', next_datasource, name='next_addvalue'),
     path('target/<slug:slug>/graph/update/',updatedataset, name='updatedataset'),
-    path('target/<slug:slug>/lightcurve/advanced/',graphview, {'mode' : 'advanced','calid':None}, name='advanced-graph'),
-    path('target/<slug:slug>/lightcurve/me/',graphview, {'mode' : 'simple','calid':None}, name='my-graph'),
+    path('target/<slug:slug>/lightcurve/advanced/',graphview_advanced, name='advanced-graph'),
+    path('target/<slug:slug>/lightcurve/me/',graphview_simple, name='my-graph'),
     path('target/<slug:slug>/lightcurve/calibrator/update/',classifyupdate, name='classifyupdate'),
     path('target/<slug:slug>/lightcurve/calibrator/',graphview, {'mode' : 'ave','calid':None}, name='average-graph'),
     path('target/<slug:slug>/lightcurve/calibrator/<int:calid>/',graphview, {'mode' : 'ave'}, name='calibrator-graph'),

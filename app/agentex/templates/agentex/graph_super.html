@@ -25,15 +25,15 @@
 	{% if numsuper %}
 		html = '<p>Measurements with {{numsuper}} calibrator{% if numsuper > 1 %}s were combined{%else%} was used{%endif%} to make the final, combined, lightcurve. With more calibrators the lightcurve should improve.'
 		html += '<div id="mainplot" style="height:448px;width:100%;"><\/div>';
-	
-	{% endif %}		
-		addHelpHint($('#mainplot'),'This graph shows how the relative brightness of the host star changes as exoplanet <a href="{% url 'infoview' event.name %}" class="objectspecific">{{event.title}}<\/a> passes in front of it.<br/><br/> This graph combines the measurements and classifications from all citizen scientists on this project, into one supercalibrator result.');
+
+	{% endif %}
+		addHelpHint($('#mainplot'),'This graph shows how the relative brightness of the host star changes as exoplanet <a href="{% url 'infoview' event.slug %}" class="objectspecific">{{event.title}}<\/a> passes in front of it.<br/><br/> This graph combines the measurements and classifications from all citizen scientists on this project, into one supercalibrator result.');
 		addHelpHint($('#mylink'),'View your measurements as <a href="{% url 'briefing' %}#lightcurve">lightcurves<\/a>','left');
 		addHelpHint($('#avlink'),'Classify your measurements','left');
 		addHelpHint($('#sulink'),'This is the page you are looking at.','left');
 
 	{% if numsuper %}
-	
+
 		$('.breadcrumb').after(html);
 
 		if($('table#datatable').length > 0){
@@ -48,7 +48,7 @@
 		var lcurve = new Lightcurve({
 			id:'#mainplot',
 			msg:{
-				nodata: "<h3>You have no data points yet<\/h3><p>Why not make some <a href='{% url 'addvalue' event.name %}'>measurements of {{event.title}}<\/a><\/p>",
+				nodata: "<h3>You have no data points yet<\/h3><p>Why not make some <a href='{% url 'next_addvalue' event.slug  %}'>measurements of {{event.title}}<\/a><\/p>",
 				login: "Please <a href='{% url 'login' %}'>login<\/a> to edit"
 			},
 			data:{{data|safe}},
@@ -59,13 +59,13 @@
 					grid: { hoverable: false, clickable: false },
 					selection: { mode: "xy", color: '#000000' }
 			},
-			period: {{ target.period }}*86400000,
+			period: {{ event.period }}*86400000,
 			onfit: function(e){
 				if(!solsystem){
 					solsystem = new PlanetaryModel({
-						mass: {{ target.mass }},
-						period: {{ target.period }},
-						name: "{{ target.name }}",
+						mass: {{ event.mass }},
+						period: {{ event.period }},
+						name: "{{ event.title }}",
 						transit: e.transit,
 						dip: e.dip
 					});
@@ -90,7 +90,7 @@
 		extra = "";
 		{% if messages %}extra = $('#message').html(){% endif %}
 		addHelpHint($('#mainplot'),'This lightcurve represents the combined measurements with many calibrators. We\'ve attempted to fit a mathematical model to the data to measure the dip in brightness and the length of the transit.');
-	
+
 	//	{% if messages %} bubblePopup({id:'message',el:$('#mainplot'),fade:2000,dismiss:true,align:"center",w:200,animate:true,html:'<ul class="messages">{% for message in messages %}{%ifchanged%}<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>{%endifchanged%}{% endfor %}</ul>'});{% endif %}
 	{% else %}
 	{% endif %}
@@ -101,29 +101,29 @@
 
 {% block main-content %}
 	<div class="page stackedpaper">
-					{% if messages %}<div id="message">					
+					{% if messages %}<div id="message">
 						<ul class="messages">
 {% for message in messages %}{%ifchanged%}		<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message|safe }}</li>{%endifchanged%}{% endfor %}
 						</ul>
 					</div>{% endif %}
 
 {% if numsuper %}
-		<h1>Step 3: Final Lightcurve for <a href="{% url 'infoview' event.name %}" class="objectspecific">{{event.title}}</a></h1>
+		<h1>Step 3: Final Lightcurve for <a href="{% url 'infoview' event.slug  %}" class="objectspecific">{{event.title}}</a></h1>
 {% else %}
-		<h1>No combined result for <a href="{% url 'infoview' event.name %}" class="objectspecific">{{event.title}}</a> yet</h1>
+		<h1>No combined result for <a href="{% url 'infoview' event.slug  %}" class="objectspecific">{{event.title}}</a> yet</h1>
 {%endif%}
 {% if user.is_authenticated %}
 <!--
 		<ol class="breadcrumb">
-			<li><a href="{%url 'my-graph' event.name%}"><img src="{{ STATIC_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" />Step 1: My measurements</a></li>
-			<li><a href="{%url 'average-graph' event.name%}"><img src="{{ STATIC_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" />Step 2: Classify lightcurves</a></li>
-			<li class="active"><a href="{%url 'super-graph' event.name%}"><img src="{{ STATIC_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" />Step 3: Final lightcurve</a></li>
+			<li><a href="{%url 'my-graph' event.slug %}"><img src="{{ STATIC_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" />Step 1: My measurements</a></li>
+			<li><a href="{%url 'average-graph' event.slug %}"><img src="{{ STATIC_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" />Step 2: Classify lightcurves</a></li>
+			<li class="active"><a href="{%url 'super-graph' event.slug %}"><img src="{{ STATIC_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" />Step 3: Final lightcurve</a></li>
 		</ol>
 -->
 		<p class="breadcrumb"></p>
-		<div id="mylink" style="display:none;"><a href="{%url 'my-graph' event.name%}"><img src="{% static 'images/graph_my.png' %}" alt="My" title="View my measurements as a lightcurve" /></a></div>
-		<div id="avlink" style="display:none;"><a href="{%url 'average-graph' event.name%}"><img src="{% static 'images/graph_ave.png' %}" alt="Classify" title="Classify your lightcurves" /></a></div>
-		<div id="sulink" class="tabactive" style="display:none;"><a href="{%url 'super-graph' event.name%}"><img src="{% static 'images/graph_super.png' %}" alt="Final" title="Final lightcurve" /></a></div>
+		<div id="mylink" style="display:none;"><a href="{%url 'my-graph' event.slug %}"><img src="{% static 'images/graph_my.png' %}" alt="My" title="View my measurements as a lightcurve" /></a></div>
+		<div id="avlink" style="display:none;"><a href="{%url 'average-graph' event.slug %}"><img src="{% static 'images/graph_ave.png' %}" alt="Classify" title="Classify your lightcurves" /></a></div>
+		<div id="sulink" class="tabactive" style="display:none;"><a href="{%url 'super-graph' event.slug %}"><img src="{% static 'images/graph_super.png' %}" alt="Final" title="Final lightcurve" /></a></div>
 {% else %}
 		<p class="breadcrumb">You can contribute measurements to this lightcurve after <a href="{% url 'register' %}?next={{ request.path }}">creating an account.</a> If you already have an account <a href="{% url 'login' %}?next={{ request.path }}">log in</a></p>
 {% endif %}
@@ -152,7 +152,7 @@
 					<td nowrap style="vertical-align:middle;border-top:2px solid black;">&nbsp;&minus;&nbsp;<i>cos<sup>2</sup>&nbsp;(i)</i></td>
 					<td width="50%"></td>
 				</tr></table>
-				<p>If we assume an edge-on orbit, like in the cartoon above, the inclination (<span style="font-family: times, serif;font-style:italic">i</span>) is zero and this becomes the more straightforward:</p>				
+				<p>If we assume an edge-on orbit, like in the cartoon above, the inclination (<span style="font-family: times, serif;font-style:italic">i</span>) is zero and this becomes the more straightforward:</p>
 				<table class="borderless" style="border:0px!important;font-size: 1.2em; font-family: times, serif;"><tr>
 					<td width="50%"></td>
 					<td nowrap style="vertical-align:middle;"><i>t<sub>trans</sub></i> &nbsp;=</td>
@@ -166,25 +166,25 @@
 		<p class="accessible">Without Javascript enabled we can't show you a lightcurve but you could create your own lightcurve using the data in the table below. You can also provide us with information about which calibrators are not variable by checking the boxes below.</p>
 
 		<div style="text-align:right;">
-			<a href="{% url 'target' %}" class="fancybtn" id="nextstep">Next planet<span class="arrow">&nbsp;</span></a> 
+			<a href="{% url 'target' %}" class="fancybtn" id="nextstep">Next planet<span class="arrow">&nbsp;</span></a>
 		</div>
 
 		<div style="max-width:900px;overflow:auto;">
-		    <a href="{% url 'measurementsummary' event.name 'csv'%}">Download the data for this lightcurve as a CSV file</a><br/>
+		    <a href="{% url 'measurementsummary' event.slug  'csv'%}">Download the data for this lightcurve as a CSV file</a><br/>
 		<table class="accessible" id="datatable" summary="The data used to make the final lightcurve">
 			<tr><th>Observation date</th><th colspan="2">Relative brightness</th><th>Estimated uncertainty</th></tr>
 			<tr><th></th><th>Mine</th><th>Everyone</th><th></th></tr>
 	{% for line in data %}
-			<tr><td><a href="{% url 'addvalue' event.name %}?dataid={{line.id}}">{{line.date}}</a></td><td>{{line.data.mine|floatformat:3}}</td><td>{{line.data.mean|floatformat:3}}</td><td>{{line.data.std|floatformat:3}}</td></tr>
+			<tr><td><a href="{% url 'next_addvalue' event.slug  %}?dataid={{line.id}}">{{line.date}}</a></td><td>{{line.data.mine|floatformat:3}}</td><td>{{line.data.mean|floatformat:3}}</td><td>{{line.data.std|floatformat:3}}</td></tr>
 	{% endfor %}
 		</table>
 		</div>
-		
-		
+
+
 
 {% else%}
 		<p>Bad news! Not enough measurements have been made yet.</p>
-		<p>Go and <a href="{% url 'addvalue' event.name %}">make more measurements</a>, then <a href="{%url 'average-graph' event.name%}">classify your results</a>.
+		<p>Go and <a href="{% url 'next_addvalue' event.slug  %}">make more measurements</a>, then <a href="{%url 'average-graph' event.slug %}">classify your results</a>.
 		<p>It will make this page much more exciting!</p>
 {%endif%}
 	</div>
