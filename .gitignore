@@ -11,6 +11,8 @@ app/setup.py
 .DS_Store
 media/data/*
 
+agentex/static/planets/
+
 *agentex.json
 
 app/agentex/static/data/*
@@ -25,9 +27,3 @@ citsci.db
 *.sql
 
 docker-compose.yml
-
-data/corot18b.tar.gz
-
-data/Wasp12b-20120217.zip
-
-data/wasp13b_20131227.zip
