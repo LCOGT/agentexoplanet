@@ -8,7 +8,7 @@ ENTRYPOINT [ "/init" ]
 ENV PREFIX /agentexoplanet
 
 # install depedencies
-COPY app/requirements.txt /var/www/apps/agentex/requirements.txt
+COPY requirements.pip /var/www/apps/agentex/requirements.pip
 RUN apk --no-cache add dcron libjpeg-turbo mariadb-connector-c nginx supervisor zlib libgomp \
         && apk --no-cache add --virtual .build-deps gcc g++ git \
                 libjpeg-turbo-dev mariadb-dev musl-dev zlib-dev \
