@@ -1,36 +1,22 @@
-FROM centos:7
-MAINTAINER Edward Gomez <egomez@lcogt.net>
+FROM python:3.6-alpine
+MAINTAINER Edward Gomez <egomez@lco.global>
 
-EXPOSE 80
 ENTRYPOINT [ "/init" ]
 
-# setup the Python Django environment
-ENV PYTHONPATH /var/www/apps
-ENV DJANGO_SETTINGS_MODULE core.settings
 
 # set the PREFIX env variable
 ENV PREFIX /agentexoplanet
 
-# install and update packages
-RUN yum -y install epel-release \
-        && yum -y install gcc make mysql-devel python-devel python-pip nginx supervisor \
-        && yum -y update \
-        && yum -y clean all
+# install depedencies
+COPY app/requirements.txt /var/www/apps/agentex/requirements.txt
+RUN apk --no-cache add dcron libjpeg-turbo mariadb-connector-c nginx supervisor zlib libgomp \
+        && apk --no-cache add --virtual .build-deps gcc g++ git \
+                libjpeg-turbo-dev mariadb-dev musl-dev zlib-dev \
+        && pip --no-cache-dir --trusted-host=buildsba.lco.gtn install -r /var/www/apps/agentex/requirements.txt \
+        && apk --no-cache del .build-deps
 
-COPY app/requirements.txt /var/www/apps/agentexoplanet/requirements.txt
+# install entrypoint
+COPY config/ /
 
-# install Python packages
-RUN pip install --upgrade pip setuptools \
-        && pip install -r /var/www/apps/agentexoplanet/requirements.txt \
-        && rm -rf /root/.pip /root/.cache
-
-RUN useradd uwsgi && gpasswd -a uwsgi uwsgi
-
-# copy configuration files
-COPY config/uwsgi.ini /etc/uwsgi.ini
-COPY config/nginx/* /etc/nginx/
-COPY config/processes.ini /etc/supervisord.d/processes.ini
-COPY config/init /init
-
-# install webapp
-COPY app /var/www/apps/agentexoplanet
+# install web application
+COPY app /var/www/apps/agentex/

@@ -4,11 +4,12 @@
 echo "Running with PREFIX=${PREFIX}"
 sed -i -e "s:@PREFIX@:${PREFIX}:g" /etc/nginx/nginx.conf
 
+# collect static files
+python /var/www/apps/agentexoplanet/manage.py collectstatic --noinput
+
 # if any schema changed have happened but not been applied
 python /var/www/apps/agentexoplanet/manage.py migrate --noinput
 
-# collect static files
-python /var/www/apps/agentexoplanet/manage.py collectstatic --noinput
 
 # Run under supervisord
 exec /usr/bin/supervisord -n -c /etc/supervisord.conf
