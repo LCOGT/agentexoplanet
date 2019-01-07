@@ -344,7 +344,7 @@
 		}
 
 		helpstep = 0;
-		photo = new Photometry({id:'photometric',src:"{% static object.image %}",form:'entryform',width:$('#middle').outerWidth(),source:{x:s_x,y:s_y,r:start_r},sky:{x:b_x,y:b_y,r:start_r,label:'Sky'},calibrator:{x:[c_x[0],c_x[1],c_x[2]],y:[c_y[0],c_y[1],c_y[2]],r:start_r},zoom:2,callback:photoReady,calibrators:calibrators,suggested:suggested});
+		photo = new Photometry({id:'photometric',src:"{{ DATA_URL }}{{ object.image }}",form:'entryform',width:$('#middle').outerWidth(),source:{x:s_x,y:s_y,r:start_r},sky:{x:b_x,y:b_y,r:start_r,label:'Sky'},calibrator:{x:[c_x[0],c_x[1],c_x[2]],y:[c_y[0],c_y[1],c_y[2]],r:start_r},zoom:2,callback:photoReady,calibrators:calibrators,suggested:suggested});
 		$('input.fancybtn').addClass('fancybtndisable');
 		$('input.fancybtn').attr("disabled", "true");
 		$('#entryform').css('display', 'none');
@@ -579,7 +579,7 @@
 					{% if user.is_authenticated %}<div class="progress" style="width:100%;height:1.5em;background-color:#b3b3b3;margin-bottom:8px;"><div class="progressbar"></div><div class="label" style="padding:0.25em;text-align:center;width:100%;">You've completed {{progress.done}} of {{progress.total}} frames ({{progress.percent}}%)</div></div>{% endif %}
 					<div id="middle">
 						<div id="photometric">
-							<div id="photometric_imageholder_small"><img src="/static/{{object.image}}" style="width:100%" alt="Image from telescope" /></div>
+							<div id="photometric_imageholder_small"><img src="{{ DATA_URL }}{{object.image}}" style="width:100%" alt="Image from telescope" /></div>
 						</div>
 					</div>
 					<div id="lower" style="text-align:right;">

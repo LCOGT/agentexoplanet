@@ -68,6 +68,7 @@ class DataEntry(DetailView):
         context['least_data'] = leastmeasured(event.slug)
         context['coords'] = previous_meas_coords(event, person)
         context['webinput'] = True
+        context['DATA_URL'] = settings.DATA_URL
         return context
 
 
