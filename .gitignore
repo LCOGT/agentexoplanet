@@ -11,7 +11,8 @@ app/setup.py
 .DS_Store
 media/data/*
 
-agentex/static/planets/
+# Exoplanet image data not included in repo
+app/agentex/static/planets/
 
 *agentex.json
 
