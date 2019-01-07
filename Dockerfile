@@ -12,7 +12,7 @@ COPY requirements.pip /var/www/apps/agentex/requirements.pip
 RUN apk --no-cache add dcron libjpeg-turbo mariadb-connector-c nginx supervisor zlib libgomp \
         && apk --no-cache add --virtual .build-deps gcc g++ git \
                 libjpeg-turbo-dev mariadb-dev musl-dev zlib-dev \
-        && pip --no-cache-dir --trusted-host=buildsba.lco.gtn install -r /var/www/apps/agentex/requirements.txt \
+        && pip --no-cache-dir --trusted-host=buildsba.lco.gtn install -r /var/www/apps/agentex/requirements.pip \
         && apk --no-cache del .build-deps
 
 # install entrypoint
