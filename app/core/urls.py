@@ -8,7 +8,7 @@ from django.urls import include, path
 from agentex.admin import calibrator_check, allcalibrators_check
 from agentex.views import index, AddValuesView, \
     read_manual_check, updatedataset, graphview_simple, graphview_advanced, \
-    classifyupdate, graphview, graphsuper, measurementsummary, \
+    classifyupdate, graphview_ave, graphsuper, measurementsummary, \
     EventView, EventList, DataEntry, next_datasource
 from agentex.users import register, editaccount, profile, briefing, feedback
 
@@ -37,8 +37,8 @@ urlpatterns = [
     path('target/<slug:slug>/lightcurve/advanced/',graphview_advanced, name='advanced-graph'),
     path('target/<slug:slug>/lightcurve/me/',graphview_simple, name='my-graph'),
     path('target/<slug:slug>/lightcurve/calibrator/update/',classifyupdate, name='classifyupdate'),
-    path('target/<slug:slug>/lightcurve/calibrator/',graphview, {'mode' : 'ave','calid':None}, name='average-graph'),
-    path('target/<slug:slug>/lightcurve/calibrator/<int:calid>/',graphview, {'mode' : 'ave'}, name='calibrator-graph'),
+    path('target/<slug:slug>/lightcurve/calibrator/',graphview_ave, name='average-graph'),
+    path('target/<slug:slug>/lightcurve/calibrator/<int:calid>/',graphview_ave, name='calibrator-graph'),
     path('target/<slug:slug>/lightcurve/',graphsuper,name='super-graph'),
     path('target/<slug:slug>/',EventView.as_view(), name='infoview'),
     path('target/<slug:slug>/data.<str:format>',measurementsummary, name='measurementsummary'),

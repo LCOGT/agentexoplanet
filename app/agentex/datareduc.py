@@ -66,7 +66,7 @@ def calibrator_data(calid,code):
         sc_norm = dict(norm.items() + sc.items())
         bg_norm = dict(norm.items() + bg.items())
         c_norm = dict(norm.items() + c.items())
-        #print(sc_norm,bg_norm,c_norm)
+
         for v in sources:
             try:
                 cal.append((sc_norm[v]- bg_norm[v])/(c_norm[v] - bg_norm[v]))
@@ -81,12 +81,14 @@ def average_combine(measurements,averages,ids,star,category,progress,admin=False
         if ave_measurement.count() > 0:
             ## Find the array indices of my values and replace these averages
             ave = np.array(ave_measurement[0].data)
-            mine = zip(*measurements.values_list('data','value'))
-            try:
-                my_ids = [ids.index(x) for x in mine[0]]
-                ave[my_ids] = mine[1]
-            except Exception as e:
-                print(e)
+            mine = measurements.values_list('data','value')
+            for vals in mine:
+                # Fit my values in with the average values because dataset is not complete
+                try:
+                    my_id = ids.index(vals[0])
+                    ave[my_id] = vals[1]
+                except Exception as e:
+                    logger.error(e)
             return ave
         else:
             return np.array([])
@@ -94,16 +96,16 @@ def average_combine(measurements,averages,ids,star,category,progress,admin=False
         mine = np.array(measurements.values_list('value',flat=True))
         return mine
     elif not progress:
-        print("No progress was passed")
+        logger.debug("No progress was passed")
         return np.array([])
     else:
-        print("Error - too many measurements: %s %s" % (measurements.count() , numobs))
+        logger.debug("Error - too many measurements: %s %s" % (measurements.count() , numobs))
         return np.array([])
 
 def calibrator_averages(code,person=None,progress=False):
     cals = []
     cats = []
-    planet = Event.objects.get(name=code)
+    planet = Event.objects.get(slug=code)
     sources = list(DataSource.objects.filter(event=planet).order_by('timestamp').values_list('id','timestamp'))
     ids,stamps = zip(*sources)
     if person:
@@ -189,7 +191,7 @@ def photometry(code,person,progress=False,admin=False):
         dates = map(iso,times)
     if admin:
         return normcals,stamps,indexes,cats
-    return cals,normcals,list(sc),list(bg),dates,stamps,indexes,cats
+    return cals,normcals,list(sc),list(bg),list(dates),list(stamps),indexes,cats
 
 
 
@@ -197,6 +199,9 @@ def measure_offset(d,person,basiccoord):
     # Find the likely offset of this new calibrator compared to the basic ones and find any sources within 5 pixel radius search
     finderid = d.event.finder
     finderdp = Datapoint.objects.values_list('xpos','ypos').filter(user=person,data__id=finderid,pointtype='C',coorder__calid__lt=3).order_by('coorder__calid')
+    if finderdp.count() == 0:
+        logger.debug('not enough measurements for accurate offset - {}'.format(person.username))
+        return 0.,0.
     finder = basiccoord - np.array(finderdp)
     t = np.transpose(finder)
     xmean = np.mean(t[0])
@@ -218,28 +223,28 @@ def updatedisplay(request,code):
             empty = False
     return empty
 
-def addvalidset(request,code):
+def addvalidset(request,slug):
     o = personcheck(request)
     calid = request.POST.get('calid','')
     choice1 = request.POST.get('choice1','')
     choice2 = request.POST.get('choice2','')
-    point = DataCollection.objects.filter(person=o.user,calid=calid,planet__name=code)
-    planet = Event.objects.filter(name=code)[0]
+    planet = Event.objects.get(slug=slug)
+    point = DataCollection.objects.filter(person=o,calid=calid,planet=planet)
     if choice1 and point and calid:
         value = decisions[choice1]
         source = point[0].source
-        old = Decision.objects.filter(person=o.user,planet=planet,source=source)
+        old = Decision.objects.filter(person=o,planet=planet,source=source)
         old.delete()
         decision1 = Decision(source=source,
                         value=value,
-                        person=o.user,
+                        person=o,
                         planet=planet)
 
         if choice2:
             value2 = decisions[choice2]
             decision2 = Decision(source=source,
                             value=value2,
-                            person=o.user,
+                            person=o,
                             planet=planet,
                             current=True)
             decision2.save()
@@ -392,7 +397,7 @@ def savemeasurement(person, lines, dataid, mode):
         try:
             data.save()
         except:
-            print("save error")
+            logger.error("save error")
             return Response(data={'msg': 'Error saving data point'}, status=status.HTTP_400_BAD_REQUEST)
     # Slice coord data so we only have calibration stars
     coord = coords[2:]
@@ -409,7 +414,8 @@ def savemeasurement(person, lines, dataid, mode):
         sc_ypos = d.event.ypos
         xvar = np.abs(np.abs(sc_xpos-s_x)-np.abs(xmean))
         yvar = np.abs(np.abs(sc_ypos-s_y)-np.abs(ymean))
-        if (xvar > 5 or yvar > 5):
+        logger.error("x = {} {} {},y = {} {} {}".format(xvar, s_x, sc_xpos, yvar, s_y, sc_ypos))
+        if (xvar > 20 or yvar > 20):
             # Remove previous values for this point
             oldpoints = Datapoint.objects.filter(data__id=int(dataid),user=person)
             oldpoints.delete()
@@ -481,7 +487,6 @@ def datagen(slug,user):
     sources = DataSource.objects.filter(event=event).order_by('timestamp')
 
     numsuper,fz,mycals,std,nodata = supercaldata(user,slug)
-    print(numsuper,fz,mycals,std,nodata)
 
     data = []
 
@@ -857,7 +862,6 @@ def admin_averagecals(code,person):
     return cals,normcals,[],[],dates,stamps,[],cats
 
 def averagecals_async(e):
-    #e = Event.objects.get(name=code)
     catsource = DataCollection.objects.values_list('source').filter(planet=e, display=True).annotate(Count('source'))
     for cat in catsource:
         if cat[0] != None:

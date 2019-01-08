@@ -24,7 +24,10 @@ class DatapointAd(admin.ModelAdmin):
     list_display = ['taken','data','pointtype','user','xpos','ypos','value','coorder','get_source']
     list_filter = ['pointtype']
     def get_source(self,obj):
-        return '%s' % obj.coorder.source
+        if obj.coorder:
+            return '%s' % obj.coorder.source
+        else:
+            return "N/A"
     get_source.allow_tags = True
     get_source.short_description = 'Cat Source'
 

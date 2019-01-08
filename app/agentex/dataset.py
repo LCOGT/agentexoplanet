@@ -30,7 +30,7 @@ from django.conf import settings
 class Dataset(object):
     def __init__(self , planetid=None,userid=None):
         try:
-            self.planet = Event.objects.get(name=planetid)
+            self.planet = Event.objects.get(slug=planetid)
         except:
             self.planet = None
         try:

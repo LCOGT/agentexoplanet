@@ -69,21 +69,21 @@
 			id:'#mainplot',
 			type:'average',
 			msg:{
-				nodata: "<h3>You have no data points yet<\/h3><p>Why not make some <a href='{% url 'addvalue' event.name %}'>measurements of {{event.title}}<\/a><\/p>",
+				nodata: "<h3>You have no data points yet<\/h3><p>Why not make some <a href='{% url 'next_addvalue' event.slug %}'>measurements of {{event.title}}<\/a><\/p>",
 				login: "Please <a href='{% url 'login' %}'>login<\/a> to edit"
 			},
 			url:{
-				edit: "{% url 'addvalue' event.name %}?dataid=",
-				json: "{% url 'index' %}{{event.name}}/data.json",
-				xhr: "{% url 'index' %}{{event.name}}/data.xhr?mode=ave",
-				superc: "{% url 'index' %}{{event.name}}/data.xhr?mode=super"
+				edit: "{% url 'next_addvalue' event.slug %}?dataid=",
+				json: "{% url 'index' %}{{event.slug}}/data.json",
+				xhr: "{% url 'index' %}{{event.slug}}/data.xhr?mode=ave",
+				superc: "{% url 'index' %}{{event.slug}}/data.xhr?mode=super"
 			},
 			data:{{data|safe}},
 			cal:{ order:calorder, name:"{{calid.sourcename}}" },
 			authenticated: {% if user.is_authenticated %}true{% else %}false{% endif %}
 		});
 		console.log(lcurve.data);
-		var posturl = "{% url 'classifyupdate' event.name %}";
+		var posturl = "{% url 'classifyupdate' event.slug %}";
 
 		$(".choice1 .radio a").bind("click",function(e,nosubmit){
 			e.preventDefault();
@@ -232,14 +232,14 @@
 		{% for message in messages %}{%ifchanged%}		<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message|safe }}</li>{%endifchanged%}{% endfor %}
 								</ul>
 							</div>{% endif %}
-		<h1>Step 2: Classify Lightcurves for <a href="{% url 'infoview' event.name %}" class="objectspecific">{{event.title}}</a></h1>
+		<h1>Step 2: Classify Lightcurves for <a href="{% url 'infoview' event.slug %}" class="objectspecific">{{event.title}}</a></h1>
 
-		<div id="mylink" style="display:none;"><a href="{%url 'my-graph' event.name%}"><img src="{% static 'images/graph_my.png' %}" alt="My" title="View my measurements as a lightcurve" /></a></div>
-		<div id="avlink" class="tabactive" style="display:none;"><a href="{%url 'average-graph' event.name%}"><img src="{% static 'images/graph_ave.png' %}" alt="Classify" title="Classify your lightcurves" /></a></div>
-		<div id="sulink" style="display:none;"><a href="{%url 'super-graph' event.name%}"><img src="{% static 'images/graph_super.png' %}" alt="Final" title="Final lightcurve" /></a></div>
+		<div id="mylink" style="display:none;"><a href="{%url 'my-graph' event.slug%}"><img src="{% static 'images/graph_my.png' %}" alt="My" title="View my measurements as a lightcurve" /></a></div>
+		<div id="avlink" class="tabactive" style="display:none;"><a href="{%url 'average-graph' event.slug%}"><img src="{% static 'images/graph_ave.png' %}" alt="Classify" title="Classify your lightcurves" /></a></div>
+		<div id="sulink" style="display:none;"><a href="{%url 'super-graph' event.slug%}"><img src="{% static 'images/graph_super.png' %}" alt="Final" title="Final lightcurve" /></a></div>
 
 		<p>Here are complete lightcurves made by combining your measurements with those of volunteers who used the same calibrators. The graphs below show the average values per calibrator and may look different from the previous graph, which contained only your values.</p>
-		{% if progress.done < progress.total %}<p class="warning" style="padding:4px;">You have only analyzed {{progress.percent}}% of the images for <span class="objectspecific">{{event.title}}</span>. The graphs below might look a bit strange - <a href="{% url 'addvalue' event.name %}">Continue analysing?</a></p>{%endif%}
+		{% if progress.done < progress.total %}<p class="warning" style="padding:4px;">You have only analyzed {{progress.percent}}% of the images for <span class="objectspecific">{{event.title}}</span>. The graphs below might look a bit strange - <a href="{% url 'next_addvalue' event.slug %}">Continue analysing?</a></p>{%endif%}
 		<p> You have classified <span id="classifiedprogress">{{calid.progress}} out of {{calid.total}}</span> calibrators which have full datasets that you have contributed to.</p>
 		<p class="accessible">Without Javascript enabled we can't show you your contribution to the average lightcurve for each calibrator. However, you can make your own lightcurves using the data in the table below and then classify the lightcurve for {{calid.sourcename}}.</p>
 
@@ -251,9 +251,9 @@
 			{% else%}
 			Select the picture which is the closest match for this graph.
 			{% endif %}
-			<form id="decision" method="POST" action='{% url 'updatedataset' event.name %}?mode=valid'>
+			<form id="decision" method="POST" action='{% url 'updatedataset' event.slug %}?mode=valid'>
 				{% csrf_token %}
-				<input type="hidden" name="planet" value="{{event.name}}">
+				<input type="hidden" name="planet" value="{{event.slug}}">
 				<input type="hidden" name="calid" id="calid" value="{{calid.order}}">
 				<fieldset class="choice1{%if prevchoice == "blip" or prevchoice == "periodic" or prevchoice == "other" %} accessible{% endif %}">
 					<legend accesskey="1">Does it look like a light curve?</legend>
@@ -265,14 +265,14 @@
 					<legend accesskey="2">Other?</legend>
 					<div class="radio" id="blip"><a href="#" class="fancybtngrey btn"><img src="{% static 'images/choice_blip.png' %}" alt="blip" title="A blip up or down" /></a><br /><input type="radio" name="choice2" id="r5" value="blip" tabindex="105"{%if prevchoice == "blip" %} checked="true"{%endif%}><label for="r5">Blip</label></div>
 					<div class="radio" id="periodic"><a href="#" class="fancybtngrey btn"><img src="{% static 'images/choice_periodic.png' %}" alt="periodic" title="Something regular" /></a><br /><input type="radio" name="choice2" id="r6" value="periodic" tabindex="106"{%if prevchoice == "periodic" %} checked="true"{%endif%}><label for="r6">Periodic</label></div>
-					<div class="radio" id="other"><a href="#" class="fancybtngrey btn"><img src="{{% static 'mages/choice_other.png' %}" alt="other" title="Something else" /></a><br /><input type="radio" name="choice2" id="r7" value="other" tabindex="107"><label for="r7"{%if prevchoice == "other" %} checked="true"{%endif%}>Odd</label></div>
+					<div class="radio" id="other"><a href="#" class="fancybtngrey btn"><img src="{% static 'images/choice_other.png' %}" alt="other" title="Something else" /></a><br /><input type="radio" name="choice2" id="r7" value="other" tabindex="107"><label for="r7"{%if prevchoice == "other" %} checked="true"{%endif%}>Odd</label></div>
 				</fieldset>
 				<div style="text-align:center;">
 					<input type="reset" name="reset" class="fancybtngrey" value="Start over" tabindex="201" /> <input type="submit" class="fancybtn" value="Save my choices" tabindex="202" />
 				</div>
 			</form>
 			<div style="text-align:center;">
-				<a href="{%url 'super-graph' event.name%}" class="fancybtn" id="nextstep">Step 3: Final lightcurve<span class="arrow">&nbsp;</span></a>
+				<a href="{%url 'super-graph' event.slug%}" class="fancybtn" id="nextstep">Step 3: Final lightcurve<span class="arrow">&nbsp;</span></a>
 			</div>
 		</div>
 
@@ -280,18 +280,18 @@
 
 		<div style="max-width:900px;overflow:auto;">
 		<table class="accessible" id="datatable" summary="The data for each calibrator">
-			<tr><th>Observation date</th><th class="source">Target</th><th class="sky">Sky</th>{% for cal in sources %}<th class="calibrator"><a href="{% url 'calibrator-graph' event.name cal.order|add:"1" %}">Cal {{cal.order|add:"1"}}</a></th>{% endfor %}</tr>
+			<tr><th>Observation date</th><th class="source">Target</th><th class="sky">Sky</th>{% for cal in sources %}<th class="calibrator"><a href="{% url 'calibrator-graph' event.slug cal.order|add:"1" %}">Cal {{cal.order|add:"1"}}</a></th>{% endfor %}</tr>
 			<tr style="height:40px;"><td></td><td></td><td></td>{% for cal in sources %}<td class="decisionimage" style="text-align:center;padding-top:3px;">{{cal.decision|decisionconvert|safe}}</td>{% endfor %}</tr>
 			{% for line in data %}
-			<tr><td><a href="{% url 'addvalue' event.name %}?dataid={{line.id}}">{{line.date}}</a></td><td>{{line.data.source|floatformat:0}}</td><td>{{line.data.background|floatformat:0}}</td>{% for cal in line.data.calibrator %}<td{%ifnotequal cal.1 calid.order %} style="color:#bbb;"{%endifnotequal%}>{{cal.0|floatformat:0}}</td>{% endfor %}</tr>
+			<tr><td><a href="{% url 'next_addvalue' event.slug %}?dataid={{line.id}}">{{line.date}}</a></td><td>{{line.data.source|floatformat:0}}</td><td>{{line.data.background|floatformat:0}}</td>{% for cal in line.data.calibrator %}<td{%ifnotequal cal.1 calid.order %} style="color:#bbb;"{%endifnotequal%}>{{cal.0|floatformat:0}}</td>{% endfor %}</tr>
 			{% endfor %}
 		</table>
 		</div>
 
 <!--
 		{% if sources %}
-		<form id="calibrator_list" method="POST" action='{%  url 'updatedataset' event.name %}'>{% csrf_token %}
-			<input type=hidden name="planet" value="{{event.name}}">
+		<form id="calibrator_list" method="POST" action='{%  url 'updatedataset' event.slug %}'>{% csrf_token %}
+			<input type=hidden name="planet" value="{{event.slug}}">
 {% for d in sources %}		<input type="checkbox" name="cal-{{d.order}}" value="{{d.order}}" {%if d.valid %}CHECKED{%endif%} />Show calibrator {{d.order|add:"1"}} {%if d.sourcename%}(<a href="http://www.strudel.org.uk/lookUP/?name=USNOA2+{{d.sourcename}}">USNOA2 {{d.sourcename}}</a>){%endif%} on the graph<br />{% endfor %}
 			<input type="submit" name="submit" value="Save my choices" />
 		</form>
@@ -300,22 +300,22 @@
 	</div>
 {%else%}
 <div class="page stackedpaper">
-		<h1>Step 2: Classify Lightcurves for <a href="{% url 'infoview' event.name %}" class="objectspecific">{{event.title}}</a></h1>
+		<h1>Step 2: Classify Lightcurves for <a href="{% url 'infoview' event.slug %}" class="objectspecific">{{event.title}}</a></h1>
 		<ol class="breadcrumb">
-			<li><a href="{%url 'my-graph' event.name%}"><img src="{% static 'images/graph_my.png' %}" alt="My" title="View my measurements as a lightcurve" /> My measurements</a></li>
-			<li class="active"><a href="{%url 'average-graph' event.name%}"><img src="{% static 'images/graph_ave.png' %}" alt="Classify" title="Classify your lightcurves" /> Classify lightcurves</a></li>
-			<li><a href="{%url 'super-graph' event.name%}"><img src="{% static 'images/graph_super.png' %}" alt="Final" title="Final lightcurve" /> Final lightcurve</a></li>
+			<li><a href="{%url 'my-graph' event.slug%}"><img src="{% static 'images/graph_my.png' %}" alt="My" title="View my measurements as a lightcurve" /> My measurements</a></li>
+			<li class="active"><a href="{%url 'average-graph' event.slug%}"><img src="{% static 'images/graph_ave.png' %}" alt="Classify" title="Classify your lightcurves" /> Classify lightcurves</a></li>
+			<li><a href="{%url 'super-graph' event.slug%}"><img src="{% static 'images/graph_super.png' %}" alt="Final" title="Final lightcurve" /> Final lightcurve</a></li>
 		</ol>
-		<div id="mylink" style="display:none;"><a href="{%url 'my-graph' event.name%}"><img src="{% static 'images/graph_my.png' %}" alt="My" title="View my measurements as a lightcurve" /></a></div>
-		<div id="avlink" class="tabactive" style="display:none;"><a href="{%url 'average-graph' event.name%}"><img src="{% static 'images/graph_ave.png' %}" alt="Classify" title="Classify your lightcurves" /></a></div>
-		<div id="sulink" style="display:none;"><a href="{%url 'super-graph' event.name%}"><img src="{% static 'images/graph_super.png' %}" alt="Final" title="Final lightcurve" /></a></div>
+		<div id="mylink" style="display:none;"><a href="{%url 'my-graph' event.slug%}"><img src="{% static 'images/graph_my.png' %}" alt="My" title="View my measurements as a lightcurve" /></a></div>
+		<div id="avlink" class="tabactive" style="display:none;"><a href="{%url 'average-graph' event.slug%}"><img src="{% static 'images/graph_ave.png' %}" alt="Classify" title="Classify your lightcurves" /></a></div>
+		<div id="sulink" style="display:none;"><a href="{%url 'super-graph' event.slug%}"><img src="{% static 'images/graph_super.png' %}" alt="Final" title="Final lightcurve" /></a></div>
 {% if classified.total > 0%}
 		<p>Bad news! Combining your measurements for {{event.title}} with everyone else's does not produce a complete lightcurve</p>
-		<p>If you come back here when you have <a href="{% url 'addvalue' event.name %}">made more measurements</a>, it will be much more exciting.</p>
-		<div> <a href="{%url 'my-graph' event.name%}" class="fancybtngrey btn"><img src="{% static 'images/graph_my.png' %}" alt="my measurements" title="My measurements" /></a> <a href="{%url 'super-graph'  event.name%}" class="fancybtngrey btn"><img src="{% static 'images/graph_super.png' %}" alt="super-calibrator" title="Final lightucurve" /></a></div>
+		<p>If you come back here when you have <a href="{% url 'next_addvalue' event.slug %}">made more measurements</a>, it will be much more exciting.</p>
+		<div> <a href="{%url 'my-graph' event.slug%}" class="fancybtngrey btn"><img src="{% static 'images/graph_my.png' %}" alt="my measurements" title="My measurements" /></a> <a href="{%url 'super-graph'  event.slug%}" class="fancybtngrey btn"><img src="{% static 'images/graph_super.png' %}" alt="super-calibrator" title="Final lightucurve" /></a></div>
 {% else %}
 		<p>You have not made any measurements of {{event.title}} yet.</p>
-		<p>If you come back here when you have <a href="{% url 'addvalue' event.name %}">made some measurements</a>, it will be much more exciting.</p>
+		<p>If you come back here when you have <a href="{% url 'next_addvalue' event.slug %}">made some measurements</a>, it will be much more exciting.</p>
 {%endif%}
 </div>
 {%endif%}

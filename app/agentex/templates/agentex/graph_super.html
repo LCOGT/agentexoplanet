@@ -113,13 +113,7 @@
 		<h1>No combined result for <a href="{% url 'infoview' event.slug  %}" class="objectspecific">{{event.title}}</a> yet</h1>
 {%endif%}
 {% if user.is_authenticated %}
-<!--
-		<ol class="breadcrumb">
-			<li><a href="{%url 'my-graph' event.slug %}"><img src="{{ STATIC_URL }}images/graph_my.png" alt="My" title="View my measurements as a lightcurve" />Step 1: My measurements</a></li>
-			<li><a href="{%url 'average-graph' event.slug %}"><img src="{{ STATIC_URL }}images/graph_ave.png" alt="Classify" title="Classify your lightcurves" />Step 2: Classify lightcurves</a></li>
-			<li class="active"><a href="{%url 'super-graph' event.slug %}"><img src="{{ STATIC_URL }}images/graph_super.png" alt="Final" title="Final lightcurve" />Step 3: Final lightcurve</a></li>
-		</ol>
--->
+
 		<p class="breadcrumb"></p>
 		<div id="mylink" style="display:none;"><a href="{%url 'my-graph' event.slug %}"><img src="{% static 'images/graph_my.png' %}" alt="My" title="View my measurements as a lightcurve" /></a></div>
 		<div id="avlink" style="display:none;"><a href="{%url 'average-graph' event.slug %}"><img src="{% static 'images/graph_ave.png' %}" alt="Classify" title="Classify your lightcurves" /></a></div>

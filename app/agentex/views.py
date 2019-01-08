@@ -67,7 +67,6 @@ class DataEntry(DetailView):
         context['least_data'] = leastmeasured(event.slug)
         context['coords'] = previous_meas_coords(event, person)
         context['webinput'] = True
-        context['DATA_URL'] = settings.DATA_URL
         return context
 
 
@@ -137,9 +136,9 @@ def read_manual_check(request):
 
 # measurements, planets, calibrators descisions
 
-def classifyupdate(request,code):
+def classifyupdate(request,slug):
     if (request.POST):
-        resp = addvalidset(request,code)
+        resp = addvalidset(request,slug)
         if resp:
             msg = {'update':False}
         else:
@@ -170,18 +169,7 @@ def updatedataset(request,code):
         messages.warning(request,'Nothing to save')
     return HttpResponseRedirect(url)
 
-
-
 @login_required
-def graphview(request,code,mode,calid):
-
-    if mode == 'simple':
-        return graphview_simple(request,code,mode,calid)
-    elif mode == 'ave':
-        return graphview_ave(request,code,mode,calid)
-    elif mode == 'advanced':
-        return graphview_advanced(request,code,mode,calid)
-
 def graphview_simple(request,slug):
 # If graphview is simple
 
@@ -248,8 +236,9 @@ def graphview_simple(request,slug):
     # Stores total number of analyses, those of which are completed and those of which have been classified has having a dip
     classif = classified(o,slug)
 
+    event = Event.objects.get(slug=slug)
     # Render the findings
-    return render(request, 'agentex/graph_flot.html', {'event':d1.planet,
+    return render(request, 'agentex/graph_flot.html', {'event': event,
                                                             'data':data,
                                                             'n':n,
                                                             'sources':cats,
@@ -257,14 +246,14 @@ def graphview_simple(request,slug):
                                                             'progress' : progress})
 
 @login_required
-def graphview_ave(request,code,mode,calid):
+def graphview_ave(request,slug, calid=None):
     # If the mode is average rather than simple
 
     # Stores the name of the observer from the request in variable o
     o = personcheck(request)
 
     # Stores the number of completed datasets with the total
-    progress = checkprogress(o,code)
+    progress = checkprogress(o,slug)
 
     # See first if statement
     n = 0
@@ -278,11 +267,10 @@ def graphview_ave(request,code,mode,calid):
 
     # Calls photometry function and stores results
 
-    cals,normcals,sb,bg,dates,stamps,ids,cats = photometry(code,o,progress)
-
+    cals,normcals,sb,bg,dates,stamps,ids,cats = photometry(slug,o,progress)
     if not dates:
         messages.error(request,'Please analyse some images before moving on.')
-        return HttpResponseRedirect(reverse('addvalue',args=[code]))
+        return HttpResponseRedirect(reverse('addvalue',args=[slug]))
 
 
     # Determines the number of calibrator stars
@@ -290,8 +278,6 @@ def graphview_ave(request,code,mode,calid):
 
     # Prints the normalised calibrators
 
-    logger.error('The normalised calibrator stars are {}'.format(normcals))
-    logger.error(dates)
     for i,id in enumerate(ids):
         #mycalibs = []
 
@@ -324,7 +310,7 @@ def graphview_ave(request,code,mode,calid):
         data.append(line)
 
     # Stores name of planet
-    planet = Event.objects.filter(name=code)[0]
+    planet = Event.objects.get(slug=slug)
 
     ### Make sure person gets a different calibrator (that they haven't classified) after each POST
 
@@ -332,7 +318,7 @@ def graphview_ave(request,code,mode,calid):
     currentcal = None
 
     # Returns the name of the source and the number of instances of it
-    dec = Decision.objects.values('source__name').filter(person=o,planet__slug=code,value__in=['D','N','B','P','R','S'],current=True).annotate(count=Count('source')).order_by('count')
+    dec = Decision.objects.values('source__name').filter(person=o,planet=planet,value__in=['D','N','B','P','R','S'],current=True).annotate(count=Count('source')).order_by('count')
 
     # Essentially this loop determines which calibrator is being analysed
     if calid:
@@ -354,10 +340,10 @@ def graphview_ave(request,code,mode,calid):
                     currentcal = {'order': cat['order'], 'sourcename' : "%s" % cat['sourcename'], 'total':len(cats),'progress':dec.count()}
     if currentcal:
         ## Send decision person made last time they were here
-        mychoice = Decision.objects.values('value').filter(person=o,planet__slug=code,value__in=['D','N','B','P','R'],source__name=currentcal['sourcename'])
+        mychoice = Decision.objects.values('value').filter(person=o, planet=planet, value__in=['D','N','B','P','R'],source__name=currentcal['sourcename'])
         if mychoice:
             choice = mychoice.latest('taken')
-            rev_dec = dict((v,k) for k, v in decisions.iteritems())
+            rev_dec = dict((v,k) for k, v in decisions.items())
             prev = rev_dec[choice['value']]
         else:
             prev = None
@@ -368,7 +354,7 @@ def graphview_ave(request,code,mode,calid):
         messages.error(request,'The lightcurve using the selected calibrator is not complete')
         return HttpResponseRedirect(reverse('average-graph',args=[planet.name]))
     #logger.debug(datetime.now() - now)
-    classif = classified(o,code)
+    classif = classified(o,slug)
     resp = achievementscheck(o,planet,0,0,0,len(cats),0)
     unlock = False
     nunlock = 0
@@ -392,8 +378,8 @@ def graphview_ave(request,code,mode,calid):
                                                             'calid': currentcal,
                                                             'prevchoice' : prev,
                                                             'classified':classif,
-                                                            'progress' : progress,
-                                                            'target':DataSource.objects.filter(event=planet)[0].target})
+                                                            'progress' : progress
+                                                            })
 
 @login_required
 def graphview_advanced(request,slug):
