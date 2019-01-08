@@ -9,7 +9,10 @@ register = Library()
 
 @register.filter(name="planetprogress")
 def planet_progress(user, planet):
-    completed = Datapoint.objects.filter(user=user, data__event=planet, pointtype='S').count()
+    if user.is_authenticated:
+        completed = Datapoint.objects.filter(user=user, data__event=planet, pointtype='S').count()
+    else:
+        completed = 0
     return completed
 
 @register.filter(name='readableangle')
