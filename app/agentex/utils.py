@@ -58,7 +58,7 @@ def achievementunlock(person,planet,typea):
     except Badge.DoesNotExist:
         return {'msg' : 'Wrong badge code', 'code': messages.ERROR}
     if achs.filter(badge=badge).count() == 0:
-        newa = Achievement(badge=badge[0],planet=planet,person=person)	# ,planet=planet
+        newa = Achievement(badge=badge,planet=planet,person=person)	# ,planet=planet
         try:
             newa.save()
             LogEntry.objects.log_action(
@@ -69,9 +69,9 @@ def achievementunlock(person,planet,typea):
                 action_flag     = ADDITION,
                 change_message  = 'Achievement automatically unlocked'
             )
-            return {'msg': 'Achievement unlocked', 'image':"%s" % badge[0].image, 'code': messages.SUCCESS }
+            return {'msg': 'Achievement unlocked', 'image':"%s" % badge.image, 'code': messages.SUCCESS }
         except:
-            return {'msg' : 'Achievement save error', 'image':"%s" % badge[0].image, 'code': messages.ERROR }
+            return {'msg' : 'Achievement save error', 'image':"%s" % badge.image, 'code': messages.ERROR }
     else:
         return {'msg' : 'Already has this badge', 'image': '', 'code': messages.WARNING }
 

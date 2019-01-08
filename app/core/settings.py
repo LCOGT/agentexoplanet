@@ -24,9 +24,9 @@ CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
 PRODUCTION = True if CURRENT_PATH.startswith('/var/www') else False
 LOCAL_DEVELOPMENT = not PRODUCTION
 
-DEBUG = not PRODUCTION
+DEBUG = True #not PRODUCTION
 
-PREFIX = os.environ.get('PREFIX', '/agentexoplanet')
+PREFIX = "" #os.environ.get('PREFIX', '/agentexoplanet')
 FORCE_SCRIPT_NAME = PREFIX
 BASE_DIR = os.path.dirname(CURRENT_PATH)
 
@@ -131,11 +131,10 @@ INSTALLED_APPS = (
     'agentex.apps.AgentConfig',
 )
 
-LOGIN_REDIRECT_URL = 'https://lco.global/agentexoplanet/'
-LOGIN_URL = 'https://lco.global/agentexoplanet/account/login/'
+LOGIN_REDIRECT_URL = PREFIX
+LOGIN_URL = PREFIX + '/account/login/'
 
 
-SESSION_COOKIE_DOMAIN='lco.global'
 SESSION_COOKIE_NAME='agentexoplanet.sessionid'
 
 

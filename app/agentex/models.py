@@ -19,13 +19,6 @@ from django.db import models
 from django.conf import settings
 import os
 
-def list_files(loc):
-    directory = os.path.join(settings.STATIC_ROOT, loc)
-    for name in os.listdir(directory):
-        full_path = os.path.join(directory, name)
-        if os.path.isfile(full_path):
-            yield (os.path.join(loc, name), name)
-
 
 TYPECHOICE = (
 ('S','Source'),
@@ -50,6 +43,15 @@ DECISIONS = (
 ('S','Noise'),
 ('R','Other'),
 )
+
+BADGES = [('badge/badge_measurement_250.png', 'badge_measurement_250.png'), ('badge/badge_calibrators_15.png', 'badge_calibrators_15.png'), ('badge/badge_measurement_1000.png', 'badge_measurement_1000.png'), ('badge/badge_manual.png', 'badge_manual.png'), ('badge/badge_top_measurer.png', 'badge_top_measurer.png'), ('badge/badge_calibrators_10.png', 'badge_calibrators_10.png'), ('badge/badge_measurement_50.png', 'badge_measurement_50.png'), ('badge/badge_completed_1.png', 'badge_completed_1.png'), ('badge/badge_completed_2.png', 'badge_completed_2.png'), ('badge/badge_calibrators_3.png', 'badge_calibrators_3.png'), ('badge/badge_completed_3.png', 'badge_completed_3.png'), ('badge/badge_measurement_1500.png', 'badge_measurement_1500.png'), ('badge/badge_measurement_25.png', 'badge_measurement_25.png'), ('badge/badge_calibrators_5.png', 'badge_calibrators_5.png'), ('badge/badge_completed_4.png', 'badge_completed_4.png'), ('badge/badge_completed_5.png', 'badge_completed_5.png'), ('badge/badges.svg', 'badges.svg'), ('badge/badge_measurement_2000.png', 'badge_measurement_2000.png'), ('badge/badge_measurement_10.png', 'badge_measurement_10.png'), ('badge/badge_lightcurve_1star.png', 'badge_lightcurve_1star.png'), ('badge/badge_planet_1.png', 'badge_planet_1.png'), ('badge/badge_lightcurve_3star.png', 'badge_lightcurve_3star.png'), ('badge/badge_measurement_500.png', 'badge_measurement_500.png'), ('badge/badge_measurement_1.png', 'badge_measurement_1.png'), ('badge/badge_planet_3.png', 'badge_planet_3.png'), ('badge/badge_planet_2.png', 'badge_planet_2.png'), ('badge/badge_planet_6.png', 'badge_planet_6.png'), ('badge/badge_measurement_100.png', 'badge_measurement_100.png'), ('badge/badge_planet_7.png', 'badge_planet_7.png'), ('badge/badge_measurement_5.png', 'badge_measurement_5.png'), ('badge/badge_planet_5.png', 'badge_planet_5.png'), ('badge/badge_planet_4.png', 'badge_planet_4.png'), ('badge/badge_calibrators_25.png', 'badge_calibrators_25.png'), ('badge/badge_lightcurve_2star.png', 'badge_lightcurve_2star.png')]
+
+FINDERCHARTS = [('finderchart/OGLETR132b-finder.jpg', 'OGLETR132b-finder.jpg'), ('finderchart/corot2b.jpg', 'corot2b.jpg'), ('finderchart/QATAR1b-finder.jpg', 'QATAR1b-finder.jpg'), ('finderchart/Hat-P-25b-finder.jpg', 'Hat-P-25b-finder.jpg'), ('finderchart/Wasp2b-finder.jpg', 'Wasp2b-finder.jpg'), ('finderchart/TrES3b-finder.jpg', 'TrES3b-finder.jpg'), ('finderchart/Hat-P-8b-finder.jpg', 'Hat-P-8b-finder.jpg')]
+
+FINDERCHART_THBS = [('finderchart/thumb/TrES3b-finder-thumb2.jpg', 'TrES3b-finder-thumb2.jpg'), ('finderchart/thumb/Hat-P-25b-finder-thumb2.jpg', 'Hat-P-25b-finder-thumb2.jpg'), ('finderchart/thumb/corot2b-finder.thumb.jpg', 'corot2b-finder.thumb.jpg'), ('finderchart/thumb/Hat-P-8b-finder-thumb2.jpg', 'Hat-P-8b-finder-thumb2.jpg'), ('finderchart/thumb/Wasp2b-finder-thumb2.jpg', 'Wasp2b-finder-thumb2.jpg'), ('finderchart/thumb/OGLETR132b-finder-thumb2.jpg', 'OGLETR132b-finder-thumb2.jpg'), ('finderchart/thumb/corot2b-finder.thumb.lg.jpg', 'corot2b-finder.thumb.lg.jpg'), ('finderchart/thumb/QATAR1b-finder-thumb2.jpg', 'QATAR1b-finder-thumb2.jpg')]
+
+ILLUSTRATIONS = [('illustration/planet_OGLE-TR-132b.jpg', 'planet_OGLE-TR-132b.jpg'), ('illustration/Hat-P-25b-finder-thumb2.jpg', 'Hat-P-25b-finder-thumb2.jpg'), ('illustration/planet_HAT-P-8b.jpg', 'planet_HAT-P-8b.jpg'), ('illustration/planet_HAT-P-11b.jpg', 'planet_HAT-P-11b.jpg'), ('illustration/planet_WASP-2b.jpg', 'planet_WASP-2b.jpg'), ('illustration/planet_HAT-P-25b.jpg', 'planet_HAT-P-25b.jpg'), ('illustration/planet_Qatar-1-b.jpg', 'planet_Qatar-1-b.jpg'), ('illustration/planet_TrES-3-b.jpg', 'planet_TrES-3-b.jpg'), ('illustration/planet_CoRoT-2b.jpg', 'planet_CoRoT-2b.jpg'), ('illustration/planet_GJ1214b.jpg', 'planet_GJ1214b.jpg')]
+
 decisions = {
     'dip':'D',
     'nodip':'N',
@@ -72,8 +74,8 @@ class Event(models.Model):
     ap = models.FloatField('semi-major axis',blank=True,null=True)
     mass = models.FloatField('mass of host star',blank=True,null=True)
     description = models.TextField()
-    finderchart =  models.CharField('Finder chart',help_text='Image with a clearly marked up target position',blank=True, choices=list_files('finderchart'), max_length=100)
-    finderchart_tb =  models.CharField('Finder chart thumbnail', help_text='Image with a clearly marked up target position',blank=True, choices=list_files('finderchart/thumb'), max_length=100)
+    finderchart =  models.CharField('Finder chart',help_text='Image with a clearly marked up target position',blank=True, choices=FINDERCHARTS, max_length=100)
+    finderchart_tb =  models.CharField('Finder chart thumbnail', help_text='Image with a clearly marked up target position',blank=True, choices=FINDERCHART_THBS, max_length=100)
     exoplanet_enc_pl = models.URLField('Exoplanet Encyclopaedia: Planet', blank=True, null=True)
     exoplanet_enc_st = models.URLField('Exoplanet Encyclopaedia: Star', blank=True, null=True)
     etd_pl = models.URLField('Exoplanet Transit Database: Planet', blank=True, null=True)
@@ -87,7 +89,7 @@ class Event(models.Model):
     xpos = models.IntegerField('x pos on finder chart',blank=False,default=0)
     ypos = models.IntegerField('y pos on finder chart',blank=False,default=0)
     enabled = models.BooleanField(default=True,help_text='show this event on main site')
-    illustration = models.CharField('illustration', help_text='illustration for this event',blank=True, choices=list_files('illustration'), max_length=100)
+    illustration = models.CharField('illustration', help_text='illustration for this event',blank=True, choices=ILLUSTRATIONS, max_length=100)
     radius = models.IntegerField('aperture radius', blank=False, default=10)
     class Meta:
         verbose_name = u'transit event'
@@ -196,7 +198,7 @@ class AverageSet(models.Model):
 class Badge(models.Model):
     name = models.CharField(blank=False, max_length=20, help_text='code, no spaces')
     description = models.CharField(blank=False, max_length=200, help_text='brief, publicly readable')
-    image = models.CharField(blank=False, choices=list_files('badge'), max_length=100)
+    image = models.CharField(blank=False, choices=BADGES, max_length=100)
     class Meta:
         verbose_name = u'badge'
         db_table = u'dataexplorer_badge'

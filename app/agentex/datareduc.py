@@ -419,7 +419,7 @@ def savemeasurement(person, lines, dataid, mode):
         ypos = int(float(coord[i][1]))
         newcoord = coord
         nocolls = DataCollection.objects.filter(planet=d.event,person=person,calid=i).count()
-        if (nocolls == 0 and person != guestuser):
+        if (nocolls == 0):
             ## Find closest catalogue sources
             if i > 2:
                 # Add more datacollections if i is > 2 i.e. after basic 3 have been entered

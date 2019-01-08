@@ -53,7 +53,6 @@ from agentex.datareduc import savemeasurement, datagen
 from agentex.agentex_settings import planet_level
 from agentex.datareduc import *
 
-guestuser = 2
 
 logger = logging.getLogger('agentex')
 
@@ -578,8 +577,7 @@ def update_web_pref(request,setting):
     # AJAX update user preference for web or  manual input of data
     if (request.user.is_authenticated):
         person = request.user
-    else:
-        person = guestuser
+
     o = person
     if setting == 'yes':
         o.update(dataexplorview=True)

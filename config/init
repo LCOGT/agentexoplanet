@@ -1,14 +1,14 @@
-#!/bin/bash
+#!/bin/sh -x
 
 # substitute the prefix into the nginx configuration
 echo "Running with PREFIX=${PREFIX}"
-sed -i -e "s:@PREFIX@:${PREFIX}:g" /etc/nginx/nginx.conf
+sed -i -e "s:@PREFIX@:${PREFIX}:g" /etc/nginx/conf.d/default.conf
 
 # collect static files
-python /var/www/apps/agentexoplanet/manage.py collectstatic --noinput
+python /var/www/apps/agentex/manage.py collectstatic --noinput
 
 # if any schema changed have happened but not been applied
-python /var/www/apps/agentexoplanet/manage.py migrate --noinput
+python /var/www/apps/agentex/manage.py migrate --noinput
 
 
 # Run under supervisord

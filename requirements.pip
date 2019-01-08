@@ -3,3 +3,6 @@ mysqlclient
 astropy
 numpy
 gunicorn[gevent]
+django-rest-framework
+djangorestframework
+djangorestframework-jsonp
