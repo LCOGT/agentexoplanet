@@ -21,7 +21,7 @@
 	$(document).ready(function(){
 		$('#nextstep').addClass('fancybtndisable');
 
-	{% if numsuper %}
+	{% if data %}
 		html = '<p>Measurements with {{numsuper}} calibrator{% if numsuper > 1 %}s were combined{%else%} was used{%endif%} to make the final, combined, lightcurve. With more calibrators the lightcurve should improve.'
 		html += '<div id="mainplot" style="height:448px;width:100%;"><\/div>';
 
@@ -31,7 +31,7 @@
 		addHelpHint($('#avlink'),'Classify your measurements','left');
 		addHelpHint($('#sulink'),'This is the page you are looking at.','left');
 
-	{% if numsuper %}
+	{% if data %}
 
 		$('.breadcrumb').after(html);
 
@@ -119,7 +119,7 @@
 {% endif %}
 
 
-{% if numsuper %}
+{% if data %}
 		<div id="relativesizes" class="accessible">
 			<br />
 			<h2>Relative sizes</h2>
@@ -160,7 +160,7 @@
 		</div>
 
 		<div style="max-width:900px;overflow:auto;">
-		    <a href="{% url 'measurementsummary' event.slug  'csv'%}">Download the data for this lightcurve as a CSV file</a><br/>
+		    <a href="">Download the data for this lightcurve as a CSV file</a><br/>
 		<table class="accessible" id="datatable" summary="The data used to make the final lightcurve">
 			<tr><th>Observation date</th><th colspan="2">Relative brightness</th><th>Estimated uncertainty</th></tr>
 			<tr><th></th><th>Mine</th><th>Everyone</th><th></th></tr>
@@ -169,8 +169,6 @@
 	{% endfor %}
 		</table>
 		</div>
-
-
 
 {% else%}
 		<p>Bad news! Not enough measurements have been made yet.</p>

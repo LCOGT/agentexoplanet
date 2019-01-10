@@ -26,8 +26,9 @@ LOCAL_DEVELOPMENT = not PRODUCTION
 
 DEBUG = True #not PRODUCTION
 
-PREFIX = "" #os.environ.get('PREFIX', '/agentexoplanet')
+PREFIX = os.environ.get('PREFIX', '/agentexoplanet')
 FORCE_SCRIPT_NAME = PREFIX
+
 BASE_DIR = os.path.dirname(CURRENT_PATH)
 
 ADMINS = (
@@ -39,10 +40,10 @@ DATABASES = {
  'default' : {
     'ENGINE'    : 'django.db.backends.mysql',
     # 'ENGINE'    : 'django.db.backends.sqlite3',
-    'NAME'      : os.environ.get('CITSCI_DB_NAME',''),
-    "USER"      : os.environ.get('CITSCI_DB_USER',''),
-    "PASSWORD"  : os.environ.get('CITSCI_DB_PASSWD',''),
-    "HOST"      : os.environ.get('CITSCI_DB_HOST',''),
+    'NAME'      : os.environ.get('DB_NAME',''),
+    "USER"      : os.environ.get('DB_USER',''),
+    "PASSWORD"  : os.environ.get('DB_PASSWD',''),
+    "HOST"      : os.environ.get('DB_HOST',''),
     }
 }
 

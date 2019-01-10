@@ -480,11 +480,9 @@ def savemeasurement(person, lines, dataid, mode):
 
 def datagen(slug,user):
 
-    # Extract name of exoplanet from the dataset
-    event = Event.objects.get(slug=slug)
 
     # Collect sources
-    sources = DataSource.objects.filter(event=event).order_by('timestamp')
+    sources = DataSource.objects.filter(event__slug=slug).order_by('timestamp')
 
     numsuper,fz,mycals,std,nodata = supercaldata(user,slug)
 
@@ -504,8 +502,17 @@ def datagen(slug,user):
         data.append(line)
     return data
 
-def calstats(user, planet, decs, numobs):
+def supercaldata(user,slug):
 
+    # if user.is_anonymous:
+    #     print("here")
+    #     return None,[],[],[],None
+    # Extract the name of the planet being analysed
+    planet = Event.objects.get(slug=slug)
+
+    # Pull all of the decisions into an object
+    decs = Decision.objects.values_list('person','source').filter(value='D', current=True, planet=planet, source__datacollection__display=True).annotate(Count('source'))
+    numobs = planet.numobs
     # Create empty list to store calibrators and datapoints
     calibs = []
     mypoints = []
@@ -524,7 +531,7 @@ def calstats(user, planet, decs, numobs):
     cache_name = '{}_datapoints'.format(planet)
     db = cache.get(cache_name)
     if not db:
-        db = Datapoint.objects.filter(ident=planet).values_list('user_id','coorder__source','value','pointtype').order_by('tstamp')
+        db = Datapoint.objects.filter(ident=planet.slug).values_list('user_id','coorder__source','value','pointtype').order_by('tstamp')
         cache.set(cache_name, db, 120)
 
     # Convert to numpy np.array
@@ -640,111 +647,12 @@ def calstats(user, planet, decs, numobs):
     # Final return statements
     nodata = False
     if mycals == []:
-        mycals = myaverages(planet,user)
+        mycals = myaverages(planet.slug,user)
         nodata = True
         return numsuper,fz,mycals,list(std),nodata
     else:
         return None,[],[],[],None
 
-def supercaldata(user,planet):
-
-
-    # Extract the name of the planet being analysed
-    planet = Event.objects.get(slug=planet)
-
-    # Pull all of the decisions into an object
-    decs = Decision.objects.values_list('person','source').filter(value='D', current=True, planet=planet, source__datacollection__display=True).annotate(Count('source'))
-    if decs:
-        return calstats(user, planet.slug, decs, planet.numobs)
-    else:
-        return False
-
-def calibratemydata(code,user):
-    #cs = Datapoints.objects.filter(pointtype='C',user=user).order_by('coorder__calid')
-    ds = DataSource.objects.filter(event__slug=code).order_by('timestamp')
-    stars = DataCollection.objects.filter(planet__slug = code,person=user).values_list('source',flat=True)
-    cals = []
-    # mycals = []
-    # dates = []
-    # stamps = []
-    # timestamps = []
-    # ids = []
-    # scA = []
-    # bgA = []
-    for i,st in enumerate(stars):
-        vals = []
-        #myvals = []
-        for d in ds:
-            points = Datapoint.objects.filter(data=d)
-            cp = points.filter(pointtype='C',coorder__source=st).aggregate(ave=Avg('value'))['ave']
-            sb = points.filter(pointtype='S').aggregate(ave=Avg('value'))['ave']
-            bg = points.filter(pointtype='B').aggregate(ave=Avg('value'))['ave']
-            if cp:
-                vals.append((sb-bg)/(cp-bg))
-            else:
-                vals.append(0.0)
-            mypoint = points.filter(user=user)
-            if mypoint:
-                vals.append((sb-bg)/(mypoint[0].value-bg))
-            else:
-                vals.append('0.0')
-        maxval = max(vals)
-        #nz = maxvals.nonzero()
-        #maxval = mean(maxvals)
-        cals.append(list(vals/maxval))
-        #mycals.append(list(myvals/maxval))
-    return mycals
-
-
-def myaverages(code,person):
-    ds = DataSource.objects.filter(event__slug=code).order_by('timestamp').values_list('id',flat=True)
-    valid_user = False
-    if person:
-        if person.is_authenticated:
-            valid_user = True
-    if valid_user:
-        now = datetime.now()
-        cals = []
-        mycals = []
-        dates = []
-        stamps = []
-        timestamps = []
-        normcals = []
-        maxvals = []
-        cats = []
-        # Find which Cat Sources I have observed and there is a complete set of (including other people's data)
-        # Unlike CalibrateMyData it only includes set where there are full sets
-        e = Event.objects.filter(slug=code)[0]
-        dc = DataCollection.objects.filter(~Q(source=None),person=person,planet=e).order_by('calid')
-        cs = CatSource.objects.filter(id__in=[c.source.id for c in dc]).annotate(count=Count('datacollection__datapoint')).filter(count__gte=e.numobs).values_list('id',flat=True)
-        mydecisions = Decision.objects.filter(person=person,current=True,planet=e,value='D').values_list('source__id',flat=True)
-        if cs.count() > 0:
-            # Only use ones where we have more than numobs
-            for c in dc:
-                # make sure these are in the mydecision list (i.e. I've said they have a Dip)
-                if c.source.id in mydecisions:
-                    v = Datapoint.objects.filter(coorder__source=c.source.id,pointtype='C',user=person).order_by('data__timestamp').values_list('data__id','value')
-                    cals.append(dict(v))
-            if cals:
-                # Only proceed if we have calibrators in the list (i.e. np.arrays of numobs)
-                points = Datapoint.objects.filter(user=person,data__event__slug=code).order_by('data__timestamp')
-                scA = points.filter(pointtype='S').values_list('data__id','value')
-                bgA = points.filter(pointtype='B').values_list('data__id','value')
-                # Create a list of normalised values with gaps if I haven't done the full dataset but have contributed to a 'Dip' classification
-                sc=dict(scA)
-                bg=dict(bgA)
-                sc = dictconv(sc,ds)
-                sc = np.array(sc)
-                bg = dictconv(bg,ds)
-                bg = np.array(bg)
-                for cal in cals:
-                    val = (sc - bg)/(np.array(dictconv(cal,ds))-bg)
-                    val = np.nan_to_num(val)
-                    normcals.append(val)
-                normmean = np.mean(normcals,axis=0)
-                return list(normmean/np.max(normmean))
-    # If they have no 'D' decisions
-    return [0.]*ds.count()
 
 def admin_averagecals(code,person):
     # Uses and SQL statement to try to speed up the query for averaging data points

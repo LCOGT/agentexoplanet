@@ -21,6 +21,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
@@ -33,7 +34,7 @@ from django.shortcuts import render_to_response, render
 from django.template import RequestContext
 from django.urls import reverse
 from django.utils.encoding import smart_text
-from django.views.generic import DetailView, ListView
+from django.views.generic import DetailView, ListView, View
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -43,11 +44,11 @@ import json
 import logging
 import numpy as np
 
-from agentex.serializers import MeasurementSerializer
+from agentex.serializers import MeasurementSerializer, LightCurveSerializer
 from agentex.models import *
 from agentex.models import decisions
 from agentex.forms import DataEntryForm
-import agentex.dataset as ds
+from agentex.dataset import Dataset
 from agentex.datareduc import savemeasurement, datagen
 
 from agentex.agentex_settings import planet_level
@@ -56,7 +57,7 @@ from agentex.datareduc import *
 
 logger = logging.getLogger('agentex')
 
-class DataEntry(DetailView):
+class DataEntry(LoginRequiredMixin, DetailView):
     model = DataSource
 
     def get_context_data(self, **kwargs):
@@ -75,7 +76,8 @@ class EventView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['progress'] = checkprogress(self.request.user, self.object.slug)
+        if self.request.user.is_authenticated:
+            context['progress'] = checkprogress(self.request.user, self.object.slug)
         return context
 
 
@@ -85,9 +87,6 @@ class EventList(ListView):
 
 
 class AddValuesView(APIView):
-    """
-    List all snippets, or create a new snippet.
-    """
 
     def post(self, request, format=None):
         serializer = MeasurementSerializer(data=request.data)
@@ -96,6 +95,18 @@ class AddValuesView(APIView):
             resp = savemeasurement(request.user, data,serializer.validated_data['id'],'W')
             return resp
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class FinalLightCurve(DetailView):
+    template_name = 'agentex/graph_final.html'
+    model = Event
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        planet = self.get_object()
+        ds = Dataset(planetid=planet.slug)
+        context['data'] = ds.final()
+        return context
 
 
 def index(request):
@@ -117,6 +128,7 @@ def previous_meas_coords(event, user):
     else:
         return False
 
+@login_required
 def next_datasource(request, slug):
     try:
         ds = DataSource.objects.filter(~Q(datapoint__user=request.user), event__slug=slug).latest('pk')
@@ -127,7 +139,6 @@ def next_datasource(request, slug):
 def read_manual_check(request):
     if (request.POST.get('read_manual','')=='true' and request.user.is_authenticated):
         o = personcheck(request)
-        print(o)
         resp = achievementunlock(o,None,'manual')
         if messages.SUCCESS == resp['code'] :
             messages.add_message(request, messages.SUCCESS, "Achievement unlocked<br /><img src=\""+settings.STATIC_URL+resp['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />")
@@ -270,7 +281,7 @@ def graphview_ave(request,slug, calid=None):
     cals,normcals,sb,bg,dates,stamps,ids,cats = photometry(slug,o,progress)
     if not dates:
         messages.error(request,'Please analyse some images before moving on.')
-        return HttpResponseRedirect(reverse('addvalue',args=[slug]))
+        return HttpResponseRedirect(reverse('next_addvalue',kwargs={'slug' : slug}))
 
 
     # Determines the number of calibrator stars
@@ -380,182 +391,6 @@ def graphview_ave(request,slug, calid=None):
                                                             'classified':classif,
                                                             'progress' : progress
                                                             })
-
-@login_required
-def graphview_advanced(request,slug):
-
-    # Stores the name of the observer from the request in variable o
-    o = personcheck(request)
-
-    # Stores the number of completed datasets with the total
-    progress = checkprogress(o,slug)
-
-    # Populate with data from the source, the cslibrator and the sky values
-    opt = {'S' :'source','C':'calibrator','B':'sky'}
-
-    # If dataid is in request.GET, extract the dataid
-    if 'dataid' in request.GET:
-        dataid = request.GET.get('dataid','')
-    else:
-
-        # Otherwise filter the datapoints to extract
-        dataid = Datapoint.objects.filter(user=o[0].user).order_by('taken')[0].data.id
-
-    # If still no luck, try lesser filter
-    try:
-        s = DataSource.objects.filter(id=dataid)[0]
-
-    # If still not working, raise HTTP 404
-    except:
-
-        raise Http404
-
-    # Filters the datapoints by reverse pointtype
-    ps  = Datapoint.objects.filter(~Q(pointtype = 'R'),data = s).order_by('-pointtype')
-
-    # Populates a list of the data
-    datalist = [{'mine': ismypoint(o[0],dp.user),'x' : dp.xpos,'y' : dp.ypos, 'r' : dp.radius, 'value' : "%.0f" % dp.value,'type':opt[dp.pointtype]} for dp in ps]
-
-    # Brings it all together
-    line = {
-            'id'        : "%i" % s.id,
-            'date'      : s.timestamp.isoformat(" "),
-            'datestamp' : timegm(s.timestamp.timetuple())+1e-6*s.timestamp.microsecond,
-            'data'      : datalist,
-            }
-
-    return render(request, 'agentex/graph_advanced.html', {'event':Event.objects.filter(slug=slug)[0],
-                                                                    'framedata':line,
-                                                                    'target':DataSource.objects.filter(event__name=code)[0].target,                                                                    'progress' : progress})
-
-
-
-def graphsuper(request,slug):
-    # Construct the supercalibrator lightcurve
-
-    # Extract name of exoplanet from the dataset
-    event = Event.objects.get(slug=slug)
-
-    user = request.user
-
-    # Call datagen to generate realtime data
-    data = datagen(slug,user)
-
-    ###### Setting nodata to True and not showing each person their own data, but just for now
-    return render(request, 'agentex/graph_super.html', {'event':event,
-                                                                'data':data,
-                                                                'numsuper':13,
-                                                                'nodata' : True})
-
-@login_required
-def measurementsummary(request,code,format):
-    ####################
-    # Return a measument data set based on event code and having either 'json' or 'xml' format
-    data = []
-    maxpixel = 1024
-    csv =""
-    o = request.user
-    options = request.GET.get('mode','')
-    if (format == 'xhr' and options ==''):
-        #cals = []
-        sources = []
-        dates = []
-        stamps = []
-        rawcals = []
-        timestamps = []
-        cals = []
-        mypoints = Datapoint.objects.filter(user=o[0].user,data__event__name=code).order_by('data__timestamp')
-        for d in mypoints.filter(pointtype='S'):
-            dates.append(d.data.timestamp.isoformat(" "))
-            stamps.append(timegm(d.data.timestamp.timetuple())+1e-6*d.data.timestamp.microsecond)
-            timestamps.append(d.data.timestamp)
-        sources = np.array(mypoints.filter(pointtype='S').values_list('value',flat=True))
-        ids = mypoints.filter(pointtype='S').values_list('data__id',flat=True)
-        bg = np.array(mypoints.filter(pointtype='B').values_list('value',flat=True))
-        sb = sources -bg
-        cs = mypoints.filter(pointtype='C').order_by('coorder__calid')
-        maxcals = cs.aggregate(Max('coorder__calid'))['coorder__calid__max']
-        if maxcals == None:
-            maxcals = -1
-        for i in range(0,maxcals+1):
-            vals = []
-            for d,item in enumerate(ids):
-                cp = cs.filter(data__timestamp=timestamps[d])
-                if len(cp) > i:
-                    vals.append(sb[d]/(cp[i].value-bg[d]))
-                else:
-                    vals.append(0.0)
-            maxvals = r_[vals[:3],vals[-3:]]
-            nz = maxvals.nonzero()
-            maxval = mean(maxvals[nz])
-            cals.append(list(vals/maxval))
-        datapoints = {'calibration' : cals, 'source' : list(sources),'background':list(bg),'dates':dates,'id':list(ids),'datestamps':stamps,'n':maxcals+1}
-        dataid = request.GET.get('dataid','')
-        return HttpResponse(json.dumps(datapoints,indent=2),content_type='application/javascript')
-    elif (format == 'xhr' and options=='ave'):
-        #cals = []
-        #cs = mypoints.filter(pointtype='C').order_by('coorder__calid')
-        maxcals = DataCollection.objects.filter(person=o[0].user,planet__slug=code).aggregate(Max('calid'))['calid__max']
-        if maxcals:
-            # cals,normcals,mycals,sb,bg,dates,stamps,ids,cats = myaverages(code, o[0].user)
-            cals,normcals,sb,bg,dates,stamps,ids,cats = averagecals(code, o[0].user)
-            # datapoints = {'calibration' : normcals, 'mycals': mycals,'source' : sb,'background':bg,'calibrator':cals,'dates':dates,'id':ids,'datestamps':stamps,'n':maxcals+1}
-            datapoints = {'calibration' : normcals, 'source' : sb,'background':bg,'calibrator':cals,'dates':dates,'id':ids,'datestamps':stamps,'n':maxcals+1}
-        else:
-            datapoints = {'calibration':None}
-        return HttpResponse(json.dumps(datapoints,indent=2),content_type='application/javascript')
-    elif (format == 'xhr' and options == 'super'):
-        # Construct the supercalibrator lightcurve
-        planet = Event.objects.filter(name=code)[0]
-        numsuper, normvals, std,radiusratio = supercaldata(user,planet)
-        sources = DataSource.objects.filter(event=planet).order_by('timestamp')
-        dates = []
-        for s in sources:
-            dates.append(timegm(s.timestamp.timetuple())+1e-6*s.timestamp.microsecond,)
-        datapoints = {'normalised' : normvals, 'dates':dates, 'std':std}
-        return HttpResponse(json.dumps(datapoints),content_type='application/javascript')
-    elif (request.GET and format == 'json'):
-        dataid = request.GET.get('dataid','')
-        s = DataSource.objects.filter(id=dataid)[0]
-        ps  = Datapoint.objects.filter(~Q(pointtype = 'R'),data = s).order_by('-pointtype')
-        datalist = [{'mine': ismypoint(o[0],dp.user),'x' : dp.xpos,'y' : dp.ypos, 'r' : dp.radius, 'value' : dp.value,'type':dp.pointtype} for dp in ps]
-        line = {
-                'id'        : "%i" % s.id,
-                'date'      : s.timestamp.isoformat(" "),
-                'datestamp' : timegm(s.timestamp.timetuple())+1e-6*s.timestamp.microsecond,
-                'data'      : datalist,
-                }
-        return HttpResponse(json.dumps(line,indent = 2),content_type='application/javascript')
-    else:
-        planet = Event.objects.filter(name=code)[0]
-        numsuper, normvals, myvals, std,radiusratio = supercaldata(request.user,planet)
-        sources = DataSource.objects.filter(event=planet).order_by('timestamp')
-        n = 0
-        if format == 'json':
-            data = []
-            if len(normvals) == planet.numobs :
-                for i,s in enumerate(sources):
-                    line = {
-                            'id'        : "%i" % s.id,
-                            'date'      : s.timestamp.isoformat(" "),
-                            'datestamp' : timegm(s.timestamp.timetuple())+1e-6*s.timestamp.microsecond,
-                            'data'      : {
-                                            'mean' : normvals[i],
-                                            'std'  : std[i],
-                                            'mine' : myvals[i],
-                                },
-                            }
-                    data.append(line)
-            else:
-                data = None
-            return HttpResponse(json.dumps(data,indent = 2),content_type='application/javascript')
-        # elif format == 'xml':
-        #     return render_to_response('agentex/data_summary.xml',{'data':data},content_type="application/xhtml+xml")
-        elif format == 'csv':
-            csv = "# Date of observation, Unix timestamp, normalised average values, standard deviation, my normalised values\n"
-            for i,s in enumerate(sources):
-                csv += "%s, %s, %s, %s, %s\n" % (s.timestamp.isoformat(" "),timegm(s.timestamp.timetuple())+1e-6*s.timestamp.microsecond,normvals[i],std[i],myvals[i])
-            return HttpResponse(csv,content_type='text/csv')
 
 
 def update_web_pref(request,setting):

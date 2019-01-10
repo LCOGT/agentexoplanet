@@ -23,7 +23,7 @@
 var data;
 $(document).ready(function(){
 	function photoReady(){
-	
+
 	}
 	lcurve = new Lightcurve({
 		id:'#lightcurve',
@@ -50,7 +50,7 @@ $(document).ready(function(){
 
 	plot_b.jquery.hide();
 	plot_c.jquery.hide();
-	
+
 	$('#histograms').prepend('<form>Change histogram: <select id="histogram_changer"><option value="source" SELECTED>Sources<\/option><option value="sky">Backgrounds<\/option><option value="calibrator">Calibrators<\/option><\/select><\/form>');
 	$('#histogram_changer').bind('change',function(){
 		type = $(this).val();
@@ -61,14 +61,14 @@ $(document).ready(function(){
 		}else if(type=="sky"){
 			plot_s.jquery.hide();
 			plot_b.jquery.show();
-			plot_c.jquery.hide();		
+			plot_c.jquery.hide();
 		}else if(type=="calibrator"){
 			plot_s.jquery.hide();
 			plot_b.jquery.hide();
 			plot_c.jquery.show();
 		}
 	});
-	
+
 	$('#source_lo,#source_hi,#sky_lo,#sky_hi,#calibrator_lo,#calibrator_hi').bind('change',function(){
 		var type = $(this).attr('id');
 		type = type.substring(0,type.indexOf('_'));
@@ -81,7 +81,7 @@ $(document).ready(function(){
 		var to = $('#'+type+'_hi').val() ? $('#'+type+'_hi').val() : p.max;
 		if(from <= p.min && to >= p.max) p.plot.clearSelection();
 		else p.plot.setSelection({ xaxis: { from:from, to:to } });
-		
+
 	});
 })
 
@@ -124,9 +124,9 @@ function getRange(d){
 	// Get minimum value on axis
 	tmin = tmax;
 	do{ i++; tmin -= tinc; }while(tmin > lo);
-	
+
 	if(Math.abs(tmin) < 1E-15) tmin = 0.0;
-	
+
 	// Increase the number of increments
 	while(i < 5) {
 		tinc /= 2.0;
@@ -231,7 +231,7 @@ function updateData(inp){
 
 		for(c = 0; c < me.c.length ; c++) me.sum += 1./(me.c[c]-me.b.avg());
 		me.sum *= ((me.s.avg()-me.b.avg())/me.c.length);
-		
+
 		for(var i=0 ; i < lcurve.dmine.length ; i++){
 			if(lcurve.dmine[i][2]==lcurve.framenum){
 				if(me.s.length > 0 && me.b.length > 0 && me.c.length > 0) lcurve.dmine[i][1] = me.sum;
@@ -253,7 +253,7 @@ function updateData(inp){
 
 {% block main-content %}
 	<div class="page stackedpaper">
-		
+
 		<h1><a href="{% url 'infoview' event.name  %}" class="objectspecific">{{event.title}}</a>: Advanced Lightcurve</h1>
 		<p>This page lets you interact with the data used to make the lightcurve. You can limit the range of the values used for the <span class="source">source</span>, <span class="sky">sky</span>, and <span class="calibrator">calibrators</span></p>
 		<div id="lightcurve" style="height:300px;width:560px; margin-right: 15px;display:inline-block;"></div>
@@ -263,17 +263,6 @@ function updateData(inp){
 		<div style="width:560px;display:inline-block;vertical-align:top;margin-right: 15px;">
 			<table id="datatable" style="width:100%;text-align:left;">
 				<tr><th>Type</th><th>x</th><th>y</th><th>Radius</th><th>Value</th><th>Mine?</th><th>Included</th></tr>
-				<!--<tr class="source"><td>source</td><td>520</td><td>450</td><td>14</td><td>353345</td><td>true</td><td>true</td></tr>
-				<tr class="source"><td>source</td><td>525</td><td>452</td><td>14</td><td>353893</td><td>false</td><td>true</td></tr>
-				<tr class="source"><td>source</td><td>510</td><td>459</td><td>14</td><td>353917</td><td>false</td><td>true</td></tr>
-				<tr class="sky"><td>sky</td><td>500</td><td>520</td><td>14</td><td>12879</td><td>true</td><td>true</td></tr>
-				<tr class="sky"><td>sky</td><td>500</td><td>420</td><td>14</td><td>12789</td><td>false</td><td>true</td></tr>
-				<tr class="sky"><td>sky</td><td>520</td><td>380</td><td>14</td><td>12914</td><td>false</td><td>true</td></tr>
-				<tr class="calibrator"><td>calibrator</td><td>845</td><td>725</td><td>14</td><td>89419</td><td>true</td><td>true</td></tr>
-				<tr class="calibrator"><td>calibrator</td><td>845</td><td>730</td><td>14</td><td>91034</td><td>false</td><td>true</td></tr>
-				<tr class="calibrator"><td>calibrator</td><td>350</td><td>560</td><td>14</td><td>190735</td><td>false</td><td>true</td></tr>
-				<tr class="calibrator"><td>calibrator</td><td>320</td><td>325</td><td>14</td><td>123456</td><td>false</td><td>true</td></tr>
-				<tr class="calibrator"><td>calibrator</td><td>320</td><td>320</td><td>14</td><td>165784</td><td>false</td><td>true</td></tr>-->
 				{% for line in framedata.data %}
 				<tr class="{{line.type}}"><td>{{line.type}}</td><td>{{line.x}}</td><td>{{line.y}}</td><td>{{line.r}}</td><td>{{line.value}}</td><td>{{line.mine}}</td><td>True</td></tr>
 				{% endfor%}
@@ -293,7 +282,7 @@ function updateData(inp){
 					<br /><input type="submit" value="Save limits" action="" />
 				</form>
 			</div>
-		</div>			
+		</div>
 	</div>
 
 

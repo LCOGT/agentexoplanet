@@ -71,7 +71,6 @@ def progress_bars(value):
 @register.filter(name='hexangletodec')
 def hexangletodec(value):
     value = value.split(":")
-    print(value)
     if (int(value[0]) >= 0):
         sign = 1
     else :

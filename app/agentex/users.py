@@ -47,11 +47,10 @@ def register(request):
 
 @login_required
 def editaccount(request):
-    p = personcheck(request)
+    user = personcheck(request)
     if request.method == 'POST':
         form = RegistrationEditForm(request.POST)
         # Check if User has already registered with same username or email address
-        user = p.user
         if form.is_valid():
             f = form.cleaned_data
             user.first_name=f['firstname']
@@ -66,7 +65,7 @@ def editaccount(request):
         #return render_to_response("register.html",{'form': form,'edit':True},context_instance=RequestContext(request))
         return render(request, 'agentex/register.html', {'form': form,'edit':True})
     else:
-        form = RegistrationEditForm({'firstname' : p.first_name,'lastname' : p.last_name,'emailaddress':p.email,'password':p.password})
+        form = RegistrationEditForm({'firstname' : user.first_name,'lastname' : user.last_name,'emailaddress':user.email,'password':user.password})
         #return render_to_response("register.html",{'form': form,'edit':True},context_instance=RequestContext(request))
         return render(request, 'agentex/register.html', {'form': form,'edit':True})
 

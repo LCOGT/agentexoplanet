@@ -14,3 +14,12 @@ class MeasurementSerializer(serializers.Serializer):
         """
         data = fitsanalyse(validated_data)
         return data
+
+class LightCurveSerializer(serializers.Serializer):
+    t = serializers.CharField(max_length=20)
+    x = serializers.IntegerField()
+    y = serializers.IntegerField()
+    r = serializers.FloatField()
+    v = serializers.FloatField()
+    m = serializers.BooleanField()
+    u = serializers.BooleanField()
