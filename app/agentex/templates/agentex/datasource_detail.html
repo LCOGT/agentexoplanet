@@ -531,8 +531,8 @@
 
 {% block lower-menu%}{% ifnotequal complete 1 %}
 				<div class="polaroid"><div id="finderthumb">
-          <a href="/static/{{object.event.finderchart}}">
-            <img src="/static/{{object.event.finderchart_tb}}" class="snap" alt="Finder chart for {{object.event.title}}" title="Finder chart" />
+          <a href="{% static object.event.finderchart %}">
+            <img src="{% static object.event.finderchart_tb %}" class="snap" alt="Finder chart for {{object.event.title}}" title="Finder chart" />
           </a>
           <p>Finder chart</p></div></div>
           <div id="toolbar">

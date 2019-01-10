@@ -1,8 +1,27 @@
 #!/bin/sh -x
 
+TOPDIR="/var/www/apps/agentex"
+
 # substitute the prefix into the nginx configuration
 echo "Running with PREFIX=${PREFIX}"
 sed -i -e "s:@PREFIX@:${PREFIX}:g" /etc/nginx/conf.d/default.conf
+
+# Generate cron wrapper to set correct environment variables
+cat > "$TOPDIR/cronwrapper" << EOF
+#export PYTHONPATH="${PYTHONPATH}"
+#export DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE}"
+
+export DB_HOST="${DB_HOST}"
+export DB_NAME="${DB_NAME}"
+export DB_USER="${DB_USER}"
+export DB_PASS="${DB_PASS}"
+EOF
+
+# Make cron wrapper executable
+chmod +x "$TOPDIR/cronwrapper"
+
+# set MySQL default timezone to UTC
+echo "default-time-zone = 'UTC'" >> /etc/my.cnf
 
 # collect static files
 python /var/www/apps/agentex/manage.py collectstatic --noinput

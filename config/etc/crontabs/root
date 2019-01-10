@@ -1,0 +1,1 @@
+*/30 * * * * source /var/www/apps/agentex/cronwrapper; python /var/www/apps/agentex/manage.py update_requests >> /var/www/apps/agentex/request.log
