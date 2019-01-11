@@ -94,11 +94,11 @@ def feedback(request):
             # contact information
             contact_email = request.user.email
             template = get_template('agentex/email_comments.txt')
-            context = Context({
+            context = {
                 'first_name': request.user.first_name,
                 'last_name': request.user.last_name,
                 'content': form_content,
-            })
+            }
             content = template.render(context)
 
             email = EmailMessage(

@@ -148,7 +148,7 @@ EMAIL_HOST          = 'smtp.gmail.com'
 EMAIL_HOST_USER     = os.environ.get('EMAIL_USERNAME','')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD','')
 EMAIL_PORT          =  587
-DEFAULT_FROM_EMAIL  = 'Agent Exoplanet <agentexoplanet@lco.global>'
+DEFAULT_FROM_EMAIL  = 'LCO portal <portal@lco.global>'
 EMAIL_REPLYTO       = 'agentexoplanet@lco.global'
 
 ALLOWED_HOSTS = ['*']
