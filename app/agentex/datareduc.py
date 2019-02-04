@@ -459,24 +459,29 @@ def savemeasurement(person, lines, dataid, mode):
         except:
             return Response(data={'msg': 'Error saving'}, status=status.HTTP_400_BAD_REQUEST)
         calave = calave +sc_cal/(value - float(pointsum['bg']))/float(nocals)
+
+    if Datapoint.objects.filter(user=person, pointtype='S').count() == d.event.numobs:
+        DataCollection(person=person,planet=d.event).update(complete = True)
+        logger.debug("Data Collections for {} complete".format(d.event))
+
+    nomeas = Datapoint.objects.filter(user=person).values('taken').annotate(Count('taken')).count()
+    noplanet = DataCollection.objects.filter(person=person).values('planet').annotate(Count('person')).count()
+    ndecs = Decision.objects.filter(person=person,current=True).count() # filter: ,planet=d.event
+    unlock = False
+    nunlock = 0
+
+    resp = achievementscheck(person,d.event,nomeas,noplanet,nocals,ndecs,0)
+    msg = '<br />'
+    for item in resp:
+        if messages.SUCCESS == item['code'] :
+            msg += "<img src=\""+settings.STATIC_URL+item['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />"
+
+    if resp:
+        lines['msg'] = 'Achievement unlocked {}'.format(msg)
     else:
-        nomeas = Datapoint.objects.filter(user=person).values('taken').annotate(Count('taken')).count()
-        noplanet = DataCollection.objects.filter(person=person).values('planet').annotate(Count('person')).count()
-        ndecs = Decision.objects.filter(person=person,current=True).count() # filter: ,planet=d.event
-        unlock = False
-        nunlock = 0
-        resp = achievementscheck(person,d.event,nomeas,noplanet,nocals,ndecs,0)
-        msg = '<br />'
-        for item in resp:
-            if messages.SUCCESS == item['code'] :
-                msg += "<img src=\""+settings.STATIC_URL+item['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />"
+        lines['msg'] = 'Measurements saved'
 
-        if resp:
-            lines['msg'] = 'Achievement unlocked {}'.format(msg)
-        else:
-            lines['msg'] = 'Measurements saved'
-
-        return Response(data=lines, status=status.HTTP_200_OK)
+    return Response(data=lines, status=status.HTTP_200_OK)
 
 def datagen(slug,user):
 
@@ -504,9 +509,6 @@ def datagen(slug,user):
 
 def supercaldata(user,slug):
 
-    # if user.is_anonymous:
-    #     print("here")
-    #     return None,[],[],[],None
     # Extract the name of the planet being analysed
     planet = Event.objects.get(slug=slug)
 
@@ -528,10 +530,10 @@ def supercaldata(user,slug):
     sources = set(sourcelst)
 
     # Import entire Datapoint database and sort by timestamp
-    cache_name = '{}_datapoints'.format(planet)
+    cache_name = '{}_datapoints'.format(slug)
     db = cache.get(cache_name)
     if not db:
-        db = Datapoint.objects.filter(ident=planet.slug).values_list('user_id','coorder__source','value','pointtype').order_by('tstamp')
+        db = Datapoint.objects.filter(ident=slug).values_list('user_id','coorder__source','value','pointtype').order_by('tstamp')
         cache.set(cache_name, db, 120)
 
     # Convert to numpy np.array
@@ -653,6 +655,56 @@ def supercaldata(user,slug):
     else:
         return None,[],[],[],None
 
+
+def myaverages(code,person):
+    ds = DataSource.objects.filter(event__slug=code).order_by('timestamp').values_list('id',flat=True)
+    valid_user = False
+    if person:
+        if person.is_authenticated():
+            valid_user = True
+    if valid_user:
+        now = datetime.now()
+        cals = []
+        mycals = []
+        dates = []
+        stamps = []
+        timestamps = []
+        normcals = []
+        maxvals = []
+        cats = []
+        # Find which Cat Sources I have observed and there is a complete set of (including other people's data)
+        # Unlike CalibrateMyData it only includes set where there are full sets
+        e = Event.objects.filter(name=code)[0]
+        dc = DataCollection.objects.filter(~Q(source=None),person=person,planet=e).order_by('calid')
+        cs = CatSource.objects.filter(id__in=[c.source.id for c in dc]).annotate(count=Count('datacollection__datapoint')).filter(count__gte=e.numobs).values_list('id',flat=True)
+        mydecisions = Decision.objects.filter(person=person,current=True,planet=e,value='D').values_list('source__id',flat=True)
+        if cs.count() > 0:
+            # Only use ones where we have more than numobs
+            for c in dc:
+                # make sure these are in the mydecision list (i.e. I've said they have a Dip)
+                if c.source.id in mydecisions:
+                    v = Datapoint.objects.filter(coorder__source=c.source.id,pointtype='C',user=person).order_by('data__timestamp').values_list('data__id','value')
+                    cals.append(dict(v))
+            if cals:
+                # Only proceed if we have calibrators in the list (i.e. np.arrays of numobs)
+                points = Datapoint.objects.filter(user=person,data__event__name=code).order_by('data__timestamp')
+                scA = points.filter(pointtype='S').values_list('data__id','value')
+                bgA = points.filter(pointtype='B').values_list('data__id','value')
+                # Create a list of normalised values with gaps if I haven't done the full dataset but have contributed to a 'Dip' classification
+                sc=dict(scA)
+                bg=dict(bgA)
+                sc = dictconv(sc,ds)
+                sc = np.array(sc)
+                bg = dictconv(bg,ds)
+                bg = np.array(bg)
+                for cal in cals:
+                    val = (sc - bg)/(np.array(dictconv(cal,ds))-bg)
+                    val = np.nan_to_num(val)
+                    normcals.append(val)
+                normmean = mean(normcals,axis=0)
+                return list(normmean/max(normmean))
+    # If they have no 'D' decisions
+    return [0.]*ds.count()
 
 def admin_averagecals(code,person):
     # Uses and SQL statement to try to speed up the query for averaging data points
@@ -776,20 +828,18 @@ def averagecals_async(e):
             dps = Datapoint.objects.filter(data__event=e, coorder__source__id=cat[0], pointtype='C').order_by('data__timestamp').values_list('data').annotate(Avg('value'))
             # Double check we have same number of obs and cals
             if dps.count() == e.numobs:
-                ids,values = zip(*dps)
-                a = AverageSet.objects.get_or_create(star=CatSource.objects.get(id=cat[0]),planet=e,settype='C')
-                a[0].values = ";".join([str(i) for i in values])
-                a[0].save()
+                av, create = AverageSet.objects.get_or_create(star=CatSource.objects.get(id=cat[0]),planet=e,settype='C')
+                av.values = ";".join([str(i[1]) for i in dps])
+                av.save()
                 logger.debug("Updated average sets on planet %s for %s" % (e.title,CatSource.objects.get(id=cat[0])))
     # Make averages for Source star and Background
     for category in ['S','B']:
         dps = Datapoint.objects.filter(data__event=e, pointtype=category).order_by('data__timestamp').values_list('data').annotate(Avg('value'))
         # Double check we have same number of obs and cals
         if dps.count() == e.numobs:
-            ids,values = zip(*dps)
-            a = AverageSet.objects.get_or_create(planet=e,settype=category)
-            a[0].values = ";".join([str(i) for i in values])
-            a[0].save()
+            av, created = AverageSet.objects.get_or_create(planet=e,settype=category)
+            av.values = ";".join([str(i[1]) for i in dps])
+            av.save()
             logger.debug("Updated average sets on planet %s for %s" % (e.title,category))
     return
 

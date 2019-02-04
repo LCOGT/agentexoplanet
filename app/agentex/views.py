@@ -249,7 +249,7 @@ def graphview_simple(request,slug):
 
     event = Event.objects.get(slug=slug)
     # Render the findings
-    return render(request, 'agentex/graph_flot.html', {'event': event,
+    return render(request, 'agentex/graph_simple.html', {'event': event,
                                                             'data':data,
                                                             'n':n,
                                                             'sources':cats,
@@ -382,15 +382,17 @@ def graphview_ave(request,slug, calid=None):
         else : msg = 'Achievement unlocked'+msg
         messages.add_message(request, messages.SUCCESS, msg)
     logger.debug('The classified objects (number selected to have a dip, total number of calibrator star data sets, number of those datasets are completed) {}'.format(classif))
-    return render(request, 'agentex/graph_average.html', {'event': planet,
-                                                            'data':data,
-                                                            'sources':cats,
-                                                            'cals':json.dumps(cats),
-                                                            'calid': currentcal,
-                                                            'prevchoice' : prev,
-                                                            'classified':classif,
-                                                            'progress' : progress
-                                                            })
+    template_data = {'event': planet,
+                    'data':data,
+                    'sources':cats,
+                    'cals':json.dumps(cats),
+                    'calid': currentcal,
+                    'prevchoice' : prev,
+                    'classified':classif,
+                    'progress' : progress
+                    }
+    print(template_data)
+    return render(request, 'agentex/graph_average.html', template_data)
 
 
 def update_web_pref(request,setting):

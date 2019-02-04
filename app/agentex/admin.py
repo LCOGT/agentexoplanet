@@ -56,6 +56,7 @@ class EventAdmin(admin.ModelAdmin):
 
 class SetAdmin(admin.ModelAdmin):
     list_display = ['planet','star','settype']
+    list_filter = ['planet']
 
 def allcalibrators_check(request,planetid):
     # Uses and SQL statement to try to speed up the query for averaging data points

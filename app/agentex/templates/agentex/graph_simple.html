@@ -123,7 +123,7 @@
 			<tr><th>Date</th><th class="source">Target</th><th class="sky">Sky</th>{% for cal in data.0.data.calibrator %}<th class="calibrator">Cal {{forloop.counter}}</th>{% endfor %}</tr>
 			{% for line in data %}
 			{% if line.data.calibrator %}
-			<tr><td><a href="{% url 'next_addvalue' event.slug  %}?dataid={{line.id}}">{{line.date}}</a></td><td>{{line.data.source.0|floatformat:0}}</td><td>{{line.data.background.0|floatformat:0}}</td>{% for cal in line.data.calibrator %}<td>{{cal|floatformat:0}}</td>{% endfor %}</tr>
+			<tr><td><a href="{% url 'addvalue' line.id  %}">{{line.date}}</a></td><td>{{line.data.source.0|floatformat:0}}</td><td>{{line.data.background.0|floatformat:0}}</td>{% for cal in line.data.calibrator %}<td>{{cal|floatformat:0}}</td>{% endfor %}</tr>
 			{% endif %}
 			{% endfor %}
 		</table>
