@@ -83,7 +83,7 @@ class EventView(DetailView):
 
 class EventList(ListView):
     model = Event
-    queryset = Event.objects.filter(enabled=True)
+    queryset = Event.objects.filter(enabled=True).order_by('-pk')
 
 
 class AddValuesView(APIView):
@@ -284,7 +284,7 @@ def graphview_ave(request,slug, calid=None):
         return HttpResponseRedirect(reverse('next_addvalue',kwargs={'slug' : slug}))
 
 
-    # Determines the number of calibrator stars
+    # Determines the number of calibrator stars that we have full sets for
     numcals = len(normcals)
 
     # Prints the normalised calibrators
@@ -363,7 +363,8 @@ def graphview_ave(request,slug, calid=None):
         prev = None
     else:
         messages.error(request,'The lightcurve using the selected calibrator is not complete')
-        return HttpResponseRedirect(reverse('average-graph',args=[planet.name]))
+        url = reverse('average-graph',kwargs={'slug':planet.slug})
+        return HttpResponseRedirect(url)
     #logger.debug(datetime.now() - now)
     classif = classified(o,slug)
     resp = achievementscheck(o,planet,0,0,0,len(cats),0)
@@ -391,7 +392,6 @@ def graphview_ave(request,slug, calid=None):
                     'classified':classif,
                     'progress' : progress
                     }
-    print(template_data)
     return render(request, 'agentex/graph_average.html', template_data)
 
 

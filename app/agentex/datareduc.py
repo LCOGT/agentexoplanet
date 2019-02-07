@@ -184,11 +184,11 @@ def photometry(code,person,progress=False,admin=False):
                 norm = val/maxval
                 #Append the normalised value
                 normcals.append(list(norm))
-            # Find my data and create unix timestamps
-        unixt = lambda x: timegm(x.timetuple())+1e-6*x.microsecond
-        iso = lambda x: x.isoformat(" ")
-        stamps = map(unixt,times)
-        dates = map(iso,times)
+    # Find my data and create unix timestamps
+    unixt = lambda x: timegm(x.timetuple())+1e-6*x.microsecond
+    iso = lambda x: x.isoformat(" ")
+    stamps = map(unixt,times)
+    dates = map(iso,times)
     if admin:
         return normcals,stamps,indexes,cats
     return cals,normcals,list(sc),list(bg),list(dates),list(stamps),indexes,cats
@@ -315,7 +315,6 @@ def fitsanalyse(data):
                     hline.append(float(dc[y][x]))
                 if (y == y0):
                     vline.append(float(dc[y][x]))
-                    logger.debug("x = %s, y= %s val=%s" % (x,y,float(dc[y][x])))
                 numpix += 1
             y += 1
         linex.append(hline)
@@ -460,9 +459,9 @@ def savemeasurement(person, lines, dataid, mode):
             return Response(data={'msg': 'Error saving'}, status=status.HTTP_400_BAD_REQUEST)
         calave = calave +sc_cal/(value - float(pointsum['bg']))/float(nocals)
 
-    if Datapoint.objects.filter(user=person, pointtype='S').count() == d.event.numobs:
-        DataCollection(person=person,planet=d.event).update(complete = True)
-        logger.debug("Data Collections for {} complete".format(d.event))
+    if Datapoint.objects.filter(user=person, pointtype='S', data__event=d.event).count() == d.event.numobs:
+        num_rows = DataCollection.objects.filter(person=person,planet=d.event).update(complete = True)
+        logger.debug("{} Data Collections for {} complete".format(num_rows, d.event))
 
     nomeas = Datapoint.objects.filter(user=person).values('taken').annotate(Count('taken')).count()
     noplanet = DataCollection.objects.filter(person=person).values('planet').annotate(Count('person')).count()

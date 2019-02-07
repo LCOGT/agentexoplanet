@@ -200,7 +200,7 @@ LOGGING = {
         },
         'agentex' : {
             'handlers' : ['console'],
-            'level'    : 'ERROR',
+            'level'    : 'DEBUG',
         }
     }
 }

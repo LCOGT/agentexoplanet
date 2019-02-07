@@ -91,6 +91,7 @@ class Event(models.Model):
     enabled = models.BooleanField(default=True,help_text='show this event on main site')
     illustration = models.CharField('illustration', help_text='illustration for this event',blank=True, choices=ILLUSTRATIONS, max_length=100)
     radius = models.IntegerField('aperture radius', blank=False, default=10)
+    data_download = models.URLField('Download full dataset', blank=True, null=True)
     class Meta:
         verbose_name = u'transit event'
         db_table = u'dataexplorer_event'

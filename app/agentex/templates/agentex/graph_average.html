@@ -18,6 +18,8 @@
 	var helper = true;
 	document.write('<style type="text/css">.decisiontree { float: right; width: 300px; } fieldset { border: 0px; }<\/style>');
 
+  var lcurve;
+
 	$(document).ready(function(){
 		html = '<div id="mainplot"><\/div>';
 		$('.decisiontree').before(html);
@@ -82,7 +84,6 @@
 			cal:{ order:calorder, name:"{{calid.sourcename}}" },
 			authenticated: {% if user.is_authenticated %}true{% else %}false{% endif %}
 		});
-		console.log(lcurve.data);
 		var posturl = "{% url 'classifyupdate' event.slug %}";
 
 		$(".choice1 .radio a").bind("click",function(e,nosubmit){
