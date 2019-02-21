@@ -53,6 +53,7 @@ from agentex.datareduc import savemeasurement, datagen
 
 from agentex.agentex_settings import planet_level
 from agentex.datareduc import *
+from agentex.utils import achievementunlock
 
 
 logger = logging.getLogger('agentex')
@@ -142,7 +143,7 @@ def read_manual_check(request):
         resp = achievementunlock(o,None,'manual')
         if messages.SUCCESS == resp['code'] :
             messages.add_message(request, messages.SUCCESS, "Achievement unlocked<br /><img src=\""+settings.STATIC_URL+resp['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />")
-    return HttpResponseRedirect(reverse(target))
+    return HttpResponseRedirect(reverse('target'))
 
 
 # measurements, planets, calibrators descisions
