@@ -12,6 +12,7 @@ function Lightcurve(inp){
 	this.events = { onfit: (typeof inp.onfit==="function") ? [inp.onfit] : "" };
 	this.mypoints = false;
 	this.datahighest;
+  this.num_cals;
 	this.options = {
 		series: {
 			lines: { show: false },
@@ -43,6 +44,7 @@ function Lightcurve(inp){
 	this.cal = (typeof inp.cal=="object") ? inp.cal : { order: 0, name: "" };
 	this.mainplot = $(this.id);
 	this.options = (typeof inp.options=="object") ? inp.options : {};
+  this.num_cals = (typeof inp.num_cals=="number") ? inp.num_cals : 3;
 
 	// Set defaults for graph options
 	if(!this.options.series) this.options.series = {};
@@ -158,15 +160,15 @@ Lightcurve.prototype.data2plot = function(){
 			if(d.length == 0) bubblePopup({id:'editmsg',el:$(this.id),w:200,align:'center',html:this.msg.nodata,'padding':2})
 			else{
 				cals = d[0].data.calibrator;
-				var tempdata = new Array(cals.length);
+				var tempdata = new Array(this.num_cals);
 				var temptimes = [];
 				this.ids = [];
 				if(this.used.length == 0){
-					this.used = new Array(cals.length);
-					for(var c=0 ; c < cals.length ; c++) this.used[c] = true;
+					this.used = new Array(this.num_cals);
+					for(var c=0 ; c < this.num_cals ; c++) this.used[c] = true;
 				}
 
-				for(var c=0 ; c < cals.length ; c++){
+				for(var c=0 ; c < this.num_cals ; c++){
 					tempdata[c] = [];
 					for(var i=0 ; i < d.length ; i++){
 
@@ -182,8 +184,8 @@ Lightcurve.prototype.data2plot = function(){
 						}
 					}
 				}
-				this.dataplot = new Array(cals.length);
-				for(var c=0 ; c < cals.length ; c++){
+				this.dataplot = new Array(this.num_cals);
+				for(var c=0 ; c < this.num_cals ; c++){
 					this.dataplot[c] = [];
 					norm = 1;
 					var points = tempdata[c].length;

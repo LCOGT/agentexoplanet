@@ -284,7 +284,7 @@
 			<tr><th>Observation date</th><th class="source">Target</th><th class="sky">Sky</th>{% for cal in sources %}<th class="calibrator"><a href="{% url 'calibrator-graph' event.slug cal.order|add:"1" %}">Cal {{cal.order|add:"1"}}</a></th>{% endfor %}</tr>
 			<tr style="height:40px;"><td></td><td></td><td></td>{% for cal in sources %}<td class="decisionimage" style="text-align:center;padding-top:3px;">{{cal.decision|decisionconvert|safe}}</td>{% endfor %}</tr>
 			{% for line in data %}
-			<tr><td><a href="{% url 'next_addvalue' event.slug %}?dataid={{line.id}}">{{line.date}}</a></td><td>{{line.data.source|floatformat:0}}</td><td>{{line.data.background|floatformat:0}}</td>{% for cal in line.data.calibrator %}<td{%ifnotequal cal.1 calid.order %} style="color:#bbb;"{%endifnotequal%}>{{cal.0|floatformat:0}}</td>{% endfor %}</tr>
+			<tr><td><a href="{% url 'addvalue' line.id %}">{{line.date}}</a></td><td>{{line.data.source|floatformat:0}}</td><td>{{line.data.background|floatformat:0}}</td>{% for cal in line.data.calibrator %}<td{%ifnotequal cal.1 calid.order %} style="color:#bbb;"{%endifnotequal%}>{{cal.0|floatformat:0}}</td>{% endfor %}</tr>
 			{% endfor %}
 		</table>
 		</div>

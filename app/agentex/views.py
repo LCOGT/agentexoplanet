@@ -99,7 +99,7 @@ class AddValuesView(APIView):
 
 
 class FinalLightCurve(DetailView):
-    template_name = 'agentex/graph_final.html'
+    template_name = 'agentex/graph_step3.html'
     model = Event
 
     def get_context_data(self, **kwargs):
@@ -198,7 +198,7 @@ def graphview_simple(request,slug):
     d1 = ds.Dataset(slug,o.username)
 
     # Returns information in 2 lists for the data being analysed as well as information on the datapoints
-    data,points = d1.my_data()#my_data(o,slug)
+    data, points, num_cals = d1.my_data()
 
     # Returns list of data collections based on the exoplanet being analysed
     dc = DataCollection.objects.filter(person=o,planet=d1.planet)
@@ -250,12 +250,13 @@ def graphview_simple(request,slug):
 
     event = Event.objects.get(slug=slug)
     # Render the findings
-    return render(request, 'agentex/graph_simple.html', {'event': event,
+    return render(request, 'agentex/graph_step1.html', {'event': event,
                                                             'data':data,
                                                             'n':n,
                                                             'sources':cats,
                                                             'classified':classif,
-                                                            'progress' : progress})
+                                                            'progress' : progress,
+                                                            'num_cals' : num_cals})
 
 @login_required
 def graphview_ave(request,slug, calid=None):
@@ -393,7 +394,7 @@ def graphview_ave(request,slug, calid=None):
                     'classified':classif,
                     'progress' : progress
                     }
-    return render(request, 'agentex/graph_average.html', template_data)
+    return render(request, 'agentex/graph_step2.html', template_data)
 
 
 def update_web_pref(request,setting):

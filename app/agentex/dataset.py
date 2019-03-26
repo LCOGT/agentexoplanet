@@ -23,9 +23,13 @@ from django.contrib.auth.models import User
 from django.db.models import Count, Avg
 from datetime import datetime
 from calendar import timegm
+import logging
 from numpy import array,nan_to_num, vstack, apply_along_axis, mean, var, sqrt,average, r_, linspace
 
 from django.conf import settings
+
+logger = logging.getLogger('agentex')
+
 
 class Dataset(object):
     def __init__(self , planetid=None,userid=None):
@@ -79,6 +83,7 @@ class Dataset(object):
             sc = dict(points.filter(pointtype='S').values_list('data__id','value'))
             bg = dict(points.filter(pointtype='B').values_list('data__id','value'))
             cals = points.filter(pointtype='C').values_list('data__id','value').order_by('coorder')
+            num_cals = cals.count()//len(sc)
             for d in sources:
                 cal = [c[1] for c in cals if int(c[0]) == d[0]]
                 line = {
@@ -92,14 +97,14 @@ class Dataset(object):
                         }
                 try:
                     line['data']['source'] = [sc[d[0]]]
-                except:
-                    line['data']['source'] = 'null'
+                except KeyError:
+                     line['data']['source'] = 'null'
                 try:
                     line['data']['background'] = [bg[d[0]]]
-                except:
+                except KeyError:
                     line['data']['background'] = 'null'
                 data.append(line)
-            return data,points
+            return data, points, num_cals
         else:
             self.error = "No user specified"
             return False

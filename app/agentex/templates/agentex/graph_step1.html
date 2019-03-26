@@ -45,6 +45,7 @@
 		lcurve = new Lightcurve({
 			id:'#mainplot',
 			data: {{ data|safe }},
+      num_cals: {{num_cals}},
 			msg:{
 				nodata: "<h3>You have no data points yet<\/h3><p>Why not make some <a href='{% url 'next_addvalue' event.slug %}'>measurements of {{event.title}}<\/a><\/p>",
 				login: "Please <a href='{% url 'login' %}'>login<\/a> to edit"
