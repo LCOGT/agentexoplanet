@@ -1,9 +1,9 @@
-{% extends "agentex/base.html" %}
+{% extends "base.html" %}
 
-{% block body-class %}full agentex dossierfront {%endblock%}
+{% block body-class %}full agentex dossier profile {%endblock%}
 
 {% block header %}
-Portal Login
+Agent Exoplanet Logout
 {% endblock %}
 
 {% block script-content %}
@@ -17,7 +17,8 @@ Portal Login
 {% endblock %}
 
 {% block main-content %}
-
+<div class="page stackedpaper">
+  <div class="padder">
 						<div class="row rowfirst">
 							<h1>Log into your account</h1>
 							<p>If you do not already have an account please <a href="{% url 'register' %}?next={{next}}">register</a> for one.</p>
@@ -37,4 +38,6 @@ Portal Login
 								</div>
 							</form>
 						</div>
+  </div>
+</div>
 {% endblock %}

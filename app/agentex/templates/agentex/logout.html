@@ -1,15 +1,19 @@
-{% extends "agentex/base.html" %}
+{% extends "base.html" %}
 
-{% block body-class %}full agentex dossierfront {%endblock%}
+{% block body-class %}full agentex dossier profile {%endblock%}
 
 {% block header %}
-Portal Logout
+Agent Exoplanet Logout
 {% endblock %}
 
 {% block main-content %}
+<div class="page stackedpaper">
+  <div class="padder">
 						<div class="row rowfirst">
 							<h1>Good bye</h1>
-							<p>Come and check on our Citizen Science projects soon.</p>
+							<p>If you enjoyed Agent Exoplanet, why not try out some of the other <a href="https://lco.global/education/resources/">LCO educational resources</a>.</p>
 							<p><a href="{% url 'login' %}">Log in again?</a></p>
 						</div>
+  </div>
+</div>
 {% endblock %}

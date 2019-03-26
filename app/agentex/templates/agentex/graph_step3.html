@@ -1,4 +1,4 @@
-{% extends 'agentex/base.html' %}
+{% extends 'base.html' %}
 {% load staticfiles %}
 
 {% block body-class %}full agentex dossier {%endblock%}
@@ -51,6 +51,7 @@
 				login: "Please <a href='{% url 'login' %}'>login<\/a> to edit"
 			},
 			data:{{data|safe}},
+      dmine:{{my_data|safe}},
 			authenticated: {% if user.is_authenticated %}true{% else %}false{% endif %},
 			type: "super",
 			options: {

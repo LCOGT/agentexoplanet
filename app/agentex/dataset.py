@@ -67,7 +67,7 @@ class Dataset(object):
                         'data'      : {
                                         'mean' : normvals[i],
                                         'std'  : std[i],
-                                        'mine' : 'null',#myvals[i],
+                                        'mine' : 1.0, #myvals[i],
                             },
                         }
                 data.append(line)

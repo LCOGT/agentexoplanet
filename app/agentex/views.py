@@ -105,8 +105,10 @@ class FinalLightCurve(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         planet = self.get_object()
-        ds = Dataset(planetid=planet.slug)
+        ds = Dataset(planetid=planet.slug, userid=self.request.user)
         context['data'] = ds.final()
+        my_data, points, num_cals = ds.my_data()
+        context['my_data'] = my_data
         return context
 
 
@@ -474,7 +476,6 @@ def fetch_averages_sql(dsmin,dsmax,pointtype,users):
     params = [pointtype,dsmin,dsmax,users_str]
     cursor.execute('SELECT dp.data_id, avg(dp.value) FROM dataexplorer_datapoint as dp RIGHT JOIN dataexplorer_datasource AS ds on dp.data_id = ds.id WHERE dp.pointtype = %s AND (dp.data_id BETWEEN %s AND %s) AND dp.user_id IN %s GROUP BY dp.data_id order by ds.timestamp', params)
     result = list(cursor.fetchall())
-    #ave_values = dict(result)
     return result
 
 def update_final_display():

@@ -8,9 +8,13 @@
 	{% block meta %}{% endblock %}
 	<link rel="shortcut icon" href="https://cdn.lco.global/mainstyle/img/favicon.ico" type="image/x-icon" />
 	<link rel="stylesheet" href="{% static 'css/lcogt.css' %}" type="text/css" />
-	<link rel="stylesheet" href="{% static 'css/portal.css' %}" type="text/css" />{% block css-content %}{% endblock %}
+	<link rel="stylesheet" href="{% static 'css/portal.css' %}" type="text/css" />
+  <link rel="stylesheet" href="{% static 'css/agentex.css' %}" type="text/css" media="screen,print" />
+  {% block css-content %}{% endblock %}
 	<script type="text/javascript" src="{% static 'js/jquery.min.js' %}"></script>
-	<script type="text/javascript" src="{% static 'js/portal.js' %}"></script>{% block script-content %}{% endblock %}
+	<script type="text/javascript" src="{% static 'js/portal.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/agentex.js' %}"></script>
+  {% block script-content %}{% endblock %}
 	<script type="text/javascript">
 	<!--
       var _gaq = _gaq || [];
@@ -25,7 +29,7 @@
 	// -->
     </script>
 </head>
-<body class="{% block body-class %}{% endblock %}{% if user.is_authenticated %}{% else %}not-{% endif %}logged-in">
+<body class="{% block body-class %}agentex {% endblock %}{% if user.is_authenticated %}{% else %}not-{% endif %}logged-in">
 
 	<a class="access" href="#main">[Skip to Content]</a>
 
@@ -33,8 +37,9 @@
 		<div id="page">
 
 			<div id="lcogt-bar">
-				{% block login %}<div id="login" class="block">{% if user.is_authenticated %}<a href="{% url 'editaccount' %}">{% if user.first_name %}{{ user.first_name }}{% else %}{{user.username}}{% endif %}</a> | <a href="{% url 'logout' %}">Logout</a>{% else %}<a href="{% url 'login' %}">Login</a> | <a href="{% url 'register' %}?next={{ request.path }}">Register</a>{% endif %}</div>{% endblock %}
-				<div>
+        {% block login %}
+      				<div id="login" class="block">{% if user.is_authenticated %}<a href="{% url 'editaccount' %}">{% if user.first_name %}{{ user.first_name }}{% else %}{{user.username}}{% endif %}</a> | <a href="{% url 'logout' %}">Logout</a>{% else %}<a href="{% url 'login' %}?next={{ request.path }}">Login</a> | <a href="{% url 'register' %}?next={{ request.path }}">Register</a>{% endif %}</div>
+      	{% endblock %}				<div>
 					<a href="https://lco.global" title="Las Cumbres Observatory">Las Cumbres Observatory</a>
 				</div>
 			</div>
@@ -43,12 +48,22 @@
 					<div id="container">
 
 					<div id="header">
-						{% block logo-content %}<div id="logo"><img src="{% static 'images/citsci-logo2.png' %}" alt="Home" id="logo-image" /></div>{% endblock %}
+            {% block logo-content %}<div class="agentex" id="logo"><a rel="home" title="Agent Exoplanet Home" href="{% url 'index' %}"><img id="logo-image" alt="Home" src="{% static 'images/agentex-logo-beta.png' %}"></a></div>{% endblock %}
 						<div id="logo2"><a href="https://lco.global" title="Las Cumbres Observatory" rel="home"><img src="{% static 'images/LCO_logo_powered_by.png' %}" alt="Home" id="logo-image2" /></a></div>
 					</div>
 
-					{% block navbar %}
-					{% endblock %}
+          {% block navbar %}
+        		<div id="navbar" class="primary clear-block">
+        			<ul class="links">
+        				<li class="menu-home"><a href="{% url 'index' %}" title="Agent Exoplanet home">Home</a></li>
+        				<li class="menu-briefing"><a href="{% url 'briefing' %}">Briefing</a></li>
+        				<li class="menu-planets"><a href="{% url 'target'  %}">Planets</a></li>
+        				{% if user.is_authenticated %}<li class="menu-profile"><a href="{% url 'profile' %}">My Profile</a></li>{% endif %}
+        				<!-- li><a href="http://lcogt.net/en/education/article/extrasolar-planets-history-and-detection">Briefing</a></li -->
+        				<!--<li><a href="">Forum</a></li>-->
+        			</ul>
+        		</div>
+        	{% endblock %}
 					<div id="main">
 						{% block main-content %}{% endblock %}
 					</div>
@@ -60,7 +75,8 @@
 					</div>
 {% endblock %}
 					<div class="clear-block"></div>
-					<div id="footer">{% block footer%}{% endblock %} | Copyright &copy; {% now "Y" %} Las Cumbres Observatory. All rights reserved.</div>
+					<div id="footer">	{% block footer%}<a href="{% url 'addcomment' %}">Comments &amp; Suggestions</a>{% endblock %}
+ | Copyright &copy; {% now "Y" %} Las Cumbres Observatory. All rights reserved.</div>
 				</div>
 			</div>
 		</div>

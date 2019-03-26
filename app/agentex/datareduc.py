@@ -150,7 +150,7 @@ def calibrator_averages(code,person=None,progress=False):
             except:
                 decvalue ='X'
             cat_item = {'sourcename':calibrator.source.name,'catalogue':calibrator.source.catalogue}
-            cat_item['decsion'] = decvalue
+            cat_item['decision'] = decvalue
             cat_item['order'] = str(calibrator.calid)
             cats.append(cat_item)
     return cals,sc,bg,stamps,ids,cats
@@ -767,7 +767,7 @@ def admin_averagecals(code,person):
                         except:
                             decvalue ='X'
                         cat_item = {'sourcename':c.source.name,'catalogue':c.source.catalogue}
-                        cat_item['decsion'] = decvalue
+                        cat_item['decision'] = decvalue
                         cat_item['order'] = str(c.calid)
                         cats.append(cat_item)
                         callist.append(c.source.id)

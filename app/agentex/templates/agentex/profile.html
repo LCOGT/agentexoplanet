@@ -1,4 +1,4 @@
-{% extends 'agentex/base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block body-class %}full agentex dossier profile {%endblock%}
@@ -23,6 +23,7 @@
 
 {% block main-content %}
 				<div class="page stackedpaper">
+          <div class="padder">
 
 					<h1>Name: <span class="objectspecific">{% if user.last_name %}{{ user.last_name }}{% else %}Identity Unknown{% endif %}</span></h1>
 					<span class="discrete">[<a href="{% url 'editaccount' %}">Edit your account</a>]</span>
@@ -36,6 +37,7 @@
 					</ul>
 
 					<div style="clear:both;"></div>
+          </div>
 				</div>
 			<!-- div class="arrow-up"></div>
 			</div -->

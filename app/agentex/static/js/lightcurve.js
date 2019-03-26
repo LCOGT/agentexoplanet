@@ -41,6 +41,7 @@ function Lightcurve(inp){
 	this.msg = {nodata: ((typeof inp.msg.nodata=="string") ? inp.msg.nodata : "<p>You have no data points yet</p>"), login: ((typeof inp.msg.login=="string") ? inp.msg.login : "Please login to edit") };
 	this.url = (inp.url) ? {edit: ((typeof inp.url.edit=="string") ? inp.url.edit : ""), json: ((typeof inp.url.json=="string") ? inp.url.json : ""), xhr: ((typeof inp.url.xhr=="string") ? inp.url.xhr : "") } : { edit:'',json:'',xhr:'' };
 	this.data = (typeof inp.data=="object") ? inp.data : "";
+  this.dmine = (typeof inp.dmine=="object") ? inp.dmine : "";
 	this.cal = (typeof inp.cal=="object") ? inp.cal : { order: 0, name: "" };
 	this.mainplot = $(this.id);
 	this.options = (typeof inp.options=="object") ? inp.options : {};
