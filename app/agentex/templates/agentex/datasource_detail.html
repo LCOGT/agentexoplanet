@@ -15,7 +15,7 @@
 	<script type="text/javascript" src="{% static 'js/photometry.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/jquery-ui.min.js' %}"></script>
 	<script type="text/javascript" charset="utf-8">
-	<!--
+
 	var gotcss = (typeof document.styleSheets[0]=="undefined") ? false : true;
 	var source = {x:{{object.event.xpos}},y:{{object.event.ypos}}}
 	var cur = {x:0,y:0};
@@ -49,6 +49,7 @@
 {% else %}
 	var tutorial = false;
 {% endif %}
+
 
 	function changeZoom() {
 		var region = photo.getView()
@@ -187,7 +188,7 @@
 		var dataid;
 
     // Add the interactive buttons that only make sense if there is CSS and Javascript
-    		$('#toolbar').append('<div class="fbtn"><a class="fancybtngrey btns" id="btn-add"><img src="{% static 'images/round_plus_icon&16.png' %}" style="width:16px;height:16px;" alt="Add" title="Add a calibration ring" /> Add calibrator<\/a><\/div><div class="fbtn"><a class="fancybtngrey btns" id="btn-remove" style="display:none;"><img src="{% static 'images/round_minus_icon&16.png' %}" style="width:16px;height:16px;" alt="Remove" title="Remove a calibration ring" /> Zap calibrator<\/a><\/div><div class="fbtn"><a class="fancybtngrey btns" id="btn-finetune"><img src="{% static 'images/round_plus_icon&16.png' %}" style="width:16px;height:16px;" alt="Add" title="Fine tune positions" /> Fine Tune<\/a><\/div>');
+    		$('#toolbar').append('');
 
 		$('#btn-add').bind('click',function(e){
 			photo.addCalibrator();
@@ -536,6 +537,11 @@
           </a>
           <p>Finder chart</p></div></div>
           <div id="toolbar">
+            {% if progress.done < 1 %}
+            <div class="fbtn"><a class="fancybtngrey btns" id="btn-add"><img src="{% static 'images/round_plus_icon&16.png' %}" style="width:16px;height:16px;" alt="Add" title="Add a calibration ring" /> Add calibrator</a></div>
+            <div class="fbtn"><a class="fancybtngrey btns" id="btn-remove" style="display:none;"><img src="{% static 'images/round_minus_icon&16.png' %}" style="width:16px;height:16px;" alt="Remove" title="Remove a calibration ring" /> Zap calibrator</a></div>
+            {% endif %}
+            <div class="fbtn"><a class="fancybtngrey btns" id="btn-finetune"><img src="{% static 'images/round_plus_icon&16.png' %}" style="width:16px;height:16px;" alt="Add" title="Fine tune positions" /> Fine Tune</a></div>
   					<div class="fbtn"><a href="{{data_url}}{{data.fits}}" class="fancybtngrey btns" id="btn-download" title="Download data file (FITS format)"><img src="{% static 'images/download_icon&16.png' %}" style="width:16px;height:16px;" alt="." /> Download data</a></div>
   				</div>
 {% endifnotequal %}
