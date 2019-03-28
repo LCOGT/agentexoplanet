@@ -196,9 +196,9 @@ def photometry(code,person,progress=False,admin=False):
 
 
 def measure_offset(d,person,basiccoord):
-    # Find the likely offset of this new calibrator compared to the basic ones and find any sources within 5 pixel radius search
+    # Find the likely offset of this new calibrator compared to the basic ones and find any sources within 20 pixel radius search
     finderid = d.event.finder
-    finderdp = Datapoint.objects.values_list('xpos','ypos').filter(user=person,data__id=finderid,pointtype='C',coorder__calid__lt=3).order_by('coorder__calid')
+    finderdp = Datapoint.objects.values_list('xpos','ypos').filter(user=person,data__id=finderid,pointtype='C').order_by('coorder__calid')
     if finderdp.count() == 0:
         logger.debug('not enough measurements for accurate offset - {}'.format(person.username))
         return 0.,0.

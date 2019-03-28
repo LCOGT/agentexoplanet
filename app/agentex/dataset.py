@@ -83,8 +83,9 @@ class Dataset(object):
             sc = dict(points.filter(pointtype='S').values_list('data__id','value'))
             bg = dict(points.filter(pointtype='B').values_list('data__id','value'))
             cals = points.filter(pointtype='C').values_list('data__id','value').order_by('coorder')
-            num_cals = cals.count()//len(sc)
+            num_cals = 0
             for d in sources:
+
                 cal = [c[1] for c in cals if int(c[0]) == d[0]]
                 line = {
                         'id'        : "%i" % d[0],
@@ -95,6 +96,7 @@ class Dataset(object):
                                         'calibrator' :  cal,
                                     },
                         }
+                num_cals = max(num_cals, len(cal))
                 try:
                     line['data']['source'] = [sc[d[0]]]
                 except KeyError:
