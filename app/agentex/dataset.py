@@ -55,7 +55,7 @@ class Dataset(object):
         normvals = AverageSet.objects.get(planet=self.planet,settype='F').data
         std = AverageSet.objects.get(planet=self.planet,settype='E').data
         sources = DataSource.objects.filter(event=self.planet).order_by('timestamp')
-        #myvals = ax.views.myaverages(self.planet,self.user)
+        myvals = ax.views.myaverages(self.planet.slug,self.user)
         n = 0
         data = []
         if len(normvals) == self.planet.numobs :
@@ -67,7 +67,7 @@ class Dataset(object):
                         'data'      : {
                                         'mean' : normvals[i],
                                         'std'  : std[i],
-                                        'mine' : 1.0, #myvals[i],
+                                        'mine' : myvals[i],
                             },
                         }
                 data.append(line)

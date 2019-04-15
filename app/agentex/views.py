@@ -98,7 +98,7 @@ class AddValuesView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class FinalLightCurve(DetailView):
+class FinalLightCurve(LoginRequiredMixin, DetailView):
     template_name = 'agentex/graph_step3.html'
     model = Event
 
