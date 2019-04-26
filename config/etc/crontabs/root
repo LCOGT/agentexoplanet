@@ -1,1 +1,0 @@
-*/5 * * * * source /var/www/apps/agentex/cronwrapper; python /var/www/apps/agentex/manage.py updateaverages > /var/www/apps/agentex/update.log

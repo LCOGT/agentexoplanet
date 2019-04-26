@@ -14,22 +14,15 @@ GNU General Public License for more details.
 '''
 # Django settings for Agent Exoplanet
 
-import os
-import platform
 from django.utils.crypto import get_random_string
 from django.conf import settings
 
+import ast
+import os
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
-PRODUCTION = True if CURRENT_PATH.startswith('/var/www') else False
-LOCAL_DEVELOPMENT = not PRODUCTION
-
-DEBUG = not PRODUCTION
-
-PREFIX = os.environ.get('PREFIX', '/agentexoplanet')
-FORCE_SCRIPT_NAME = PREFIX
-
 BASE_DIR = os.path.dirname(CURRENT_PATH)
+DEBUG = ast.literal_eval(os.environ.get('DEBUG', 'False'))
 
 ADMINS = (
 )
@@ -39,7 +32,6 @@ MANAGERS = ADMINS
 DATABASES = {
  'default' : {
     'ENGINE'    : 'django.db.backends.mysql',
-    # 'ENGINE'    : 'django.db.backends.sqlite3',
     'NAME'      : os.environ.get('DB_NAME',''),
     "USER"      : os.environ.get('DB_USER',''),
     "PASSWORD"  : os.environ.get('DB_PASSWD',''),
@@ -56,7 +48,7 @@ TIME_ZONE = 'UTC'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'en-gb'
+LANGUAGE_CODE = 'en-US'
 
 SITE_ID = 1
 
@@ -64,15 +56,17 @@ SITE_ID = 1
 # to load the internationalization machinery.
 USE_I18N = True
 
-MEDIA_ROOT = '/var/www/html/media/'
-MEDIA_URL = PREFIX + '/media/'
+MEDIA_ROOT = '/media/'
+MEDIA_URL = '/media/'
 
 DATA_LOCATION = MEDIA_ROOT + '/data'
 DATA_URL = MEDIA_URL + 'data'
 
-STATIC_ROOT = '/var/www/html/static/'
-STATIC_URL = PREFIX + '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR,'agentex','static')]
+STATIC_ROOT = '/static/'
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'agentex', 'static'),
+]
 
 # List of finder classes that know how to find static files in
 # various locations.
@@ -81,7 +75,7 @@ STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.AppDirectoriesFinder"
  )
 
-SECRET_KEY = os.environ.get('SECRET_KEY','')
+SECRET_KEY = os.environ.get('SECRET_KEY', '')
 if not SECRET_KEY:
     chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
     SECRET_KEY = get_random_string(50, chars)
@@ -94,14 +88,13 @@ MIDDLEWARE= [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    ]
+]
 
 CACHE_MIDDLEWARE_SECONDS = '1'
 
-
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
-    )
+)
 
 ROOT_URLCONF = 'core.urls'
 
@@ -116,7 +109,7 @@ TEMPLATES = [
             'django.template.context_processors.request',
             'django.contrib.auth.context_processors.auth',
             'django.contrib.messages.context_processors.messages',
-            'agentex.context_processors.global_settings'
+            'agentex.context_processors.global_settings',
             ],
         },
     },
@@ -129,18 +122,13 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
-    'django.contrib.staticfiles', # Added by TJ to allow static files declaration
+    'django.contrib.staticfiles',
     'agentex.apps.AgentConfig',
 )
 
-LOGIN_REDIRECT_URL = PREFIX
-LOGIN_URL = PREFIX + '/account/login/'
-
+LOGIN_URL = '/account/login/'
 
 SESSION_COOKIE_NAME='agentexoplanet.sessionid'
-
-
-BASE_URL = "/agentexoplanet/"
 
 EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS       = True
@@ -153,30 +141,28 @@ EMAIL_REPLYTO       = 'agentexoplanet@lco.global'
 
 ALLOWED_HOSTS = ['*']
 
-INTERNAL_IPS = ['127.0.0.1']
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
     'formatters': {
         'verbose': {
             'format' : "[%(asctime)s] %(levelname)s %(message)s",
-            'datefmt' : "%d/%b/%Y %H:%M:%S"
+            'datefmt' : "%d/%b/%Y %H:%M:%S",
         },
         'simple': {
-            'format': '%(levelname)s %(message)s'
+            'format': '%(levelname)s %(message)s',
         },
     },
     'filters': {
         'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse'
+            '()': 'django.utils.log.RequireDebugFalse',
         }
     },
     'handlers': {
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
+            'class': 'django.utils.log.AdminEmailHandler',
         },
         'console': {
             'level': 'DEBUG',
@@ -204,17 +190,3 @@ LOGGING = {
         }
     }
 }
-
-##################
-# LOCAL SETTINGS #
-##################
-
-# Allow any settings to be defined in local_settings.py which should be
-# ignored in your version control system allowing for settings to be
-# defined per machine.
-if not CURRENT_PATH.startswith('/var/www'):
-    try:
-        from .local_settings import *
-    except ImportError as e:
-        if "local_settings" not in str(e):
-            raise e

@@ -583,8 +583,6 @@ def supercaldata(user,slug):
 
         # Loops through calslist
         if len(calslist) > 0:
-            # if settings.LOCAL_DEVELOPMENT: logger.debug("\033[94mWe have calibrators\033[1;m")
-
             # Stacks the values
             calstack = np.array([])
             calstack = np.vstack(calslist)
