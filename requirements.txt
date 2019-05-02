@@ -6,3 +6,5 @@ gunicorn[gevent]==19.9.0
 django-rest-framework
 djangorestframework
 djangorestframework-jsonp
+boto3
+django-storages

@@ -1,6 +1,6 @@
 '''
-Citizen Science Portal: App containing Agent Exoplant for Las Cumbres Observatory Global Telescope Network
-Copyright (C) 2014-2015 LCOGT
+Agent Exoplanet: Las Cumbres Observatory Global Telescope Network
+Copyright (C) 2014-2019 LCOGT
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,6 +19,19 @@ from django.conf import settings
 
 import ast
 import os
+
+def str2bool(value):
+    '''Convert a string value to a boolean'''
+    value = value.lower()
+
+    if value in ('t', 'true', 'y', 'yes', '1', ):
+        return True
+
+    if value in ('f', 'false', 'n', 'no', '0', ):
+        return False
+
+    raise RuntimeError('Unable to parse {} as a boolean value'.format(value))
+
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
 BASE_DIR = os.path.dirname(CURRENT_PATH)
@@ -55,18 +68,6 @@ SITE_ID = 1
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
 USE_I18N = True
-
-MEDIA_ROOT = '/media/'
-MEDIA_URL = '/media/'
-
-DATA_LOCATION = MEDIA_ROOT + '/data'
-DATA_URL = MEDIA_URL + 'data'
-
-STATIC_ROOT = '/static/'
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'agentex', 'static'),
-]
 
 # List of finder classes that know how to find static files in
 # various locations.
@@ -124,7 +125,33 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'agentex.apps.AgentConfig',
+    'storages'
 )
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'agentex', 'static'),
+]
+
+if str2bool(os.getenv('USE_S3', 'False')):
+    # aws settings
+    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+    AWS_S3_REGION_NAME = os.getenv('AWS_DEFAULT_REGION', 'us-west-2')
+    AWS_DEFAULT_ACL = None
+    AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
+    # s3 public media settings
+    PUBLIC_MEDIA_LOCATION = 'media'
+    MEDIA_URL = f'https://s3-{AWS_S3_REGION_NAME}.amazonaws.com/{AWS_STORAGE_BUCKET_NAME}/{PUBLIC_MEDIA_LOCATION}/'
+    DEFAULT_FILE_STORAGE = 'core.storage_backends.PublicMediaStorage'
+    # s3 public static files storage settings
+    PUBLIC_STATIC_LOCATION = 'static'
+    STATIC_URL = f'https://s3-{AWS_S3_REGION_NAME}.amazonaws.com/{AWS_STORAGE_BUCKET_NAME}/{PUBLIC_STATIC_LOCATION}/'
+    STATICFILES_STORAGE = 'core.storage_backends.StaticStorage'
+
+    DATA_LOCATION = '/data'
+    DATA_URL = MEDIA_URL + 'data'
+
 
 LOGIN_URL = '/account/login/'
 
@@ -190,3 +217,17 @@ LOGGING = {
         }
     }
 }
+
+##################
+# LOCAL SETTINGS #
+##################
+
+# Allow any settings to be defined in local_settings.py which should be
+# ignored in your version control system allowing for settings to be
+# defined per machine.
+if not CURRENT_PATH.startswith('/var/www'):
+    try:
+        from .local_settings import *
+    except ImportError as e:
+        if "local_settings" not in str(e):
+            raise e
