@@ -9,7 +9,7 @@ from agentex.models import DataSource, Event,CatSource
 
 class Command(BaseCommand):
     args = '<event_id>'
-    help = 'Create DataSource objects for FITS files'
+    help = 'Create DataSource objects for FITS files. This is only to be run locally'
 
     def add_arguments(self, parser):
         parser.add_argument('--event_id', type=str)

@@ -149,9 +149,6 @@ if str2bool(os.getenv('USE_S3', 'False')):
     STATIC_URL = f'https://s3-{AWS_S3_REGION_NAME}.amazonaws.com/{AWS_STORAGE_BUCKET_NAME}/{PUBLIC_STATIC_LOCATION}/'
     STATICFILES_STORAGE = 'core.storage_backends.StaticStorage'
 
-    DATA_LOCATION = '/data'
-    DATA_URL = MEDIA_URL + 'data'
-
 
 LOGIN_URL = '/account/login/'
 

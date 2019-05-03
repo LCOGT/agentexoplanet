@@ -282,9 +282,7 @@ def fitsanalyse(data):
     coords = list(zip(data['x'], data['y']))
     datasource = DataSource.objects.get(pk=data['id'])
     # Grab a fits file
-    dfile = "%s%s" % (settings.DATA_LOCATION,datasource.fits)
-    #logger.debug(dfile)
-    dc = fits.getdata(dfile,header=False)
+    dc = fits.getdata(datasource.fits[1:],header=False)
     r = datasource.event.radius
     linex = list()
     liney = list()
