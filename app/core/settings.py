@@ -67,8 +67,8 @@ USE_I18N = True
 MEDIA_ROOT = '/var/www/html/media/'
 MEDIA_URL = PREFIX + '/media/'
 
-DATA_LOCATION = MEDIA_ROOT + '/data'
-DATA_URL = MEDIA_URL + 'data'
+DATA_LOCATION = MEDIA_ROOT + 'data/'
+DATA_URL = MEDIA_URL + 'data/'
 
 STATIC_ROOT = '/var/www/html/static/'
 STATIC_URL = PREFIX + '/static/'
