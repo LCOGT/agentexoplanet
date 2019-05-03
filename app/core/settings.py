@@ -132,9 +132,6 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'agentex', 'static'),
 ]
 
-STATIC_ROOT = '/var/www/html/static/'
-STATIC_URL = '/static/'
-
 if str2bool(os.getenv('USE_S3', 'False')):
     # aws settings
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
