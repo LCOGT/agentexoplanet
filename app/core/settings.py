@@ -132,6 +132,15 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'agentex', 'static'),
 ]
 
+# Static files are on the local filesystem by default
+STATIC_URL = '/static/'
+STATIC_ROOT = '/static/'
+
+# Media files are on the local filesystem by default
+MEDIA_URL = '/images/'
+MEDIA_ROOT = '/images/'
+
+# AWS S3 is another supported option for media files
 if str2bool(os.getenv('USE_S3', 'False')):
     # aws settings
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
@@ -144,10 +153,6 @@ if str2bool(os.getenv('USE_S3', 'False')):
     PUBLIC_MEDIA_LOCATION = 'media'
     MEDIA_URL = f'https://s3-{AWS_S3_REGION_NAME}.amazonaws.com/{AWS_STORAGE_BUCKET_NAME}/{PUBLIC_MEDIA_LOCATION}/'
     DEFAULT_FILE_STORAGE = 'core.storage_backends.PublicMediaStorage'
-    # s3 public static files storage settings
-    PUBLIC_STATIC_LOCATION = 'static'
-    STATIC_URL = f'https://s3-{AWS_S3_REGION_NAME}.amazonaws.com/{AWS_STORAGE_BUCKET_NAME}/{PUBLIC_STATIC_LOCATION}/'
-    STATICFILES_STORAGE = 'core.storage_backends.StaticStorage'
 
 
 LOGIN_URL = '/account/login/'
