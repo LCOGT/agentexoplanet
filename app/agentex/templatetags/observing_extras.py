@@ -1,7 +1,7 @@
+from django.templatetags.static import static
 from django.template import Library
 from django.conf import settings
 from math import fabs,floor
-#from settings import STATIC_URL
 from agentex.agentex_settings import decision_images
 from agentex.models import Datapoint
 
@@ -41,11 +41,17 @@ def is_false(arg):
 
 @register.filter(name='decisionconvert')
 def decisionconvert(arg):
-    dec= decision_images
+    dec = decision_images
     try:
         image = dec[arg]['image']
         name = dec[arg]['name']
-        html = '<img src="%simages/%s" alt="%s" title="Classified as %s">' % (STATIC_URL,image,name,name)
+        url = static('images/{}'.format(image))
+
+        html = '<img src="{url}" alt="{alt}" title="Classified as {title}">'.format(
+            url=url,
+            alt=name,
+            title=name,
+        )
         return html
     except:
         return ""
