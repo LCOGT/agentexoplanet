@@ -4,7 +4,7 @@
 {%block header %} Agent Exoplanet comments{%endblock%}
 
 {% block script-content %}
-	<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jquery.min.js"></script>
+    <script language="javascript" type="text/javascript" src="{% static 'js/jquery.min.js' %}"></script>
     <script type="text/javascript">
     {% if messages %}
 	$(document).ready(function(){
