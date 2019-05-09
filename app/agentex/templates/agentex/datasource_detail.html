@@ -345,7 +345,7 @@
 		}
 
 		helpstep = 0;
-		photo = new Photometry({id:'photometric',src:"{{ object.image.url }}",form:'entryform',width:$('#middle').outerWidth(),source:{x:s_x,y:s_y,r:start_r},sky:{x:b_x,y:b_y,r:start_r,label:'Sky'},calibrator:{x:[c_x[0],c_x[1],c_x[2]],y:[c_y[0],c_y[1],c_y[2]],r:start_r},zoom:2,callback:photoReady,calibrators:calibrators,suggested:suggested});
+		photo = new Photometry({id:'photometric',src:"{{ object.image.url|safe }}",form:'entryform',width:$('#middle').outerWidth(),source:{x:s_x,y:s_y,r:start_r},sky:{x:b_x,y:b_y,r:start_r,label:'Sky'},calibrator:{x:[c_x[0],c_x[1],c_x[2]],y:[c_y[0],c_y[1],c_y[2]],r:start_r},zoom:2,callback:photoReady,calibrators:calibrators,suggested:suggested});
 		$('input.fancybtn').addClass('fancybtndisable');
 		$('input.fancybtn').attr("disabled", "true");
 		$('#entryform').css('display', 'none');
