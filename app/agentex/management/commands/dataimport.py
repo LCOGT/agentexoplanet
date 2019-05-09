@@ -11,12 +11,11 @@ import subprocess
 #os.environ['DJANGO_SETTINGS_MODULE'] = 'timeallocation.settings'
 
 from agentex.models import DataSource, Event, Target, CatSource
-from settings import DATA_LOCATION
 
 path = '/Users/eg/Sites/data/'
 
 #url1 = "complete/extra/GJ1214/"
-urlj = 'jpgs/' 
+urlj = 'jpgs/'
 urlf = 'fits/'
 #urlj =  "http://localhost/data/M51-R/"
 
@@ -31,7 +30,7 @@ def importfits(ev,tg,url):
     for l in ls:
         if l.endswith('.fits'):
             listf.append(l)
-    
+
     e = Event.objects.get(id=int(ev))
     target = Target.objects.get(id=int(tg))
     print "%s : %s\n" % (target.name,e.title)
@@ -47,7 +46,7 @@ def importfits(ev,tg,url):
             head[0].header['TELESCOP']
         except:
             print "Not FTN or FTS"
-        #if head['TELESCOP'] == 'Faulkes Telescope North' or head['TELESCOP'] == 'Faulkes Telescope South': 
+        #if head['TELESCOP'] == 'Faulkes Telescope North' or head['TELESCOP'] == 'Faulkes Telescope South':
         if head[0].header['TELESCOP'] == 'Faulkes Telescope North' or head[0].header['TELESCOP'] == 'Faulkes Telescope South':
             # FTN/S data
             #timestamp = datetime.strptime(head[0].header['DATE-OBS'], "%Y-%m-%dT%H:%M:%S.%f")
@@ -88,7 +87,7 @@ def importfits(ev,tg,url):
     e.end = ds[ds.count()-1].timestamp
     e.midpoint = ds[ds.count()/2].timestamp
     e.save()
-    
+
 def correctimages(event):
     ds = DataSource.objects.filter(event=event)
     for d in ds:
@@ -97,7 +96,7 @@ def correctimages(event):
         d.fits = "/%s/%s/%s" % (fpath[1],fpath[3],fpath[-1])
         d.image = "/%s/%s/%s" % (ipath[1],ipath[3],ipath[-1])
         d.save()
-        
+
 def findsources(dataid,datapath):
     d = DataSource.objects.filter(id=dataid)
     dfile = '%s%s' % (datapath,d[0].fits)
@@ -174,5 +173,3 @@ def f(x,y,z):
          return y.append(x)
      elif x.endswith('jpg'):
          return z.append(x)
-
-         

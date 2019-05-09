@@ -32,6 +32,7 @@ from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render_to_response, render
 from django.template import RequestContext
+from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.views.generic import DetailView, ListView, View
@@ -144,7 +145,8 @@ def read_manual_check(request):
         o = personcheck(request)
         resp = achievementunlock(o,None,'manual')
         if messages.SUCCESS == resp['code'] :
-            messages.add_message(request, messages.SUCCESS, "Achievement unlocked<br /><img src=\""+settings.STATIC_URL+resp['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />")
+            img_path = static(resp['image'])
+            messages.add_message(request, messages.SUCCESS, "Achievement unlocked<br /><img src=\"{}\" style=\"width:96px;height:96px;\" alt=\"Badge\" />".format(img_path))
     return HttpResponseRedirect(reverse('target'))
 
 
@@ -378,7 +380,8 @@ def graphview_ave(request,slug, calid=None):
 
     for item in resp:
         if messages.SUCCESS == item['code'] :
-            msg += "<img src=\""+settings.STATIC_URL+item['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />"
+            img_path = static(item['image'])
+            msg += "<img src=\"{}\" style=\"width:96px;height:96px;\" alt=\"Badge\" />".format(img_path)
             unlock = True
             nunlock += 1
 
@@ -386,6 +389,8 @@ def graphview_ave(request,slug, calid=None):
         if nunlock > 1 : msg = 'Achievements unlocked'+msg
         else : msg = 'Achievement unlocked'+msg
         messages.add_message(request, messages.SUCCESS, msg)
+
+    choice_images = find_choice_images()
     logger.debug('The classified objects (number selected to have a dip, total number of calibrator star data sets, number of those datasets are completed) {}'.format(classif))
     template_data = {'event': planet,
                     'data':data,
@@ -394,10 +399,16 @@ def graphview_ave(request,slug, calid=None):
                     'calid': currentcal,
                     'prevchoice' : prev,
                     'classified':classif,
-                    'progress' : progress
+                    'progress' : progress,
+                    'choice_imgs' : choice_images
                     }
     return render(request, 'agentex/graph_step2.html', template_data)
 
+def find_choice_images():
+    img_dict = {}
+    for d in decisions:
+        img_dict[d[1]] = static('images/choice_{}.png'.format(d[0]))
+    return img_dict
 
 def update_web_pref(request,setting):
     #################

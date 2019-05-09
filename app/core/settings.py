@@ -1,6 +1,6 @@
 '''
-Citizen Science Portal: App containing Agent Exoplant for Las Cumbres Observatory Global Telescope Network
-Copyright (C) 2014-2015 LCOGT
+Agent Exoplanet: Las Cumbres Observatory Global Telescope Network
+Copyright (C) 2014-2019 LCOGT
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -14,22 +14,28 @@ GNU General Public License for more details.
 '''
 # Django settings for Agent Exoplanet
 
-import os
-import platform
 from django.utils.crypto import get_random_string
 from django.conf import settings
 
+import ast
+import os
+
+def str2bool(value):
+    '''Convert a string value to a boolean'''
+    value = value.lower()
+
+    if value in ('t', 'true', 'y', 'yes', '1', ):
+        return True
+
+    if value in ('f', 'false', 'n', 'no', '0', ):
+        return False
+
+    raise RuntimeError('Unable to parse {} as a boolean value'.format(value))
+
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
-PRODUCTION = True if CURRENT_PATH.startswith('/var/www') else False
-LOCAL_DEVELOPMENT = not PRODUCTION
-
-DEBUG = not PRODUCTION
-
-PREFIX = os.environ.get('PREFIX', '/agentexoplanet')
-FORCE_SCRIPT_NAME = PREFIX
-
 BASE_DIR = os.path.dirname(CURRENT_PATH)
+DEBUG = ast.literal_eval(os.environ.get('DEBUG', 'False'))
 
 ADMINS = (
 )
@@ -39,7 +45,6 @@ MANAGERS = ADMINS
 DATABASES = {
  'default' : {
     'ENGINE'    : 'django.db.backends.mysql',
-    # 'ENGINE'    : 'django.db.backends.sqlite3',
     'NAME'      : os.environ.get('DB_NAME',''),
     "USER"      : os.environ.get('DB_USER',''),
     "PASSWORD"  : os.environ.get('DB_PASSWD',''),
@@ -56,23 +61,13 @@ TIME_ZONE = 'UTC'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'en-gb'
+LANGUAGE_CODE = 'en-US'
 
 SITE_ID = 1
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
 USE_I18N = True
-
-MEDIA_ROOT = '/var/www/html/media/'
-MEDIA_URL = PREFIX + '/media/'
-
-DATA_LOCATION = MEDIA_ROOT + 'data/'
-DATA_URL = MEDIA_URL + 'data/'
-
-STATIC_ROOT = '/var/www/html/static/'
-STATIC_URL = PREFIX + '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR,'agentex','static')]
 
 # List of finder classes that know how to find static files in
 # various locations.
@@ -81,7 +76,7 @@ STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.AppDirectoriesFinder"
  )
 
-SECRET_KEY = os.environ.get('SECRET_KEY','')
+SECRET_KEY = os.environ.get('SECRET_KEY', '')
 if not SECRET_KEY:
     chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
     SECRET_KEY = get_random_string(50, chars)
@@ -94,14 +89,13 @@ MIDDLEWARE= [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    ]
+]
 
 CACHE_MIDDLEWARE_SECONDS = '1'
 
-
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
-    )
+)
 
 ROOT_URLCONF = 'core.urls'
 
@@ -116,7 +110,6 @@ TEMPLATES = [
             'django.template.context_processors.request',
             'django.contrib.auth.context_processors.auth',
             'django.contrib.messages.context_processors.messages',
-            'agentex.context_processors.global_settings'
             ],
         },
     },
@@ -129,18 +122,45 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
-    'django.contrib.staticfiles', # Added by TJ to allow static files declaration
+    'django.contrib.staticfiles',
     'agentex.apps.AgentConfig',
+    'storages'
 )
 
-LOGIN_REDIRECT_URL = PREFIX
-LOGIN_URL = PREFIX + '/account/login/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'agentex', 'static'),
+]
 
+# Static files are on the local filesystem by default
+STATIC_URL = '/static/'
+STATIC_ROOT = '/static/'
+
+# Media files are on the local filesystem by default
+MEDIA_URL = '/images/'
+MEDIA_ROOT = '/images/'
+
+# AWS S3 is another supported option for media files
+if str2bool(os.getenv('USE_S3', 'False')):
+    USE_S3 = True
+    # aws settings
+    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+    AWS_S3_REGION_NAME = os.getenv('AWS_DEFAULT_REGION', 'us-west-2')
+    AWS_DEFAULT_ACL = None
+    AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
+    AWS_S3_SIGNATURE_VERSION = 's3v4'
+    # s3 public media settings
+    PUBLIC_MEDIA_LOCATION = 'media'
+    MEDIA_URL = f'https://s3-{AWS_S3_REGION_NAME}.amazonaws.com/{AWS_STORAGE_BUCKET_NAME}/{PUBLIC_MEDIA_LOCATION}/'
+    DEFAULT_FILE_STORAGE = 'core.storage_backends.PublicMediaStorage'
+
+DATA_LOCATION = MEDIA_ROOT + 'data/'
+DATA_URL = MEDIA_URL + 'data/'
+
+LOGIN_URL = '/account/login/'
 
 SESSION_COOKIE_NAME='agentexoplanet.sessionid'
-
-
-BASE_URL = "/agentexoplanet/"
 
 EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS       = True
@@ -153,30 +173,28 @@ EMAIL_REPLYTO       = 'agentexoplanet@lco.global'
 
 ALLOWED_HOSTS = ['*']
 
-INTERNAL_IPS = ['127.0.0.1']
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
     'formatters': {
         'verbose': {
             'format' : "[%(asctime)s] %(levelname)s %(message)s",
-            'datefmt' : "%d/%b/%Y %H:%M:%S"
+            'datefmt' : "%d/%b/%Y %H:%M:%S",
         },
         'simple': {
-            'format': '%(levelname)s %(message)s'
+            'format': '%(levelname)s %(message)s',
         },
     },
     'filters': {
         'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse'
+            '()': 'django.utils.log.RequireDebugFalse',
         }
     },
     'handlers': {
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
+            'class': 'django.utils.log.AdminEmailHandler',
         },
         'console': {
             'level': 'DEBUG',

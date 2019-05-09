@@ -8,7 +8,7 @@
 {% block script-content %}{% ifnotequal complete 1 %}
 	<script type="text/javascript" src="{% static 'js/agentex.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/raphael.js' %}"></script>
-	<script type="text/javascript" src="{% static 'js/g.raphael.' %}js"></script>
+	<script type="text/javascript" src="{% static 'js/g.raphael.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/g.line.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/raphael.sizer.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/raphael.rangelimiter.js' %}"></script>
@@ -345,7 +345,7 @@
 		}
 
 		helpstep = 0;
-		photo = new Photometry({id:'photometric',src:"{{ DATA_URL }}{{ object.image }}",form:'entryform',width:$('#middle').outerWidth(),source:{x:s_x,y:s_y,r:start_r},sky:{x:b_x,y:b_y,r:start_r,label:'Sky'},calibrator:{x:[c_x[0],c_x[1],c_x[2]],y:[c_y[0],c_y[1],c_y[2]],r:start_r},zoom:2,callback:photoReady,calibrators:calibrators,suggested:suggested});
+		photo = new Photometry({id:'photometric',src:"{{ object.image.url|safe }}",form:'entryform',width:$('#middle').outerWidth(),source:{x:s_x,y:s_y,r:start_r},sky:{x:b_x,y:b_y,r:start_r,label:'Sky'},calibrator:{x:[c_x[0],c_x[1],c_x[2]],y:[c_y[0],c_y[1],c_y[2]],r:start_r},zoom:2,callback:photoReady,calibrators:calibrators,suggested:suggested});
 		$('input.fancybtn').addClass('fancybtndisable');
 		$('input.fancybtn').attr("disabled", "true");
 		$('#entryform').css('display', 'none');
@@ -542,7 +542,7 @@
             <div class="fbtn"><a class="fancybtngrey btns" id="btn-remove" style="display:none;"><img src="{% static 'images/round_minus_icon&16.png' %}" style="width:16px;height:16px;" alt="Remove" title="Remove a calibration ring" /> Zap calibrator</a></div>
             {% endif %}
             <div class="fbtn"><a class="fancybtngrey btns" id="btn-finetune"><img src="{% static 'images/round_plus_icon&16.png' %}" style="width:16px;height:16px;" alt="Add" title="Fine tune positions" /> Fine Tune</a></div>
-  					<div class="fbtn"><a href="{{data_url}}{{data.fits}}" class="fancybtngrey btns" id="btn-download" title="Download data file (FITS format)"><img src="{% static 'images/download_icon&16.png' %}" style="width:16px;height:16px;" alt="." /> Download data</a></div>
+  					<div class="fbtn"><a href="{{data.fits.url}}" class="fancybtngrey btns" id="btn-download" title="Download data file (FITS format)"><img src="{% static 'images/download_icon&16.png' %}" style="width:16px;height:16px;" alt="." /> Download data</a></div>
   				</div>
 {% endifnotequal %}
 {%endblock%}
@@ -585,7 +585,7 @@
 					{% if user.is_authenticated %}<div class="progress" style="width:100%;height:1.5em;background-color:#b3b3b3;margin-bottom:8px;"><div class="progressbar"></div><div class="label" style="padding:0.25em;text-align:center;width:100%;">You've completed {{progress.done}} of {{progress.total}} frames ({{progress.percent}}%)</div></div>{% endif %}
 					<div id="middle">
 						<div id="photometric">
-							<div id="photometric_imageholder_small"><img src="{{ DATA_URL }}{{object.image}}" style="width:100%" alt="Image from telescope" /></div>
+							<div id="photometric_imageholder_small"><img src="{{object.image.url}}" style="width:100%" alt="Image from telescope" /></div>
 						</div>
 					</div>
 					<div id="lower" style="text-align:right;">

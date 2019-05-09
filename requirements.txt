@@ -2,7 +2,9 @@ django>=2.1,<2.2
 mysqlclient
 astropy
 numpy
-gunicorn[gevent]
+gunicorn[gevent]==19.9.0
 django-rest-framework
 djangorestframework
 djangorestframework-jsonp
+boto3
+django-storages

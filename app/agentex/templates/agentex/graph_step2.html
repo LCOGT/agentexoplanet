@@ -8,7 +8,7 @@
 
 {% block script-content %}
 	<script language="javascript" type="text/javascript" src="{% static 'js/agentex.js' %}"></script>
-	<!--[if lt IE 9]><script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/excanvas.js"></script><![endif]-->
+  <!--[if lt IE 9]><script language="javascript" type="text/javascript" src="{% static 'js/excanvas.js' %}"></script><![endif]-->
 	<script language="javascript" type="text/javascript" src="{% static 'js/jquery.min.js' %}"></script>
 	<script language="javascript" type="text/javascript" src="{% static 'js/jquery.graph.js' %}"></script>
 	<script language="javascript" type="text/javascript" src="{% static 'js/lightcurve.js' %}"></script>
@@ -44,6 +44,7 @@
 		var showncompletedmsg = false;
 		var sources = {{cals|safe}};
 		var calid = {{calid.order}};
+    var choice_imgs = {{choice_imgs|safe}};
 		var calorder = 0;
 		var undecided = 0;
 		for(var i = 0 ; i < sources.length ; i++){
@@ -203,7 +204,8 @@
 			if(d == "other") return "R";
 		}
 		function decisionImage(d){
-			return '<img title="Classified as '+d+'" alt="'+d+'" src="{{STATIC_URL}}images/choice_'+d+'.png">';
+      var img = choice_img[d];
+			return '<img title="Classified as '+d+'" alt="'+d+'" src='+img+'>';
 		}
 
 		if(prevchoice){

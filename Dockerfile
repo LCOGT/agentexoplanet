@@ -1,22 +1,21 @@
 FROM python:3.6-alpine
-MAINTAINER Edward Gomez <egomez@lco.global>
 
-ENTRYPOINT [ "/init" ]
-
-
-# set the PREFIX env variable
-ENV PREFIX /agentexoplanet
+# default working directory
+WORKDIR /app
 
 # install depedencies
-COPY requirements.pip /var/www/apps/agentex/requirements.pip
-RUN apk --no-cache add dcron libjpeg-turbo mariadb-connector-c nginx supervisor zlib libgomp \
-        && apk --no-cache add --virtual .build-deps gcc g++ git \
-                libjpeg-turbo-dev mariadb-dev musl-dev zlib-dev \
-        && pip --no-cache-dir --trusted-host=buildsba.lco.gtn install -r /var/www/apps/agentex/requirements.pip \
+COPY requirements.txt .
+RUN apk --no-cache add libgomp libjpeg-turbo mariadb-connector-c zlib \
+        && apk --no-cache add --virtual .build-deps \
+                g++ \
+                gcc \
+                git \
+                libjpeg-turbo-dev \
+                mariadb-dev \
+                musl-dev \
+                zlib-dev \
+        && pip --no-cache-dir --trusted-host=buildsba.lco.gtn install -r requirements.txt \
         && apk --no-cache del .build-deps
 
-# install entrypoint
-COPY config/ /
-
 # install web application
-COPY app /var/www/apps/agentex/
+COPY app/ .

@@ -24,6 +24,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.core.serializers import serialize
+from django.templatetags.static import static
 from django.db import connection
 from django.db.models import Count, Avg, Min, Max, Variance, Q, Sum
 from django.http import HttpResponse, HttpResponseRedirect, Http404
@@ -282,9 +283,11 @@ def fitsanalyse(data):
     coords = list(zip(data['x'], data['y']))
     datasource = DataSource.objects.get(pk=data['id'])
     # Grab a fits file
-    dfile = "%s%s" % (settings.DATA_LOCATION,datasource.fits)
-    #logger.debug(dfile)
-    dc = fits.getdata(dfile,header=False)
+    if settings.USE_S3:
+        file_path = datasource.fits.url
+    else:
+        file_path = datasource.fits.path
+    dc = fits.getdata(file_path, header=False)
     r = datasource.event.radius
     linex = list()
     liney = list()
@@ -411,7 +414,6 @@ def savemeasurement(person, lines, dataid, mode):
         sc_ypos = d.event.ypos
         xvar = np.abs(np.abs(sc_xpos-s_x)-np.abs(xmean))
         yvar = np.abs(np.abs(sc_ypos-s_y)-np.abs(ymean))
-        logger.error("x = {} {} {},y = {} {} {}".format(xvar, s_x, sc_xpos, yvar, s_y, sc_ypos))
         if (xvar > 20 or yvar > 20):
             # Remove previous values for this point
             oldpoints = Datapoint.objects.filter(data__id=int(dataid),user=person)
@@ -471,7 +473,7 @@ def savemeasurement(person, lines, dataid, mode):
     msg = '<br />'
     for item in resp:
         if messages.SUCCESS == item['code'] :
-            msg += "<img src=\""+settings.STATIC_URL+item['image']+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />"
+            msg += "<img src=\""+static(item['image'])+"\" style=\"width:96px;height:96px;\" alt=\"Badge\" />"
 
     if resp:
         lines['msg'] = 'Achievement unlocked {}'.format(msg)
@@ -583,8 +585,6 @@ def supercaldata(user,slug):
 
         # Loops through calslist
         if len(calslist) > 0:
-            # if settings.LOCAL_DEVELOPMENT: logger.debug("\033[94mWe have calibrators\033[1;m")
-
             # Stacks the values
             calstack = np.array([])
             calstack = np.vstack(calslist)

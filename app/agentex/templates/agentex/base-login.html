@@ -6,9 +6,9 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<meta name="DC.Title" content="Las Cumbres Observatory Global Telescope Network" />
 	<link rel="shortcut icon" href="http://lcogt.net/sites/default/themes/zen/lcogt/favicon.ico" type="image/x-icon" />
-	<link rel="stylesheet" href="{{STATIC_URL}}css2/lcogt.css" type="text/css">{% block css-content %}{% endblock %}
-	<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.min.js"></script>
-	<script type="text/javascript" src="{{ STATIC_URL }}js/agentex.js"></script>{% block script-content %}{% endblock %}
+	{% block css-content %}{% endblock %}
+  <script language="javascript" type="text/javascript" src="{% static 'js/jquery.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/agentex.js' %}"></script>{% block script-content %}{% endblock %}
 	<script type="text/javascript">
 
       var _gaq = _gaq || [];
@@ -27,7 +27,7 @@
 
 	<div id="page-wrapper">
 		<div id="page">
-		
+
 			<div id="lcogt-bar">
 				<div id="login" class="block">{% if user.is_authenticated %}{% block username %}{{ user.username }}{% endblock %} | <a href="{% url 'logout' %}">Logout?</a>{% else %}<a href="{% url 'login' %}?next={{request.path}}">Login</a>{% endif %}</div>
 				<div>
@@ -36,12 +36,12 @@
 			</div>
 
 			<div id="screen">
-		
+
 				<div id="container">
-		
-					{% block logo-content %}<div id="logo"><a href="{% url 'portal' %}" title="Citizen Science Home" rel="home"><img src="{{STATIC_URL}}images/citsci-logo2.png" alt="Home" id="logo-image" /></a></div>{% endblock %}
-					<div id="logo2"><a href="http://lcogt.net" title="LCOGT Home" rel="home"><img src="{{STATIC_URL}}images/logo-gray-poweredby.png" alt="Home" id="logo-image" /></a></div>
-		
+
+					{% block logo-content %}<div id="logo"><a href="{% url 'portal' %}" title="Citizen Science Home" rel="home"><img src="{% static 'images/citsci-logo2.png' %}" alt="Home" id="logo-image" /></a></div>{% endblock %}
+					<div id="logo2"><a href="http://lcogt.net" title="LCOGT Home" rel="home"><img src="{% static 'images/logo-gray-poweredby.png' %}" alt="Home" id="logo-image" /></a></div>
+
 					{% block navbar %}
 					<div id="navbar" class="primary clear-block">
 						<ul class="links">
@@ -50,7 +50,7 @@
 					</div>
 					{% endblock %}
 					<div class="clear-block"></div>
-		
+
 					<div id="main">
 						<!--<div id="content">-->{% block main-content %}{% endblock %}			<!--</div>-->
 					</div>

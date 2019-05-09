@@ -15,7 +15,7 @@ from astroquery.vizier import Vizier
 
 class Command(BaseCommand):
     args = '<event_id>'
-    help = 'Create CatSource objects for a given Planet'
+    help = 'Create CatSource objects for a given Planet. For local use only.'
 
     def add_arguments(self, parser):
         parser.add_argument('--event_id', type=str)
@@ -25,9 +25,7 @@ class Command(BaseCommand):
         try:
             planet = Event.objects.get(slug=options['event_id'])
             d = DataSource.objects.get(id=planet.finder)
-            filename = '%s%s' % (settings.DATA_LOCATION,d.fits)
-            #dc = pyfits.open(dfile)
-            hdu = fits.open(filename)
+            hdu = fits.open(settings.DATA_LOCATION+d.fits[1:])
             w = wcs.WCS(hdu[1].header)
             ra = hdu[1].header['ra']
             dec = hdu[1].header['dec']

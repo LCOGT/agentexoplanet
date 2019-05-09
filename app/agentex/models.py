@@ -100,8 +100,8 @@ class Event(models.Model):
         return self.title
 
 class DataSource(models.Model):
-    fits = models.CharField(max_length=100, blank=True)
-    image = models.CharField(max_length=100, blank=True, null=True)
+    fits = models.FileField(blank=True)
+    image = models.FileField(blank=True, null=True)
     timestamp = models.DateTimeField(null=True, blank=True)
     telescopeid = models.CharField(blank=True, max_length=100)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
