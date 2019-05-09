@@ -141,6 +141,7 @@ MEDIA_ROOT = '/images/'
 
 # AWS S3 is another supported option for media files
 if str2bool(os.getenv('USE_S3', 'False')):
+    USE_S3 = True
     # aws settings
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')

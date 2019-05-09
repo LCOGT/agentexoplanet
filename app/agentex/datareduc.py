@@ -283,7 +283,11 @@ def fitsanalyse(data):
     coords = list(zip(data['x'], data['y']))
     datasource = DataSource.objects.get(pk=data['id'])
     # Grab a fits file
-    dc = fits.getdata(datasource.fits[1:],header=False)
+    if settings.USE_S3:
+        file_path = datasource.fits.url
+    else:
+        file_path = datasource.fits.path
+    dc = fits.getdata(file_path, header=False)
     r = datasource.event.radius
     linex = list()
     liney = list()
@@ -410,7 +414,6 @@ def savemeasurement(person, lines, dataid, mode):
         sc_ypos = d.event.ypos
         xvar = np.abs(np.abs(sc_xpos-s_x)-np.abs(xmean))
         yvar = np.abs(np.abs(sc_ypos-s_y)-np.abs(ymean))
-        logger.error("x = {} {} {},y = {} {} {}".format(xvar, s_x, sc_xpos, yvar, s_y, sc_ypos))
         if (xvar > 20 or yvar > 20):
             # Remove previous values for this point
             oldpoints = Datapoint.objects.filter(data__id=int(dataid),user=person)
