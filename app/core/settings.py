@@ -175,7 +175,7 @@ ALLOWED_HOSTS = ['*']
 
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': True,
+    'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
             'format' : "[%(asctime)s] %(levelname)s %(message)s",
