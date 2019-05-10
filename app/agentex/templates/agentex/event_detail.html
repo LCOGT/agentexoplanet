@@ -82,7 +82,7 @@
 			<a href="{% url 'super-graph' object.slug %}" class="fancybtn">View combined light-curve graph<span class="arrow">&nbsp;</span></a>
 		</div>
 		<div class="lower">
-      <a href="{{object.data_download}}">Download this dataset ({{object.download_size}} Mb)</a>
+      <a href="{{object.data_download.url}}">Download this dataset ({{object.download_size}} Mb)</a>
     </div>
 	</div>
 </div>
