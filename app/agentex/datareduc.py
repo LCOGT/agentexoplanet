@@ -654,7 +654,6 @@ def supercaldata(user,slug):
 
 
 def myaverages(code,person):
-    print(code)
     ds = DataSource.objects.filter(event__slug=code).order_by('timestamp').values_list('id',flat=True)
     now = datetime.now()
     cals = []

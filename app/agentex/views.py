@@ -110,8 +110,8 @@ class FinalLightCurve(LoginRequiredMixin, DetailView):
         context['data'] = ds.final()
         my_data, points, num_cals = ds.my_data()
         context['my_data'] = my_data
+        context['orbital_r_km'] = planet.ap*1.49e8
         return context
-
 
 def index(request):
     #return render_to_response('agentex/index.html', context_instance=RequestContext(request))

@@ -152,7 +152,47 @@
 				</tr></table>
 				<p>Using all the values we've measured, calculated or inferred the planet is then estimated to have a radius of <span class="objectspecific transitplanetradius"></span>.</p>
 			</div>
-			<div id="planetdetails"></div>
+			<div id="planetdetails">
+        <table>
+          <tr><th>Property</th><th>Value</th><th>Note</th></tr>
+            <tr>
+              <td>Star mass</td>
+              <td>{{object.mass|floatformat:2}} solar</td>
+              <td>inferred</td>
+            </tr>
+            <tr>
+              <td>Orbital period</td>
+              <td>{{object.period|floatformat:2}} days</td>
+              <td>measured</td>
+            </tr>
+            <tr>
+              <td>Orbital radius</td>
+              <td>{{orbital_r_km|floatformat:0}} km<br/>{{object.ap}} AU</td>
+              <td>inferred</td>
+            </tr>
+            <tr class="success">
+              <td>Duration of transit</td>
+              <td><span id="transit_duration"></span> days</td>
+              <td>using your final lightcurve</td>
+            </tr>
+            <tr class="success">
+              <td>Dip in brightness</td>
+              <td><span id="brightness_dip"></span></td>
+              <td>using your final lightcurve</td>
+            </tr>
+            <tr class="success">
+              <td>Ratio of planet to star radius</td>
+              <td><span id="ratio_radius"></span></td>
+              <td>calculated from your final lightcurve</td>
+            </tr>
+            <tr>
+              <td>Planet's radius</td>
+              <td><span id="planet_r_km"></span> km<br /><span id="planet_r_jup"></span> R<sub>Jupiter</sub></td>
+              <td>inferred (compare this to <a href="{{object.exoplanet_enc_pl}}">values obtained from other experiments</a>)</td>
+            </tr>
+            </table>
+
+      </div>
 		</div>
 		<p class="accessible">Without Javascript enabled we can't show you a lightcurve but you could create your own lightcurve using the data in the table below. You can also provide us with information about which calibrators are not variable by checking the boxes below.</p>
 
