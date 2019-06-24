@@ -47,9 +47,9 @@ DATABASES = {
     'ENGINE'    : 'django.db.backends.mysql',
     'NAME'      : os.environ.get('DB_NAME',''),
     "USER"      : os.environ.get('DB_USER',''),
-    "PASSWORD"  : os.environ.get('DB_PASSWD',''),
+    "PASSWORD"  : os.environ.get('DB_PASS',''),
     "HOST"      : os.environ.get('DB_HOST',''),
-    }
+    },
 }
 
 # Local time zone for this installation. Choices can be found here:
