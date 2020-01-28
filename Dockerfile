@@ -5,16 +5,16 @@ WORKDIR /app
 
 # install depedencies
 COPY requirements.txt .
-RUN apk --no-cache add libgomp libjpeg-turbo mariadb-connector-c zlib \
+RUN apk --no-cache add libgomp libjpeg-turbo postgresql-libs zlib \
         && apk --no-cache add --virtual .build-deps \
                 g++ \
                 gcc \
                 git \
                 libjpeg-turbo-dev \
-                mariadb-dev \
+                postgresql-dev \
                 musl-dev \
                 zlib-dev \
-        && pip --no-cache-dir --trusted-host=buildsba.lco.gtn install -r requirements.txt \
+        && pip --no-cache-dir install -r requirements.txt \
         && apk --no-cache del .build-deps
 
 # install web application
