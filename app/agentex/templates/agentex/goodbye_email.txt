@@ -1,0 +1,16 @@
+<p>Dear {{first_name}},</p>
+
+<p>You are receiving this email because you signed up to use Las Cumbres Observatory’s educational resource, Agent Exoplanet.</p>
+
+<p>After 10 years of service we are sad to tell you that Agent Exoplanet will be wrapping up on <strong>1 January 2022</strong>. When we started LCO only had 2 telescopes which were heavily oversubscribed, making it very difficult to guarantee time for educational projects. Using archive data was our solution and Agent Exoplanet was born. Agent Exoplanet was an experiment for us, so it was far from perfect, but we have all learned valuable lessons. Now LCO has 25 telescopes and 30 educational partners with a combined audience of over 20,000 people per year.</p>
+
+<p>We hope you (over 5000 of you in fact) enjoyed using Agent Exoplanet to learn more about exoplanets and the astronomical data analysis technique called photometry, over the last 10 years.</p>
+
+<p>We would be very grateful if you could complete <a href="https://forms.gle/A562deVmkTkC5Rzi8">a really short survey about Agent Exoplanet</a>. It will help us as we develop more interactive educational resources.</p>
+
+<p>If you are still interested in exploring exoplanet data, we highly recommend <a href="https://waps.cfa.harvard.edu/microobservatory/diy/index.php">MicroObservatory’s DIY Planet Search</a>. Many of the features of Agent Exoplanet have been incorporated into this robust resource, including LCO images!</p>
+
+<p>Please explore the many other <a href="https://lco.global/education/">educational resources on the LCO website</a>.</p>
+
+<p>Edward Gomez - Education Director, Las Cumbres Observatory<br/>
+(On Behalf of the Agent Exoplanet team, past and present)</p>

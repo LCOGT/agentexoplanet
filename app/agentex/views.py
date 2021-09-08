@@ -13,7 +13,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 '''
 
-from astropy.io import fits
 from astropy.table import Table
 from calendar import timegm
 from datetime import datetime,timedelta
