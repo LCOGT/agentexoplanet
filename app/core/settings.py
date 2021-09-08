@@ -20,19 +20,6 @@ from django.conf import settings
 import ast
 import os
 
-def str2bool(value):
-    '''Convert a string value to a boolean'''
-    value = value.lower()
-
-    if value in ('t', 'true', 'y', 'yes', '1', ):
-        return True
-
-    if value in ('f', 'false', 'n', 'no', '0', ):
-        return False
-
-    raise RuntimeError('Unable to parse {} as a boolean value'.format(value))
-
-
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
 BASE_DIR = os.path.dirname(CURRENT_PATH)
 DEBUG = ast.literal_eval(os.environ.get('DEBUG', 'False'))
@@ -44,11 +31,12 @@ MANAGERS = ADMINS
 
 DATABASES = {
  'default' : {
-    'ENGINE'    : 'django.db.backends.mysql',
-    'NAME'      : os.environ.get('DB_NAME',''),
-    "USER"      : os.environ.get('DB_USER',''),
-    "PASSWORD"  : os.environ.get('DB_PASS',''),
-    "HOST"      : os.environ.get('DB_HOST',''),
+    'ENGINE'    : 'django.db.backends.postgresql_psycopg2',
+    'NAME'      : os.environ.get('DB_NAME', ''),
+    'USER'      : os.environ.get('DB_USER', ''),
+    'PASSWORD'  : os.environ.get('DB_PASS', ''),
+    'HOST'      : os.environ.get('DB_HOST', ''),
+    'PORT'      : int(os.environ.get('DB_PORT', '5432')),
     },
 }
 
@@ -140,7 +128,7 @@ MEDIA_URL = '/images/'
 MEDIA_ROOT = '/images/'
 
 # AWS S3 is another supported option for media files
-if str2bool(os.getenv('USE_S3', 'False')):
+if ast.literal_eval(os.getenv('USE_S3', 'False')):
     USE_S3 = True
     # aws settings
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
