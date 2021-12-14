@@ -35,7 +35,9 @@
 	<div class="page stackedpaper">
 		<div class="padder">
 					<h1 class="objectspecific">Mission Briefing</h1>
-
+          <div style="padding:2px 10px;background-color:rgb(255,228,73);margin-bottom:8px;">
+            <p>Agent Exoplanet is no longer active - This is a legacy website. For more details <a href="https://lco.global/news/agent-exoplanet-comes-to-an-end/">see the announcement on the LCO website</a>.</p>
+          </div>
 					<div class="spacer"></div>
 					<h2>Introduction</h2>
 
@@ -51,7 +53,7 @@
 
 					<p>The first discovery of an exoplanet was in 1992 and since then thousands <a href="https://lco.global/spacebook/exoplanets/">exoplanets have been found using several different methods</a>. One of these methods spots exoplanets whose orbit is lined up so that part of it passes between its star and us here on the Earth. When the exoplanet gets between its star and us we call it a <a href="https://lco.global/spacebook/transit-method/">transit</a>. You can sometimes see transits in our own Solar System when Mercury or Venus pass directly between the Sun and the Earth.</p>
 
-					<div class="crumpledpaper" style="width:300px;padding:5px 20px 0 20px;margin: 0 0 10px 10px;background-color:#ddd;float:right;"><h3>Did you know?</h3><p>The most recent <a href="https://lco.global/transitofvenus/">transit of Venus</a> was on June 6, 2012 but the next one will not be until December 10, 2117. The next transit of Mercury won’t be until November 9, 2019.</p></div>
+					<div class="crumpledpaper" style="width:300px;padding:5px 20px 0 20px;margin: 0 0 10px 10px;background-color:#ddd;float:right;"><h3>Did you know?</h3><p>The most recent <a href="https://lco.global/transitofvenus/">transit of Venus</a> was on June 6, 2012 but the next one will not be until December 10, 2117. There was a transit of Mercury on November 9, 2019.</p></div>
 
 					<p>We have used <a href="https://lco.global/observatory/sites/">our telescopes</a> to take a sequence of images of a particular star-field over a period of time. During that time there was a transit of an exoplanet around one of the stars. Agent Exoplanet gives you tools to spot these transits by measuring the brightness of the star as the exoplanet passes in front of it and blocks some of the starlight.</p>
 
@@ -115,11 +117,8 @@
 					<p>Whether you choose lots of calibrators and analyze all the images in the time-series, or if you choose 3 calibrators and a couple of images, all of your measurements are valuable and make the final lightcurve more accurate.</p>
 					<p>You are now ready to begin.</p>
 
-					<form action="{% url 'read_manual_check' %}" method="POST">
-					{% csrf_token %}
-					<input type="hidden" name="read_manual" value="true" />
-					<p style="text-align:center;"><input type="submit" class="fancybtn btn" value="Start the mission" /></p>
-					</form>
+
+					<p style="text-align:center;"><a href="{% url 'target' %}" class="fancybtn btn">View the planets</a></p>
 			</div>
 		</div>
 {% endblock %}

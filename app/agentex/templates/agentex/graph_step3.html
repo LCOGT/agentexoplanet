@@ -22,7 +22,7 @@
 		$('#nextstep').addClass('fancybtndisable');
 
 	{% if data %}
-		html = '<p>Measurements with {{numsuper}} calibrator{% if numsuper > 1 %}s were combined{%else%} was used{%endif%} to make the final, combined, lightcurve. With more calibrators the lightcurve should improve.'
+		html = '<p>Measurements from all users were combined to make the final lightcurve. The scatter is due to the differences in the accuracy of each individuals measurements.'
 		html += '<div id="mainplot" style="height:448px;width:100%;"><\/div>';
 
 	{% endif %}
@@ -91,8 +91,6 @@
 		{% if messages %}extra = $('#message').html(){% endif %}
 		addHelpHint($('#mainplot'),'This lightcurve represents the combined measurements with many calibrators. We\'ve attempted to fit a mathematical model to the data to measure the dip in brightness and the length of the transit.');
 
-	//	{% if messages %} bubblePopup({id:'message',el:$('#mainplot'),fade:2000,dismiss:true,align:"center",w:200,animate:true,html:'<ul class="messages">{% for message in messages %}{%ifchanged%}<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>{%endifchanged%}{% endfor %}</ul>'});{% endif %}
-	{% else %}
 	{% endif %}
 	})
 	// -->
@@ -101,30 +99,21 @@
 
 {% block main-content %}
 	<div class="page stackedpaper">
-					{% if messages %}<div id="message">
-						<ul class="messages">
-{% for message in messages %}{%ifchanged%}		<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message|safe }}</li>{%endifchanged%}{% endfor %}
-						</ul>
-					</div>{% endif %}
 
-		<h1>Step 3: Final Lightcurve for <a href="{% url 'infoview' event.slug  %}" class="objectspecific">{{event.title}}</a></h1>
 
-{% if user.is_authenticated %}
+		<h1>Final Lightcurve for <a href="{% url 'infoview' event.slug  %}" class="objectspecific">{{event.title}}</a></h1>
+    <div style="padding:2px 10px;background-color:rgb(255,228,73);margin-bottom:8px;">
+      <p>Agent Exoplanet is no longer active - This is a legacy website. For more details <a href="https://lco.global/news/agent-exoplanet-comes-to-an-end/">see the announcement on the LCO website</a>.</p>
+    </div>
+    <p class="breadcrumb"></p>
 
-		<p class="breadcrumb"></p>
-		<div id="mylink" style="display:none;"><a href="{%url 'my-graph' event.slug %}"><img src="{% static 'images/graph_my.png' %}" alt="My" title="View my measurements as a lightcurve" /></a></div>
-		<div id="avlink" style="display:none;"><a href="{%url 'average-graph' event.slug %}"><img src="{% static 'images/graph_ave.png' %}" alt="Classify" title="Classify your lightcurves" /></a></div>
-		<div id="sulink" class="tabactive" style="display:none;"><a href="{%url 'super-graph' event.slug %}"><img src="{% static 'images/graph_super.png' %}" alt="Final" title="Final lightcurve" /></a></div>
-{% else %}
-		<p class="breadcrumb">You can contribute measurements to this lightcurve after <a href="{% url 'register' %}?next={{ request.path }}">creating an account.</a> If you already have an account <a href="{% url 'login' %}?next={{ request.path }}">log in</a></p>
-{% endif %}
 
 
 {% if data %}
 		<div id="relativesizes" class="accessible">
 			<br />
 			<h2>Relative sizes</h2>
-			<p>This cartoon shows the relative sizes of the star, planet and orbit based on the transit above. It assumes that we are seeing <span class="objectspecific">{{event.title}}</span>'s orbit edge on. The dip in brightness happens when the planet blocks the star.</h2>
+			<p>This cartoon shows the relative sizes of the star, planet and orbit based on the transit above. It assumes that we are seeing <span class="objectspecific">{{event.title}}</span>'s orbit edge on. The dip in brightness happens when the planet blocks the star.</p>
 			<div id="planetillustration"></div>
 			<div id="planetcomparison"></div>
 			<div id="planetillustration"></div>
@@ -204,9 +193,9 @@
 		    <a href="">Download the data for this lightcurve as a CSV file</a><br/>
 		<table class="accessible" id="datatable" summary="The data used to make the final lightcurve">
 			<tr><th>Observation date</th><th colspan="2">Relative brightness</th><th>Estimated uncertainty</th></tr>
-			<tr><th></th><th>Mine</th><th>Everyone</th><th></th></tr>
+			<tr><th></th><th>Combined data</th><th></th></tr>
 	{% for line in data %}
-			<tr><td><a href="{% url 'addvalue' line.id  %}">{{line.date}}</a></td><td>{{line.data.mine|floatformat:3}}</td><td>{{line.data.mean|floatformat:3}}</td><td>{{line.data.std|floatformat:3}}</td></tr>
+			<tr><td><a href="{% url 'addvalue' line.id  %}">{{line.date}}</a></td><td>{{line.data.mean|floatformat:3}}</td><td>{{line.data.std|floatformat:3}}</td></tr>
 	{% endfor %}
 		</table>
 		</div>

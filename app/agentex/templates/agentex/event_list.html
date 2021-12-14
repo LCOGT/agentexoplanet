@@ -17,11 +17,11 @@
 
 {% block main-content %}
 				<div class="page stackedpaper">
-{% if messages %}					<div id="message">
-						<ul class="messages">
-{% for message in messages %}{%ifchanged%}		<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message|safe }}</li>{%endifchanged%}{% endfor %}
-						</ul>
-					</div>{% endif %}
+          <div style="padding:2px 10px;background-color:rgb(255,228,73);margin-bottom:8px;">
+            <h1 class="objectspecific" style="margin-bottom:8px;">Mission End</h1>
+            <p>Agent Exoplanet is no longer active - This is a legacy website. For more details <a href="https://lco.global/news/agent-exoplanet-comes-to-an-end/">see the announcement on the LCO website</a>.</p>
+          </div>
+
 					<h1>Investigate a planet</h1>
 					<p>{% if user.is_authenticated %}Welcome <a href="{% url 'profile' %}">{% if user.first_name %}{{ user.first_name }}{% else %}{{user.username}}{% endif %}</a>, c{% else %}C{% endif %}lick on one of the planets below to begin your investigation.</p>
 					<ul class="polaroids">
