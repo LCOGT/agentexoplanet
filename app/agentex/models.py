@@ -159,6 +159,9 @@ class Event(models.Model):
     def __str__(self):
         return self.title
 
+    def get_absolute_url(self):
+        return '/target/%s/' % self.slug
+
 class DataSource(models.Model):
     fits = models.FileField(blank=True)
     image = models.FileField(blank=True, null=True)

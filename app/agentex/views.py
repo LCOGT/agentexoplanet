@@ -43,6 +43,7 @@ from time import mktime
 import json
 import logging
 import numpy as np
+from bakery.views import BuildableDetailView, BuildableListView, BuildableTemplateView
 
 from agentex.serializers import MeasurementSerializer, LightCurveSerializer
 from agentex.models import *
@@ -57,6 +58,7 @@ from agentex.utils import achievementunlock
 
 
 logger = logging.getLogger('agentex')
+
 
 class DataEntry(LoginRequiredMixin, DetailView):
     model = DataSource
@@ -98,19 +100,23 @@ class AddValuesView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class FinalLightCurve(LoginRequiredMixin, DetailView):
+class FinalLightCurve(BuildableDetailView):
     template_name = 'agentex/graph_step3.html'
     model = Event
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         planet = self.get_object()
-        ds = Dataset(planetid=planet.slug, userid=self.request.user)
+        ds = Dataset(planetid=planet.slug, userid='admin')
         context['data'] = ds.final()
         my_data, points, num_cals = ds.my_data()
         context['my_data'] = my_data
         context['orbital_r_km'] = planet.ap*1.49e8
         return context
+
+    def get_url(self, *args):
+
+        return "target/%s/lightcurve/" % args[0].slug
 
 def index(request):
     #return render_to_response('agentex/index.html', context_instance=RequestContext(request))
@@ -507,3 +513,21 @@ def update_cat_sources(username,planetcode):
         else:
             dc.source=None
         dc.save()
+
+class BakeEventsList(BuildableListView):
+    model = Event
+    queryset = Event.objects.filter(enabled=True).order_by('-pk')
+    template_name = 'agentex/event_list.html'
+    build_path = 'planets/index.html'
+
+class BakePlanetDetail(BuildableDetailView):
+    model = Event
+    template_name = 'agentex/event_detail.html'
+
+class BakeBreifingView(BuildableTemplateView):
+    build_path = 'briefing/index.html'
+    template_name = 'agentex/briefing.html'
+
+class BakeIndexView(BuildableTemplateView):
+    build_path = 'index.html'
+    template_name = 'agentex/index.html'

@@ -112,8 +112,11 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'agentex.apps.AgentConfig',
-    'storages'
+    'storages',
+    'bakery'
 )
+
+BUILD_DIR = os.path.join(BASE_DIR,'public')
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'agentex', 'static'),
@@ -121,11 +124,20 @@ STATICFILES_DIRS = [
 
 # Static files are on the local filesystem by default
 STATIC_URL = '/static/'
-STATIC_ROOT = '/static/'
+STATIC_ROOT = os.path.join(BUILD_DIR,'static')
 
 # Media files are on the local filesystem by default
 MEDIA_URL = '/images/'
-MEDIA_ROOT = '/images/'
+
+MEDIA_ROOT = os.path.join(BUILD_DIR,'images')
+
+BAKERY_VIEWS = (
+    'agentex.views.BakeEventsList',
+    'agentex.views.BakePlanetDetail',
+    'agentex.views.BakeBreifingView',
+    'agentex.views.BakeIndexView',
+    'agentex.views.FinalLightCurve'
+)
 
 # AWS S3 is another supported option for media files
 if ast.literal_eval(os.getenv('USE_S3', 'False')):

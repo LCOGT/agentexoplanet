@@ -17,9 +17,6 @@
 			<img src="{% static 'images/paperclip.png' %}" class="paperclip" alt="." />
 			<p class="objectspecific">Digital Sky Survey 2</p>
 		</div>
-		<div id="mylink" style="display:none;"><a href="{% url 'my-graph' object.slug %}"><img src="{% static 'images/graph_my.png' %}" alt="My" title="View my measurements as a lightcurve" /></a></div>
-		<div id="avlink" style="display:none;"><a href="{% url 'average-graph' object.slug %}"><img src="{% static 'images/graph_ave.png' %}" alt="Classify" title="Classify your lightcurves" /></a></div>
-		<div id="sulink" style="display:none;"><a href="{%url 'super-graph' object.slug%}"><img src="{% static 'images/graph_super.png' %}" alt="Final" title="Final lightcurve" /></a></div>
 		<div class="title">
 			<h1>Name: <span class="objectspecific">{{object.title}}</span></h1>
 		</div>
@@ -73,16 +70,15 @@
 				<td><a href="http://simbad.u-strasbg.fr/simbad/sim-id?Ident={{object.slug}}">Host star</a></td>
 			</tr>
 
-			</tbody></table>
+			</table>
 		</div>
 		<div class="column">
-		    {% if progress.done < progress.total or not user.is_authenticated %}
-			<a href="{% url 'next_addvalue' object.slug %}" class="fancybtn">Analyze images for this exoplanet<span class="arrow">&nbsp;</span></a>
-			{% endif %}
 			<a href="{% url 'super-graph' object.slug %}" class="fancybtn">View combined light-curve graph<span class="arrow">&nbsp;</span></a>
 		</div>
 		<div class="lower">
+      {% if object.data_download %}
       <a href="{{object.data_download.url}}">Download this dataset ({{object.download_size}} Mb)</a>
+      {% endif %}
     </div>
 	</div>
 </div>

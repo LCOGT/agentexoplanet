@@ -52,6 +52,7 @@ class Dataset(object):
         return cals,sc,bg,time,ids,cats
 
     def final(self):
+        print(self.planet)
         normvals = AverageSet.objects.get(planet=self.planet,settype='F').data
         std = AverageSet.objects.get(planet=self.planet,settype='E').data
         sources = DataSource.objects.filter(event=self.planet).order_by('timestamp')
